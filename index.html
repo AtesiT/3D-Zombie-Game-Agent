@@ -113,6 +113,8 @@ body{
 .overlay{position:fixed;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;
   background:radial-gradient(ellipse at center,rgba(12,4,4,.8),rgba(0,0,0,.95));backdrop-filter:blur(3px)}
 .overlay.hidden{display:none}
+#overlayStart{align-items:flex-start;overflow-y:auto;padding:2vh 0}
+#overlayStart .panel{margin:auto}
 .panel{width:min(760px,92vw);padding:32px 38px;border-radius:10px;text-align:center;
   border:1px solid rgba(255,80,60,.22);background:linear-gradient(180deg,rgba(22,7,7,.92),rgba(6,4,4,.94));
   box-shadow:inset 0 0 70px rgba(120,0,0,.3),0 24px 70px rgba(0,0,0,.75)}
@@ -168,6 +170,10 @@ kbd{display:inline-block;min-width:26px;padding:2px 8px;border-radius:4px;backgr
 .diffbtn{pointer-events:auto;cursor:pointer;font:inherit;font-size:12.5px;padding:5px 12px;border-radius:5px;
   background:#1b1f23;border:1px solid #3a4147;color:#cfd6da}
 .diffbtn.on{background:linear-gradient(180deg,#c9241b,#7c130c);border-color:#ff6a52;color:#fff}
+.bindgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;margin-top:8px}
+.bindkey{pointer-events:auto;cursor:pointer;text-align:left;border:1px solid #343b40;border-radius:4px;background:#14191d;color:#c7d0d4;padding:6px 8px;font:12px Arial}
+.bindkey.pending{border-color:#ffd071;color:#ffd071;animation:bannerPop2 .5s infinite alternate}
+#modeTimer{position:absolute;top:98px;left:50%;transform:translateX(-50%);font:bold 17px Consolas,monospace;color:#ffd071;text-shadow:0 2px 10px #000}
 
 /* ---------- мобильное управление ---------- */
 #touchUI{position:fixed;inset:0;z-index:30;pointer-events:none;display:none}
@@ -187,6 +193,8 @@ kbd{display:inline-block;min-width:26px;padding:2px 8px;border-radius:4px;backgr
 #tGren{right:132px;bottom:80px}
 #tSwitch{right:210px;bottom:120px}
 #tAim{right:210px;bottom:210px}
+#tMelee{right:26px;bottom:38px;width:60px;height:60px}
+#tAlt{right:96px;bottom:35px;width:60px;height:60px}
 #tJump{display:none}
 
 /* ---------- экран победы ---------- */
@@ -225,6 +233,7 @@ kbd{display:inline-block;min-width:26px;padding:2px 8px;border-radius:4px;backgr
     <div id="waveLeft">осталось: 0</div>
   </div>
 
+  <div id="modeTimer" style="display:none">03:00</div>
   <div id="perks"></div>
   <div id="powerRow"></div>
   <div id="coopInfo" style="display:none">КООП: напарник ?</div>
@@ -245,6 +254,8 @@ kbd{display:inline-block;min-width:26px;padding:2px 8px;border-radius:4px;backgr
   <div class="tbtn" id="tGren">G<br>ГРАНАТА</div>
   <div class="tbtn" id="tSwitch">1/2<br>ОРУЖИЕ</div>
   <div class="tbtn" id="tAim">ПРИ-<br>ЦЕЛ</div>
+  <div class="tbtn" id="tMelee">НОЖ</div>
+  <div class="tbtn" id="tAlt">ALT</div>
 </div>
 
 <div id="vignette"></div>
@@ -267,6 +278,8 @@ kbd{display:inline-block;min-width:26px;padding:2px 8px;border-radius:4px;backgr
       <span><kbd>R</kbd></span><span>перезарядка</span>
       <span><kbd>F</kbd></span><span>двери, покупки, перки, ящик, Pack-a-Punch, окна</span>
       <span><kbd>G</kbd></span><span>граната</span>
+      <span><kbd>V</kbd></span><span>удар ножом</span>
+      <span><kbd>B</kbd></span><span>альтернативный огонь</span>
       <span><kbd>1</kbd><kbd>2</kbd></span><span>слоты оружия</span>
       <span><kbd>Shift</kbd></span><span>бег</span>
       <span><kbd>ПКМ</kbd></span><span>прицеливание (меньше разброс)</span>
@@ -300,6 +313,21 @@ kbd{display:inline-block;min-width:26px;padding:2px 8px;border-radius:4px;backgr
         <input type="range" id="twSpawn" min="50" max="200" value="100"><span id="twSpawnV">100%</span></div>
       <div class="slider"><span style="width:auto">Очки за убийство</span>
         <input type="range" id="twPoints" min="50" max="300" value="100"><span id="twPointsV">100%</span></div>
+      <div class="slider"><span style="width:auto">Карта</span>
+        <select id="mapPick" style="background:#151a1f;color:#ffd071;border:1px solid #454c52;padding:5px;border-radius:4px">
+          <option value="nacht">Nacht — бункер и аэродром</option>
+          <option value="snow">Снежный аэродром — процедурная погода</option>
+        </select></div>
+      <div class="slider"><span style="width:auto">Режим</span>
+        <select id="modePick" style="background:#151a1f;color:#ffd071;border:1px solid #454c52;padding:5px;border-radius:4px">
+          <option value="survival">Выживание</option>
+          <option value="timed">Забег на 3 минуты</option>
+          <option value="daily">Ежедневное испытание</option>
+        </select></div>
+      <div class="slider"><span style="width:auto">Графика</span>
+        <select id="qualityPick" style="background:#151a1f;color:#ffd071;border:1px solid #454c52;padding:5px;border-radius:4px">
+          <option value="high">Высокая</option><option value="medium">Средняя</option><option value="low">Производительная</option>
+        </select></div>
       <div class="diffbtns" style="margin-top:6px">
         <span style="font-size:13px;color:#c6ccd0;margin-right:6px">Сложность:</span>
         <button class="diffbtn" data-diff="easy">Легко</button>
@@ -307,12 +335,25 @@ kbd{display:inline-block;min-width:26px;padding:2px 8px;border-radius:4px;backgr
         <button class="diffbtn" data-diff="hard">Хардкор</button>
       </div>
     </div>
+    <details class="card" style="margin:0 0 14px;text-align:left">
+      <summary style="cursor:pointer;color:#d8c08f;font-size:13px">Настройка клавиш и рекорды сервера</summary>
+      <div id="keyBindings" class="bindgrid"></div>
+      <h4 style="margin-top:12px">Кнопки геймпада (нажмите кнопку на контроллере)</h4>
+      <div id="padBindings" class="bindgrid"></div>
+      <div class="slider" style="margin-top:8px"><span style="width:auto">Код комнаты коопа</span>
+        <input id="roomCode" type="text" maxlength="18" value="NACHT" style="min-width:120px;flex:0;background:#151a1f;color:#ffd071;border:1px solid #454c52;padding:5px;border-radius:4px"></div>
+      <div class="slider"><span style="width:auto">Имя в таблице</span>
+        <input id="playerName" type="text" maxlength="16" value="Игрок" style="min-width:120px;flex:0;background:#151a1f;color:#ffd071;border:1px solid #454c52;padding:5px;border-radius:4px"></div>
+      <div id="onlineScores" class="rec" style="display:block;margin-top:6px">Локальная таблица рекордов</div>
+      <button class="diffbtn" id="btnLeaderboard" type="button">Обновить онлайн-таблицу</button>
+    </details>
     <button class="btn" id="btnStart">Начать бой</button>
-    <button class="btn" id="btnCoop" style="margin-left:10px;background:linear-gradient(180deg,#1d5f8a,#0e3450)">Кооп (2-е окно)</button>
+    <button class="btn" id="btnResume" style="display:none;margin-left:8px;background:linear-gradient(180deg,#526542,#31412a)">Продолжить забег</button>
+    <button class="btn" id="btnCoop" style="margin-left:10px;background:linear-gradient(180deg,#1d5f8a,#0e3450)">Сетевой кооп</button>
     <div class="hint" id="startHint">Клик по экрану захватывает курсор (Pointer Lock).
       Если браузер не разрешает захват (например, страница открыта во фрейме) — автоматически
-      включится резервный режим обзора мышью и клавишами Q/E. Кооп работает между двумя окнами
-      одного браузера (или вкладками) через BroadcastChannel.</div>
+      включится резервный режим обзора мышью и клавишами Q/E. Кооп поддерживает BroadcastChannel
+      в соседней вкладке и онлайн-комнаты через локальный WebSocket-сервер.</div>
   </div>
 </div>
 
@@ -384,6 +425,11 @@ const PLAYER_R  = 0.42;   // радиус коллизии игрока
 const ZOMBIE_R  = 0.5;    // радиус коллизии зомби
 const START_POINTS = 500; // стартовые очки (хватает на первый апгрейд после пары убийств)
 const ZOMBIE_DMG_BASE = 12;
+let MAP_VARIANT='nacht';                       // ночная карта | снежный аэродром
+let MAP_SEED=1945;
+let MODE_SELECT='survival';
+let QUALITY='high';
+let DAILY_ACTIVE=false;                            // меняется вместе с испытанием дня
 
 /* --- Оружие: урон, темп, магазины, цена покупки на стене --- */
 const WEAPONS = {
@@ -559,6 +605,26 @@ function makeFloorTexture(){
   x.beginPath(); x.moveTo(0,128); x.lineTo(256,128); x.moveTo(128,0); x.lineTo(128,256); x.stroke();
   return finishTexture(c,24,20);
 }
+/** Грязь, трава и следы шин для аэродромного двора */
+function makeYardTexture(){
+  const c=makeCanvas(512,512),x=c.getContext('2d');
+  x.fillStyle='#3a4035'; x.fillRect(0,0,512,512);
+  addNoise(x,512,512,18000,0.02,0.18,1,4);
+  addStains(x,512,512,80,'20,24,18',18,95,0.24);
+  addStains(x,512,512,55,'105,89,56',8,45,0.12);
+  // тусклые следы шин и грязевые борозды
+  x.strokeStyle='rgba(18,20,17,.24)'; x.lineWidth=11;
+  for(let i=0;i<5;i++){
+    x.beginPath(); x.moveTo(45+i*82,0); x.bezierCurveTo(35+i*82,140,70+i*82,300,25+i*82,512); x.stroke();
+  }
+  x.strokeStyle='rgba(146,135,99,.1)'; x.lineWidth=3;
+  for(let i=0;i<24;i++){
+    const px=rand(0,512),py=rand(0,512);
+    x.beginPath(); x.moveTo(px,py); x.lineTo(px+rand(-70,70),py+rand(-24,24)); x.stroke();
+  }
+  return finishTexture(c,1,1);
+}
+
 /** Потолок */
 function makeCeilingTexture(){
   const c = makeCanvas(128,128), x = c.getContext('2d');
@@ -613,7 +679,7 @@ function drawWeaponSilhouette(x, kind, cx, cy){
     R(-24,6,18,44);      // магазин
     R(-4,8,16,26);       // рукоять
     R(6,-24,26,12);      // прицел
-  } else { // shotgun
+  } else { // дробовик
     R(-70,-8,146,14);    // ствол
     R(-104,-6,34,18);    // приклад (дерево)
     R(-30,-14,44,22);    // ствольная коробка
@@ -845,6 +911,9 @@ const SFX = {
   valve(){ this.tone(180, 0.5, 'square', 0.12, 0, 90); this.noise(0.5, 0.16, 'bandpass', 500, 2, 0, 200); },
   hammer(){ this.noise(0.09, 0.3, 'bandpass', 1500, 3); this.tone(420, 0.07, 'square', 0.12, 0, 200); },
   burstPlanks(){ this.noise(0.3, 0.34, 'bandpass', 800, 2, 0, 200); this.tone(140, 0.12, 'square', 0.1, 0, 70); },
+  knife(){ this.noise(0.12,0.24,'highpass',1700,2,0,500); this.tone(260,0.08,'sawtooth',0.12,0,90); },
+  secondary(){ this.tone(980,0.12,'square',0.19,0,220); this.noise(0.16,0.2,'bandpass',2100,2,0,520); },
+  elevator(){ this.tone(110,1.0,'sawtooth',0.14,0,35); this.noise(0.9,0.1,'bandpass',420,2,0,160); },
   packAPunch(){
     this.tone(160, 0.7, 'sawtooth', 0.2, 0, 320);
     this.tone(880, 0.3, 'triangle', 0.18, 0.35);
@@ -868,8 +937,8 @@ canvasHost.appendChild(renderer.domElement);
 
 /* --- Основная сцена (мир) --- */
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x05070a);
-scene.fog = new THREE.Fog(0x05070a, 12, 46);   // туман: зомби «выныривают» из темноты
+scene.background = new THREE.Color(0x131d29);
+scene.fog = new THREE.Fog(0x131d29, 24, 105);   // дымка аэродрома вместо чёрной пустоты
 
 const camera = new THREE.PerspectiveCamera(74, window.innerWidth/window.innerHeight, 0.05, 200);
 camera.position.set(0, EYE, 0);
@@ -887,8 +956,12 @@ gunFillLight.position.set(-0.9, 0.1, 0.7);
 weaponScene.add(gunFillLight);
 
 /* --- Свет мира --- */
-const ambient = new THREE.AmbientLight(0xa8b6cc, 0.075);   // «еле теплится»
+const ambient = new THREE.AmbientLight(0xa8b6cc, 0.15);   // сохраняем мрачность, но читаем силуэты
 scene.add(ambient);
+const skyFill = new THREE.HemisphereLight(0x7185a1,0x24231c,0.32);
+scene.add(skyFill);
+const moonFill = new THREE.DirectionalLight(0x9aaac4,0.38);
+moonFill.position.set(-35,48,-20);scene.add(moonFill);
 
 const flashlight = new THREE.SpotLight(0xf2f0e4, 1.5, 30, Math.PI/6.5, 0.45, 1.2); // фонарик игрока
 flashlight.position.set(0, EYE, 0);
@@ -971,7 +1044,7 @@ function buildViewWeapon(id){
     const stockW = box(0.04,0.07,0.2, MAT.metal); stockW.position.set(0,-0.01,0.25); g.add(stockW);
     muzzle.set(0,0.012,-0.42);
   }
-  else { // shotgun
+  else { // дробовик
     const bbl   = cyl(0.021,0.021,0.62, MAT.metal); bbl.rotation.x = Math.PI/2; bbl.position.set(0,0.03,-0.22); g.add(bbl);
     const tube  = cyl(0.017,0.017,0.44, MAT.dark);  tube.rotation.x = Math.PI/2; tube.position.set(0,-0.028,-0.14); g.add(tube);
     const recv  = box(0.075,0.1,0.24, MAT.metal);   recv.position.set(0,0,0.08); g.add(recv);
@@ -986,13 +1059,13 @@ function buildViewWeapon(id){
 /** Обёртка: модель в руках + позиции «от бедра» и «по прицелу» */
 function createViewModel(id){
   const built = buildViewWeapon(id);
-  const holder = new THREE.Group();       // holder → bob/отдача, внутри — модель
+  const holder = new THREE.Group();       // держатель → покачивание/отдача, внутри — модель
   holder.add(built.group);
   weaponScene.add(holder);
 
   const hip = { p:new THREE.Vector3(), r:new THREE.Vector3() };   // «от бедра»
   const ads = { p:new THREE.Vector3(), r:new THREE.Vector3() };   // «по прицелу»
-  // важно: модель не должна «уходить» за камеру (иначе near-plane обрежет приклад)
+  // Важно: модель не должна уходить за ближнюю плоскость камеры, иначе приклад обрежется.
   if (id === 'pistol'){
     hip.p.set(0.20,-0.155,-0.30);  hip.r.set(0.02,-0.10,0.03);
     ads.p.set(0.0,-0.075,-0.28);   ads.r.set(0.0,0.0,0.0);
@@ -1027,6 +1100,8 @@ var TX = {
   blood: makeDotTexture('rgba(150,10,10,1)','rgba(90,4,4,.7)', 0.42),
   dust : makeDotTexture('rgba(190,190,180,1)','rgba(120,120,110,.5)', 0.45)
 };
+// Общие процедурные текстуры переживают рестарт и повторное построение сцены.
+for(const tex of Object.values(TX)) if(tex)tex.__shared=true;
 
 /* ============================================================
    7. КАРТА: ЗОНЫ, ДВЕРИ, ПОКУПКИ НА СТЕНАХ, ТОЧКИ СПАВНА
@@ -1039,108 +1114,144 @@ var TX = {
 const WALL_TEX = makeWallTexture();
 const FLOOR_TEX = makeFloorTexture();
 const CEIL_TEX = makeCeilingTexture();
+const YARD_TEX = makeYardTexture();
+for(const tex of [WALL_TEX,FLOOR_TEX,CEIL_TEX,YARD_TEX]) tex.__shared=true;
 
 const ZONE_DEFS = [
+  /* Стартовая комната на первом этаже: пять окон, дверь в Help и завал к лестнице */
   {
-    id:'start', name:'БЛОК «Б» — ХОЛЛ', ox:0, oz:0, grid:[
-      '##############',
+    id:'start', name:'КОМНАТА РОЖДЕНИЯ', ox:0, oz:0, floorY:0, grid:[
+      '######D#######',
       '#............#',
+      '#............#',
+      '#............#',
+      '#............D',
       '#............#',
       '#............#',
       '#............#',
       '#............#',
       '##############'
     ],
-    props:[ {t:'crate',  x:10.5, z:1.5}, {t:'crate', x:3.6, z:4.6},
-            {t:'barrel', x:1.8,  z:4.6}, {t:'barrel', x:11.7, z:4.7} ],
-    lamp:{ x:7, z:3.5, color:0xffd9a0, intensity:1.15 }
+    props:[ {t:'crate',x:3.2,z:3.3}, {t:'crate',x:10.2,z:2.4},
+            {t:'barrel',x:2.0,z:7.2}, {t:'barrel',x:11.5,z:6.5} ],
+    lamp:{ x:7, z:4.5, color:0xffd9a0, intensity:1.0, flicker:0.35 }
   },
+  /* «Help!» — маленькая комната с ящиком тайн, выходом во двор и лестницей наверх */
   {
-    id:'d1', name:'СЕВЕРНЫЙ КОРИДОР', ox:0, oz:-8, grid:[
-      '##############',
-      '#............#',
-      '#...##.......#',
-      '#...#........#',
-      '#...#........#',
-      '#............#',
-      '#............#',
-      '######.######'
-    ],
-    props:[ {t:'crate', x:11.5, z:2}, {t:'crate', x:11.5, z:3.3}, {t:'crate', x:10.2, z:2.6},
-            {t:'barrel', x:1.4, z:2.2}, {t:'barrel', x:6.4, z:5.5}, {t:'barrel', x:1.5, z:5.6} ],
-    lamp:{ x:6, z:3.2, color:0xffcf90, intensity:0.85, flicker:0.5 }
-  },
-  {
-    id:'d2', name:'ОРУЖЕЙНАЯ', ox:14, oz:0, grid:[
-      '########',
-      '#......#',
-      '#......#',
-      '#......#',
-      '#..##..#',
-      '#......#',
-      '#......#',
-      '########'
-    ],
-    props:[ {t:'crate', x:6.4, z:1.4}, {t:'crate', x:6.4, z:2.4},
-            {t:'barrel', x:1.4, z:1.4}, {t:'barrel', x:1.4, z:6.4} ],
-    lamp:{ x:3.5, z:3.5, color:0xcfe3ff, intensity:0.8, flicker:0.8 }
-  },
-  {
-    id:'d3', name:'ЛАБОРАТОРИЯ', ox:8, oz:7, grid:[
+    id:'d1', name:'КОМНАТА «HELP!»', ox:14, oz:0, floorY:0, grid:[
       '##########',
       '#........#',
       '#........#',
-      '#...##...#',
-      '#...##...#',
+      '#........#',
+      '.........D',
+      '#........#',
+      '#........#',
       '#........#',
       '#........#',
       '##########'
     ],
-    props:[ {t:'crate', x:1.4, z:1.4}, {t:'crate', x:8.5, z:6.5}, {t:'barrel', x:8.5, z:1.4} ],
-    lamp:{ x:5, z:4, color:0x9fffc0, intensity:0.75, flicker:1.0 }
+    props:[ {t:'crate',x:2.2,z:2.3}, {t:'crate',x:6.7,z:6.8},
+            {t:'barrel',x:7.8,z:2.0} ],
+    lamp:{ x:5, z:4.5, color:0xffc879, intensity:0.9, flicker:0.75 }
   },
+  /* Первый этаж стекается прямо под западной половиной верхнего помещения */
   {
-    id:'d4', name:'РЕАКТОРНЫЙ ЗАЛ', ox:8, oz:-16, grid:[
-      '############',
-      '#..........#',
-      '#..........#',
-      '#....##....#',
-      '#....##....#',
-      '#..........#',
-      '#..........#',
-      '##.#########'
+    id:'d2', name:'ВЕРХНИЙ ЭТАЖ — ЗАПАД', ox:0, oz:0, floorY:4, ceiling:true, grid:[
+      '##############',
+      '#............#',
+      '#............#',
+      '#............#',
+      '#............D',
+      '#............#',
+      '#............#',
+      '#............#',
+      '#............#',
+      '##############'
     ],
-    props:[ {t:'crate', x:2.4, z:1.4}, {t:'crate', x:9.5, z:6.5},
-            {t:'barrel', x:9.5, z:1.4}, {t:'barrel', x:2.4, z:6.5} ],
-    lamp:{ x:5.5, z:4, color:0xff9a6a, intensity:1.0, flicker:1.3 }
+    props:[ {t:'crate',x:2.4,z:2.1}, {t:'crate',x:10.5,z:6.7},
+            {t:'barrel',x:2.0,z:6.6} ],
+    lamp:{ x:6, z:4.5, color:0xb7d5ff, intensity:0.75, flicker:0.6 }
+  },
+  /* Восточная половина второго этажа, над комнатой HELP */
+  {
+    id:'d3', name:'ВЕРХНИЙ ЭТАЖ — ВОСТОК', ox:14, oz:0, floorY:4, ceiling:true, grid:[
+      '##########',
+      '#........#',
+      '#........#',
+      '#........#',
+      '.........#',
+      '#........#',
+      '#........#',
+      '#........#',
+      '#........#',
+      '##########'
+    ],
+    props:[ {t:'crate',x:2.1,z:2.2}, {t:'crate',x:7.4,z:7.0},
+            {t:'barrel',x:7.8,z:2.0} ],
+    lamp:{ x:5, z:4.5, color:0xd1deff, intensity:0.8, flicker:0.8 }
+  },
+  /* Ограниченный, но свободно исследуемый аэродромный двор за дверью Help */
+  {
+    id:'d4', name:'ДВОР АЭРОДРОМА', ox:24, oz:-4, floorY:0, outdoor:true, noCeiling:true, grid:[
+      '########################',
+      '#......................#',
+      '#......................#',
+      '#......................#',
+      '#......................#',
+      '#......................#',
+      '#......................#',
+      '#......................#',
+      '.......................#',
+      '#......................#',
+      '#......................#',
+      '#......................#',
+      '#......................#',
+      '#......................#',
+      '#......................#',
+      '#......................#',
+      '#......................#',
+      '#......................#',
+      '#......................#',
+      '########################'
+    ],
+    props:[ {t:'crate',x:4.0,z:3.0}, {t:'barrel',x:6.0,z:13.0},
+            {t:'crate',x:18.0,z:14.0}, {t:'barrel',x:20.0,z:5.0} ],
+    lamp:{ x:12, z:8, color:0xffb86b, intensity:1.1, flicker:0.2 }
   }
 ];
 
-/* Двери: цена открытия и зона, которую они открывают */
+/* Двери и завалы: короткие развилки в духе первой карты Zombies */
 const DOOR_DEFS = [
-  { id:'d1', zone:'start', cx:6,  cz:0, horiz:true,  price:750,  to:'d1', in:[0, 1] },
-  { id:'d2', zone:'start', cx:13, cz:3, horiz:false, price:1250, to:'d2', in:[-1,0] },
-  { id:'d3', zone:'start', cx:9,  cz:6, horiz:true,  price:1750, to:'d3', in:[0,-1] },
-  { id:'d4', zone:'d1',    cx:10, cz:0, horiz:true,  price:2000, to:'d4', in:[0, 1] }
+  { id:'d1', zone:'start', cx:13, cz:4, horiz:false, price:1000, to:'d1', in:[-1,0] },
+  { id:'d2', zone:'start', cx:6,  cz:7, horiz:true,  price:1000, to:'d2', in:[0,1], stair:true },
+  { id:'d3', zone:'d2',    cx:13, cz:4, horiz:false, price:750,  to:'d3', in:[-1,0], floorY:4 },
+  { id:'d4', zone:'d1',    cx:9,  cz:4, horiz:false, price:1000, to:'d4', in:[-1,0] }
 ];
 
-/* Постеры покупки оружия на стенах: dir — нормаль (в сторону комнаты) */
+/* Настенные покупки — карабины/дробовики в стилистике 1940-х */
 const BUY_DEFS = [
-  { zone:'start', cx:2, cz:6, dir:[0,-1],  weapon:'pistol', cost:500 },  // докупить патроны M1911
-  { zone:'start', cx:0, cz:3, dir:[1,0],   weapon:'smg'     },  // 1000 — автомат
-  { zone:'d1',    cx:4, cz:3, dir:[1,0],   weapon:'shotgun' },  // 1500 — дробовик
-  { zone:'d2',    cx:7, cz:4, dir:[-1,0],  weapon:'smg'     },  // запасной магазин автомата (в оружейной)
-  { zone:'d3',    cx:0, cz:4, dir:[1,0],   weapon:'shotgun' }   // дробовик в лаборатории
+  { zone:'start', cx:2, cz:9, dir:[0,-1], weapon:'pistol', cost:500 },
+  { zone:'start', cx:0, cz:3, dir:[1,0],  weapon:'smg' },
+  { zone:'d1',    cx:8, cz:9, dir:[0,-1], weapon:'shotgun' },
+  { zone:'d2',    cx:0, cz:2, dir:[1,0], weapon:'shotgun' },
+  { zone:'d3',    cx:9, cz:7, dir:[-1,0], weapon:'smg' }
 ];
 
-/* Точки спавна зомби (локальные клетки зоны) */
+/* Точки спавна: окна дома, верхний этаж и двор */
 const SPAWN_DEFS = [
-  { zone:'start', cells:[[1,1],[12,1],[1,5],[12,5]] },
-  { zone:'d1',    cells:[[1,1],[12,1],[12,6],[1,6],[8,1]] },
-  { zone:'d2',    cells:[[1,1],[6,6],[1,6],[6,1]] },
-  { zone:'d3',    cells:[[1,1],[8,6],[1,6],[8,1]] },
-  { zone:'d4',    cells:[[1,1],[10,6],[1,6],[10,1]] }
+  { zone:'start', cells:[[1,1],[12,1],[1,8],[12,8],[6,8]] },
+  { zone:'d1',    cells:[[1,1],[8,1],[1,8],[8,8]] },
+  { zone:'d2',    cells:[[1,1],[12,1],[1,8],[12,8],[8,3]] },
+  { zone:'d3',    cells:[[1,1],[8,1],[1,8],[8,8]] },
+  { zone:'d4',    cells:[[2,2],[20,2],[2,17],[21,17],[12,10],[18,9]] }
 ];
+
+/* Длинная лестница: подъём на 4 м сквозь шахту во внутреннем дворе */
+const STAIR={minX:11.0,maxX:13.0,lowZ:14,highZ:1,lowY:0,highY:4};
+/** Поверхность лифтовой площадки во дворе */
+const YARD_DECK={minX:82,maxX:94,minZ:0,maxZ:16,y:4};
+const ELEVATOR={x:88,z:8,y:0,target:0,speed:2.2,rider:false,platform:null,dev:null,deck:null};
+const YARD_VISUALS={grass:null,grassMax:360,rocks:null,snow:null};
 
 /* ============================================================
    7.1 УСТРОЙСТВА МИРА: перки, ящик тайн, Pack-a-Punch, ловушки,
@@ -1203,10 +1314,11 @@ const DEV_TEX = {
 function makeDevice(kind, zone, cx, cz, dir, extra){
   const z = MAP.zones[zone];
   const wx = (cx + z.ox)*TILE, wz = (cz + z.oz)*TILE;
+  const floorY = floorHeightAt(wx,wz,z.floorY||0);
   const dev = Object.assign({
-    kind, zone, cx, cz, dir, wx, wz,
-    pos: new THREE.Vector3(wx + (dir?dir[0]*1.3:0), EYE, wz + (dir?dir[1]*1.3:0)),
-    anchor: new THREE.Vector3(wx + (dir?dir[0]*0.7:0), 2.4, wz + (dir?dir[1]*0.7:0))
+    kind, zone, cx, cz, dir, wx, wz, floorY,
+    pos: new THREE.Vector3(wx + (dir?dir[0]*1.3:0), EYE+floorY, wz + (dir?dir[1]*1.3:0)),
+    anchor: new THREE.Vector3(wx + (dir?dir[0]*0.7:0), floorY+2.4, wz + (dir?dir[1]*0.7:0))
   }, extra || {});
   const el = document.createElement('div');
   el.className = 'wlabel machine';
@@ -1234,6 +1346,7 @@ function deviceUsable(d){
     case 'radio':  return !d.played;
     case 'valve':  return !d.turned;
     case 'teleporter': return EASTER.energized;
+    case 'elevator': return !ELEVATOR.rider;
   }
   return false;
 }
@@ -1251,6 +1364,7 @@ function deviceText(d){
     case 'radio':  return d.played ? 'Радио замолчало' : 'Радио: нажмите F';
     case 'valve':  return d.turned ? 'Вентиль открыт' : 'Вентиль топлива: F';
     case 'teleporter': return EASTER.energized ? 'ТЕЛЕПОРТ ЗАРЯЖЕН — F' : 'Телепорт обесточен';
+    case 'elevator': return ELEVATOR.y<2 ? 'Лифт на наблюдательную площадку — F' : 'Лифт: спуститься во двор — F';
   }
   return '';
 }
@@ -1278,6 +1392,7 @@ function useDevice(d){
     case 'radio': useRadio(d); break;
     case 'valve': turnValve(d); break;
     case 'teleporter': useTeleporter(); break;
+    case 'elevator': callElevator(d); break;
   }
   updateHUD();
 }
@@ -1286,10 +1401,10 @@ function useDevice(d){
 function buildPerkMachines(){
   const defs = [
     { perk:'revive', zone:'start', cx:0,  cz:5, dir:[1,0] },
-    { perk:'jugg',   zone:'d2',    cx:7,  cz:4, dir:[-1,0] },
-    { perk:'dtap',   zone:'d3',    cx:9,  cz:4, dir:[-1,0] },
-    { perk:'speed',  zone:'d1',    cx:4,  cz:7, dir:[0,-1] },
-    { perk:'stamin', zone:'d4',    cx:0,  cz:4, dir:[1,0] }
+    { perk:'jugg',   zone:'d1',    cx:8,  cz:2, dir:[-1,0] },
+    { perk:'dtap',   zone:'d3',    cx:8,  cz:7, dir:[-1,0] },
+    { perk:'speed',  zone:'d2',    cx:4,  cz:8, dir:[0,-1] },
+    { perk:'stamin', zone:'d4',    cx:2,  cz:11,dir:[1,0] }
   ];
   for (const p of defs){
     const dev = makeDevice('perk', p.zone, p.cx, p.cz, p.dir, { perk:p.perk, price:PERK_DEFS[p.perk].price });
@@ -1304,17 +1419,17 @@ function buildPerkMachines(){
         new THREE.MeshLambertMaterial({ map:tex }),
         new THREE.MeshLambertMaterial({ color:0x1a1d21 }) ]
     );
-    body.position.set(dev.wx + p.dir[0]*0.36, 1.03, dev.wz + p.dir[1]*0.36);
+    body.position.set(dev.wx + p.dir[0]*0.36, dev.floorY+1.03, dev.wz + p.dir[1]*0.36);
     body.rotation.y = Math.atan2(p.dir[0], p.dir[1]);
     scene.add(body);
     // коллайдер
     MAP.propRects.push({
       minX: body.position.x-0.58, maxX: body.position.x+0.58,
-      minZ: body.position.z-0.58, maxZ: body.position.z+0.58
+      minZ: body.position.z-0.58, maxZ: body.position.z+0.58, floorY:dev.floorY
     });
     // «бутылка» перка наверху
     const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.13, 8, 6), new THREE.MeshBasicMaterial({ color:col }));
-    bulb.position.set(body.position.x, 2.16, body.position.z);
+    bulb.position.set(body.position.x, dev.floorY+2.16, body.position.z);
     bulb.userData.noRay = true;
     scene.add(bulb);
     dev.mesh = body; dev.bulb = bulb;
@@ -1329,12 +1444,12 @@ function markPerkMachine(d){
 /* ---------- Ящик тайн (Mystery Box) ---------- */
 const BOX = { rolling:false, endAt:0, rollSound:0, dev:null };
 function buildMysteryBox(){
-  const dev = makeDevice('box', 'start', 8, 3, null, { cooldownEnd:0 });
+  const dev = makeDevice('box', 'd1', 6, 6, null, { cooldownEnd:0 });
   const base = new THREE.Mesh(new THREE.BoxGeometry(1.35, 0.95, 1.1), new THREE.MeshLambertMaterial({ map:DEV_TEX.box() }));
-  base.position.set(dev.wx, 0.475, dev.wz);
+  base.position.set(dev.wx, dev.floorY+0.475, dev.wz);
   scene.add(base);
   const lid = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.22, 1.15), new THREE.MeshLambertMaterial({ color:0x6b4c25 }));
-  lid.position.set(dev.wx, 1.06, dev.wz);
+  lid.position.set(dev.wx, dev.floorY+1.06, dev.wz);
   scene.add(lid);
   const glow = new THREE.Mesh(
     new THREE.PlaneGeometry(1.3, 1.05),
@@ -1342,13 +1457,13 @@ function buildMysteryBox(){
                                   blending:THREE.AdditiveBlending, depthWrite:false })
   );
   glow.rotation.x = -Math.PI/2;
-  glow.position.set(dev.wx, 1.22, dev.wz);
+  glow.position.set(dev.wx, dev.floorY+1.22, dev.wz);
   scene.add(glow);
   const light = new THREE.PointLight(0xffd070, 0.85, 7, 2);
-  light.position.set(dev.wx, 1.5, dev.wz);
+  light.position.set(dev.wx, dev.floorY+1.5, dev.wz);
   scene.add(light);
   dev.mesh = base; dev.lid = lid; dev.glow = glow; dev.light = light;
-  MAP.propRects.push({ minX:dev.wx-0.7, maxX:dev.wx+0.7, minZ:dev.wz-0.62, maxZ:dev.wz+0.62 });
+  MAP.propRects.push({ minX:dev.wx-0.7, maxX:dev.wx+0.7, minZ:dev.wz-0.62, maxZ:dev.wz+0.62, floorY:dev.floorY });
   BOX.dev = dev;
   return dev;
 }
@@ -1371,14 +1486,14 @@ function updateMysteryBox(dt){
   const d = BOX.dev;
   if (!d) return;
   if (BOX.rolling){
-    d.lid.position.y = 1.06 + Math.abs(Math.sin(GAME.time*14))*0.06;
+    d.lid.position.y = d.floorY+1.06 + Math.abs(Math.sin(GAME.time*14))*0.06;
     d.glow.material.opacity = 0.4 + Math.abs(Math.sin(GAME.time*18))*0.4;
     d.light.intensity = 0.9 + Math.abs(Math.sin(GAME.time*22))*0.6;
     BOX.rollSound -= dt;
     if (BOX.rollSound <= 0){ BOX.rollSound = 0.17; SFX.boxRoll(); }
     if (GAME.time >= BOX.endAt){
       BOX.rolling = false;
-      d.lid.position.y = 1.06;
+      d.lid.position.y = d.floorY+1.06;
       giveMysteryWeapon();
     }
   } else {
@@ -1405,25 +1520,25 @@ function giveMysteryWeapon(){
 
 /* ---------- Pack-a-Punch ---------- */
 function buildPackAPunch(){
-  const dev = makeDevice('pap', 'd2', 3, 5, null, { price:PACK_A_PUNCH_PRICE });
+  const dev = makeDevice('pap', 'd3', 3, 5, null, { price:PACK_A_PUNCH_PRICE });
   const body = new THREE.Mesh(new THREE.BoxGeometry(1.8, 1.5, 1.2), new THREE.MeshLambertMaterial({ color:0x2a3138 }));
-  body.position.set(dev.wx, 0.75, dev.wz);
+  body.position.set(dev.wx, dev.floorY+0.75, dev.wz);
   scene.add(body);
   const mat = new THREE.MeshLambertMaterial({ map:DEV_TEX.pap() });
   const faceA = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 1.1), mat);
-  faceA.position.set(dev.wx, 1.0, dev.wz - 0.62); faceA.rotation.y = Math.PI;
+  faceA.position.set(dev.wx, dev.floorY+1.0, dev.wz - 0.62); faceA.rotation.y = Math.PI;
   scene.add(faceA);
   const faceB = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 1.1), mat);
-  faceB.position.set(dev.wx, 1.0, dev.wz + 0.62);
+  faceB.position.set(dev.wx, dev.floorY+1.0, dev.wz + 0.62);
   scene.add(faceB);
   const arch = new THREE.Mesh(new THREE.TorusGeometry(0.7, 0.08, 8, 20, Math.PI), new THREE.MeshBasicMaterial({ color:0x7fe6ff }));
-  arch.position.set(dev.wx, 1.5, dev.wz);
+  arch.position.set(dev.wx, dev.floorY+1.5, dev.wz);
   scene.add(arch);
   const glow = new THREE.PointLight(0x66d8ff, 1.1, 8, 2);
-  glow.position.set(dev.wx, 1.75, dev.wz);
+  glow.position.set(dev.wx, dev.floorY+1.75, dev.wz);
   scene.add(glow);
   dev.mesh = body; dev.glow = glow; dev.arch = arch;
-  MAP.propRects.push({ minX:dev.wx-0.95, maxX:dev.wx+0.95, minZ:dev.wz-0.65, maxZ:dev.wz+0.65 });
+  MAP.propRects.push({ minX:dev.wx-0.95, maxX:dev.wx+0.95, minZ:dev.wz-0.65, maxZ:dev.wz+0.65, floorY:dev.floorY });
   return dev;
 }
 function packAPunch(){
@@ -1447,22 +1562,22 @@ function packAPunch(){
 function buildTraps(){
   const defs = [
     { zone:'start', cx:11, cz:0, dir:[0,1], price:1250 },
-    { zone:'d4',    cx:11, cz:0, dir:[0,1], price:1250 }
+    { zone:'d4',    cx:8,  cz:5, dir:[0,1], price:1250 }
   ];
   for (const t of defs){
     const dev = makeDevice('trap', t.zone, t.cx, t.cz, t.dir, { price:t.price, readyAt:0, activeUntil:0, sparkT:0 });
     const pad = new THREE.Mesh(new THREE.PlaneGeometry(4.6, 4.6),
       new THREE.MeshBasicMaterial({ color:0x33aaff, transparent:true, opacity:0.1, depthWrite:false }));
     pad.rotation.x = -Math.PI/2;
-    pad.position.set(dev.wx + t.dir[0]*1.6, 0.03, dev.wz + t.dir[1]*1.6);
+    pad.position.set(dev.wx+t.dir[0]*1.6,dev.floorY+0.03,dev.wz+t.dir[1]*1.6);
     pad.userData.noRay = true;
     scene.add(pad);
     const box = new THREE.Mesh(new THREE.BoxGeometry(0.6, 1.0, 0.5), new THREE.MeshLambertMaterial({ color:0x2c333a }));
-    box.position.set(dev.wx + t.dir[0]*0.38, 0.5, dev.wz + t.dir[1]*0.38);
+    box.position.set(dev.wx+t.dir[0]*0.38,dev.floorY+0.5,dev.wz+t.dir[1]*0.38);
     box.rotation.y = Math.atan2(t.dir[0], t.dir[1]);
     scene.add(box);
     dev.pad = pad; dev.mesh = box;
-    MAP.propRects.push({ minX:box.position.x-0.4, maxX:box.position.x+0.4, minZ:box.position.z-0.4, maxZ:box.position.z+0.4 });
+    MAP.propRects.push({minX:box.position.x-0.4,maxX:box.position.x+0.4,minZ:box.position.z-0.4,maxZ:box.position.z+0.4,floorY:dev.floorY});
   }
 }
 function activateTrap(d){
@@ -1489,7 +1604,7 @@ function updateTraps(dt){
       if (!z.alive) continue;
       if (Math.hypot(z.pos.x - d.pad.position.x, z.pos.z - d.pad.position.z) > 2.5) continue;
       if (zapNow){
-        FX.lightning(new THREE.Vector3(z.pos.x, 0.2, z.pos.z), new THREE.Vector3(z.pos.x, 1.6, z.pos.z));
+        FX.lightning(new THREE.Vector3(z.pos.x,(z.floorY||0)+0.2,z.pos.z),new THREE.Vector3(z.pos.x,(z.floorY||0)+1.6,z.pos.z));
         SFX.zap();
         const res = damageZombie(z, 130, false);
         if (res === 'kill') onZombieKilled(z, z.pos.x, 1.2, z.pos.z);
@@ -1500,17 +1615,17 @@ function updateTraps(dt){
 
 /* ---------- Турель ---------- */
 function buildTurret(){
-  const dev = makeDevice('turret', 'start', 13, 4, [-1,0], { price:2000, charges:3, nextShot:0, active:false, ammo:0 });
+  const dev = makeDevice('turret','d4',14,5,[-1,0],{price:2000,charges:3,nextShot:0,active:false,ammo:0});
   const stand = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.22, 1.0, 8), new THREE.MeshLambertMaterial({ color:0x2a3036 }));
-  stand.position.set(dev.wx, 0.5, dev.wz);
+  stand.position.set(dev.wx,dev.floorY+0.5,dev.wz);
   const head = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.4, 0.7), new THREE.MeshLambertMaterial({ color:0x39424a }));
-  head.position.set(dev.wx, 1.15, dev.wz);
+  head.position.set(dev.wx,dev.floorY+1.15,dev.wz);
   const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.75, 8), new THREE.MeshLambertMaterial({ color:0x1c2126 }));
   barrel.rotation.x = Math.PI/2;
-  barrel.position.set(dev.wx, 1.18, dev.wz - 0.5);
+  barrel.position.set(dev.wx,dev.floorY+1.18,dev.wz-0.5);
   scene.add(stand, head, barrel);
   dev.head = head; dev.barrel = barrel;
-  MAP.propRects.push({ minX:dev.wx-0.3, maxX:dev.wx+0.3, minZ:dev.wz-0.3, maxZ:dev.wz+0.3 });
+  MAP.propRects.push({minX:dev.wx-0.3,maxX:dev.wx+0.3,minZ:dev.wz-0.3,maxZ:dev.wz+0.3,floorY:dev.floorY});
   return dev;
 }
 function activateTurret(d){
@@ -1541,13 +1656,13 @@ function updateTurrets(dt, now){
     if (!best) continue;
     const ang = Math.atan2(best.pos.x - d.wx, best.pos.z - d.wz);
     d.head.rotation.y = ang;
-    d.barrel.position.set(d.wx + Math.sin(ang)*0.5, 1.18, d.wz + Math.cos(ang)*0.5);
+    d.barrel.position.set(d.wx+Math.sin(ang)*0.5,d.floorY+1.18,d.wz+Math.cos(ang)*0.5);
     d.barrel.rotation.set(Math.PI/2, 0, -ang);
     if (now >= d.nextShot){
       d.nextShot = now + 0.14;
       d.ammo--;
-      const from = new THREE.Vector3(d.barrel.position.x, d.barrel.position.y, d.barrel.position.z);
-      const to = new THREE.Vector3(best.pos.x, 1.2, best.pos.z);
+      const from = new THREE.Vector3(d.barrel.position.x,d.barrel.position.y,d.barrel.position.z);
+      const to = new THREE.Vector3(best.pos.x,(best.floorY||0)+1.2,best.pos.z);
       FX.tracer(from, to, 0xaaffcc);
       const res = damageZombie(best, 70, false);
       if (res === 'kill') onZombieKilled(best, to.x, to.y, to.z);
@@ -1559,33 +1674,56 @@ function updateTurrets(dt, now){
 
 /* ---------- Окна-баррикады ---------- */
 const WINDOW_DEFS = [
-  { zone:'start', cx:5,  cz:6, in:[0,-1] },
-  { zone:'start', cx:11, cz:6, in:[0,-1] },
-  { zone:'d1',    cx:1,  cz:7, in:[0,-1] },
-  { zone:'d4',    cx:4,  cz:7, in:[0,-1] }
+  // Пять проёмов комнаты появления
+  { zone:'start',cx:2,cz:0,in:[0,1] },{zone:'start',cx:10,cz:0,in:[0,1]},
+  { zone:'start',cx:0,cz:2,in:[1,0] },{zone:'start',cx:5,cz:9,in:[0,-1]},
+  { zone:'start',cx:10,cz:9,in:[0,-1] },
+  // Два наружных окна комнаты «Help!»
+  { zone:'d1',cx:3,cz:0,in:[0,1] },{zone:'d1',cx:5,cz:9,in:[0,-1]},
+  // Четыре окна верхнего этажа
+  { zone:'d2',cx:2,cz:0,in:[0,1] }, { zone:'d2',cx:0,cz:6,in:[1,0] },
+  { zone:'d3',cx:7,cz:0,in:[0,1] }, { zone:'d3',cx:9,cz:6,in:[-1,0] }
 ];
 function buildWindows(){
-  const plankGeo = new THREE.BoxGeometry(1.9, 0.16, 0.09);
-  const plankMat = new THREE.MeshLambertMaterial({ color:0x7a5a30 });
-  for (const w of WINDOW_DEFS){
-    const zone = MAP.zones[w.zone];
-    const dev = makeDevice('window', w.zone, w.cx, w.cz, w.in, { boards:6, maxBoards:6, breakT:0 });
-    const hole = new THREE.Mesh(new THREE.PlaneGeometry(1.7, 1.6), new THREE.MeshBasicMaterial({ map:DEV_TEX.window() }));
-    hole.position.set(dev.wx, 1.55, dev.wz);
-    hole.rotation.y = Math.atan2(w.in[0], w.in[1]);
-    hole.userData.noRay = true;
-    scene.add(hole);
-    const planks = [];
-    for (let i=0;i<6;i++){
-      const p = new THREE.Mesh(plankGeo, plankMat);
-      p.position.set(dev.wx + w.in[0]*0.07, 0.95 + i*0.24, dev.wz + w.in[1]*0.07);
-      p.rotation.z = (i % 2 === 0) ? 0.35 : -0.35;
-      scene.add(p);
-      planks.push(p);
+  const plankGeo=new THREE.BoxGeometry(1.9,0.16,0.09);
+  const plankMat=new THREE.MeshLambertMaterial({color:0x76562e});
+  for(const w of WINDOW_DEFS){
+    const zone=MAP.zones[w.zone],dev=makeDevice('window',w.zone,w.cx,w.cz,w.in,{boards:6,maxBoards:6,breakT:0});
+    const fx=Math.abs(w.in[0])>0, fy=dev.floorY;
+    // Бетонная рама и подоконник — проём действительно прорезан в стене.
+    const sideGeo=fx?new THREE.BoxGeometry(0.34,WALL_H,0.34):new THREE.BoxGeometry(0.34,WALL_H,0.34);
+    const concrete=new THREE.MeshLambertMaterial({color:0x393d40});
+    const makeBox=(w0,h0,d0,x,y,z)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w0,h0,d0),concrete);m.position.set(x,y,z);scene.add(m);return m;};
+    if(fx){
+      makeBox(0.36,WALL_H,0.34,dev.wx,fy+WALL_H/2,dev.wz-0.82);
+      makeBox(0.36,WALL_H,0.34,dev.wx,fy+WALL_H/2,dev.wz+0.82);
+      makeBox(0.36,0.75,2.0,dev.wx,fy+0.375,dev.wz);
+      makeBox(0.36,WALL_H-2.25,2.0,dev.wx,fy+2.25+(WALL_H-2.25)/2,dev.wz);
+    }else{
+      makeBox(0.34,WALL_H,0.36,dev.wx-0.82,fy+WALL_H/2,dev.wz);
+      makeBox(0.34,WALL_H,0.36,dev.wx+0.82,fy+WALL_H/2,dev.wz);
+      makeBox(2.0,0.75,0.36,dev.wx,fy+0.375,dev.wz);
+      makeBox(2.0,WALL_H-2.25,0.36,dev.wx,fy+2.25+(WALL_H-2.25)/2,dev.wz);
     }
-    dev.planks = planks; dev.hole = hole;
-    // точка, откуда зомби влезает внутрь
-    dev.spawnPos = { x: dev.wx + w.in[0]*TILE*1.15, z: dev.wz + w.in[1]*TILE*1.15, zone:w.zone, window:true };
+    // Тёмная пустота за окном, ориентированная наружной нормалью.
+    const hole=new THREE.Mesh(new THREE.PlaneGeometry(1.52,1.47),new THREE.MeshBasicMaterial({map:DEV_TEX.window(),side:THREE.DoubleSide}));
+    hole.position.set(dev.wx,fy+1.52,dev.wz);
+    hole.rotation.y=Math.atan2(w.in[0],w.in[1]);
+    hole.userData.noRay=true;
+    scene.add(hole);
+    const planks=[];
+    for(let i=0;i<6;i++){
+      const p=new THREE.Mesh(plankGeo,plankMat);
+      p.position.set(dev.wx+w.in[0]*0.2,fy+0.93+i*0.24,dev.wz+w.in[1]*0.2);
+      if(fx) p.rotation.y=Math.PI/2;
+      p.rotation.z=(i%2===0)?0.28:-0.28;
+      scene.add(p);planks.push(p);
+    }
+    dev.planks=planks;dev.hole=hole;dev.floorY=fy;
+    dev.barrier=fx
+      ?{minX:dev.wx-0.17,maxX:dev.wx+0.17,minZ:dev.wz-1.0,maxZ:dev.wz+1.0,floorY:fy}
+      :{minX:dev.wx-1.0,maxX:dev.wx+1.0,minZ:dev.wz-0.17,maxZ:dev.wz+0.17,floorY:fy};
+    dev.spawnPos={x:dev.wx+w.in[0]*TILE*1.15,z:dev.wz+w.in[1]*TILE*1.15,zone:w.zone,window:true,floorY:fy};
   }
 }
 function updateWindows(dt){
@@ -1595,8 +1733,8 @@ function updateWindows(dt){
     if (d.boards <= 0) continue;                     // уже всё разобрано — ломать нечего
     let zombieNear = false;
     for (const z of zombies){
-      if (!z.alive) continue;
-      if (Math.hypot(z.pos.x - d.wx, z.pos.z - d.wz) < 3.0){ zombieNear = true; break; }
+      if(!z.alive||Math.abs((z.floorY||0)-d.floorY)>1.35)continue;
+      if(Math.hypot(z.pos.x-d.wx,z.pos.z-d.wz)<3.0){zombieNear=true;break;}
     }
     if (!zombieNear) continue;
     d.breakT -= dt;
@@ -1639,10 +1777,10 @@ function buildEasterEgg(){
   [['start',2,2], ['d3',2,5], ['d4',5,2]].forEach(([zone,cx,cz], i) => {
     const dev = makeDevice('radio', zone, cx, cz, null, { played:false, line:i });
     const body = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.35, 0.3), new THREE.MeshLambertMaterial({ color:0x3a3026 }));
-    body.position.set(dev.wx, 0.2, dev.wz);
+    body.position.set(dev.wx,dev.floorY+0.2,dev.wz);
     scene.add(body);
     const dial = new THREE.Mesh(new THREE.SphereGeometry(0.07, 6, 5), new THREE.MeshBasicMaterial({ color:0xff6a2a }));
-    dial.position.set(dev.wx, 0.42, dev.wz);
+    dial.position.set(dev.wx,dev.floorY+0.42,dev.wz);
     dial.userData.noRay = true;
     scene.add(dial);
     dev.mesh = body; dev.dial = dial;
@@ -1650,22 +1788,22 @@ function buildEasterEgg(){
   [['start',5,2], ['d1',8,3], ['d2',2,6]].forEach(([zone,cx,cz]) => {
     const dev = makeDevice('valve', zone, cx, cz, null, { turned:false });
     const pipe = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 1.2, 8), new THREE.MeshLambertMaterial({ color:0x4a5158 }));
-    pipe.position.set(dev.wx, 0.6, dev.wz);
+    pipe.position.set(dev.wx,dev.floorY+0.6,dev.wz);
     scene.add(pipe);
     const wheel = new THREE.Mesh(new THREE.TorusGeometry(0.3, 0.06, 6, 14), new THREE.MeshLambertMaterial({ color:0x8a3a2a }));
-    wheel.position.set(dev.wx, 1.2, dev.wz);
+    wheel.position.set(dev.wx,dev.floorY+1.2,dev.wz);
     scene.add(wheel);
     dev.wheel = wheel; dev.pipe = pipe;
   });
   const dev = makeDevice('teleporter', 'd4', 3, 3, null, {});
   const pad = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.6, 0.18, 20), new THREE.MeshLambertMaterial({ color:0x232a30 }));
-  pad.position.set(dev.wx, 0.09, dev.wz);
+  pad.position.set(dev.wx,dev.floorY+0.09,dev.wz);
   scene.add(pad);
   dev.rings = [];
   for (let i=0;i<3;i++){
     const ring = new THREE.Mesh(new THREE.TorusGeometry(1.2 - i*0.15, 0.06, 8, 22), new THREE.MeshBasicMaterial({ color:0x2a4a55 }));
     ring.rotation.x = Math.PI/2;
-    ring.position.set(dev.wx, 1.2 + i*0.7, dev.wz);
+    ring.position.set(dev.wx,dev.floorY+1.2+i*0.7,dev.wz);
     scene.add(ring);
     dev.rings.push(ring);
   }
@@ -1708,8 +1846,36 @@ function useTeleporter(){
 /* ============================================================
    8. ПОСТРОЕНИЕ УРОВНЯ
    ============================================================ */
-const worldCells = new Map();          // "X,Z" (мировые клетки) -> { ch, zone }
+const worldCells = new Map();          // первый этаж: "X,Z" -> { ch, zone, floorY }
+const upperCells = new Map();          // второй этаж — тот же XZ, отдельный вертикальный слой
 const cellKey = (X,Z) => X + ',' + Z;
+/** Ячейка лестничной шахты: во втором этаже здесь нет пола */
+function isStairHoleCell(X,Z){ return X === 6 && Z >= 1 && Z <= 7; }
+/** Высота пола в любой точке; предпочтительная высота отличает верхний этаж от нижнего */
+function floorHeightAt(x,z,preferredY){
+  const pref = (preferredY === undefined || !Number.isFinite(preferredY)) ? 0 : preferredY;
+  const X = Math.round(x/TILE), Z = Math.round(z/TILE), key = cellKey(X,Z);
+  const candidates = [];
+  const g = worldCells.get(key), u = upperCells.get(key);
+  if (g && g.ch !== '#') candidates.push(g.floorY || 0);
+  if (u && u.ch !== '#' && !(u.zone === 'd2' && isStairHoleCell(X,Z))) candidates.push(u.floorY || 0);
+  // плавный подъём по лестнице: нижняя площадка у z=14, верхняя у z=2
+  const stairOpen=MAP.zoneDoor.d2&&MAP.zoneDoor.d2.open;
+  if(stairOpen&&x>=STAIR.minX&&x<=STAIR.maxX&&z<=STAIR.lowZ&&z>=STAIR.highZ){
+    // Эта полоса — лестница и проём в перекрытии: здесь нет нижнего/верхнего пола.
+    return STAIR.lowY+(STAIR.lowZ-z)/(STAIR.lowZ-STAIR.highZ)*(STAIR.highY-STAIR.lowY);
+  }
+  // площадка на верхушке наблюдательной вышки во дворе
+  if(x>=YARD_DECK.minX&&x<=YARD_DECK.maxX&&z>=YARD_DECK.minZ&&z<=YARD_DECK.maxZ) candidates.push(YARD_DECK.y);
+  if(Math.abs(x-ELEVATOR.x)<1.65&&Math.abs(z-ELEVATOR.z)<1.65) candidates.push(ELEVATOR.y);
+  if (!candidates.length) return 0;
+  let best = candidates[0], bestDiff = Math.abs(best-pref);
+  for (let i=1;i<candidates.length;i++){
+    const diff = Math.abs(candidates[i]-pref);
+    if (diff < bestDiff){ best = candidates[i]; bestDiff = diff; }
+  }
+  return best;
+}
 
 const MAP = {
   zones: {},        // id -> {def, ox, oz, grid}
@@ -1737,79 +1903,119 @@ function applyPlacements(zone){
     if (b.zone !== zone.def.id) continue;
     cells[b.cz][b.cx] = 'W';
   }
+  // Окна становятся настоящими проёмами в геометрии стены
+  for (const w of WINDOW_DEFS){
+    if (w.zone !== zone.def.id) continue;
+    cells[w.cz][w.cx] = 'O';
+  }
   zone.cells = cells;
-  // регистрируем мировые клетки
+  const target = (zone.def.floorY || 0) >= 2 ? upperCells : worldCells;
+  // регистрируем мировые клетки соответствующего этажа
   for (let z=0; z<cells.length; z++){
     for (let x=0; x<cells[z].length; x++){
-      worldCells.set(cellKey(x+zone.ox, z+zone.oz), { ch:cells[z][x], zone:zone.def.id, lx:x, lz:z });
+      target.set(cellKey(x+zone.ox, z+zone.oz), {
+        ch:cells[z][x], zone:zone.def.id, lx:x, lz:z, floorY:zone.def.floorY || 0
+      });
     }
   }
 }
-const isFloorCell = (X,Z) => {
-  const c = worldCells.get(cellKey(X,Z));
-  return !!c && c.ch === '.';
+const isFloorCell = (X,Z,layer) => {
+  const c = (layer || worldCells).get(cellKey(X,Z));
+  return !!c && c.ch !== '#';
 };
 
 /* ---- 8.1 Стены: одна общая геометрия (правильные UV => текстура не «плывёт») ---- */
 function buildWalls(){
   const pos = [], nor = [], uvs = [], idx = [];
   let v = 0;
-  const TW = 2;                 // метров текстуры на одно повторение
+  const TW = 2;
   const half = TILE/2;
 
-  // добавляет прямоугольник: a,b,c,d — углы по часовой стрелке (снаружи)
   function quad(a,b,c,d,nx,ny,nz,uw,uh){
-    pos.push(a[0],a[1],a[2],  b[0],b[1],b[2],  c[0],c[1],c[2],  d[0],d[1],d[2]);
+    pos.push(a[0],a[1],a[2], b[0],b[1],b[2], c[0],c[1],c[2], d[0],d[1],d[2]);
     for (let i=0;i<4;i++) nor.push(nx,ny,nz);
-    uvs.push(0,uh, uw,uh, uw,0, 0,0);
-    idx.push(v, v+1, v+2, v, v+2, v+3);
+    uvs.push(0,uh,uw,uh,uw,0,0,0);
+    idx.push(v,v+1,v+2,v,v+2,v+3);
     v += 4;
   }
 
-  for (const [k, cell] of worldCells){
-    if (cell.ch !== '#' && cell.ch !== 'W') continue;
-    const [X,Z] = k.split(',').map(Number);
-    const x0 = X*TILE - half, x1 = X*TILE + half;
-    const z0 = Z*TILE - half, z1 = Z*TILE + half;
-    const y0 = 0, y1 = WALL_H;
-    MAP.wallRects.push({ minX:x0, maxX:x1, minZ:z0, maxZ:z1 });
+  // Нижний и верхний этажи имеют отдельную сетку, поэтому стены этажей не смешиваются.
+  for (const layer of [worldCells, upperCells]){
+    for (const [k, cell] of layer){
+      if (cell.ch !== '#' && cell.ch !== 'W') continue;
+      const zone = MAP.zones[cell.zone];
+      if (zone && zone.def.outdoor) continue;        // границу двора делают проволочные ограждения
+      const [X,Z] = k.split(',').map(Number);
+      const x0 = X*TILE-half, x1 = X*TILE+half;
+      const z0 = Z*TILE-half, z1 = Z*TILE+half;
+      const y0 = cell.floorY || 0, y1 = y0 + WALL_H;
+      MAP.wallRects.push({ minX:x0,maxX:x1,minZ:z0,maxZ:z1,floorY:y0,maxY:y1 });
 
-    // грани рисуем только там, где рядом есть пол (внутренние — невидимы, экономим полигоны)
-    if (isFloorCell(X, Z-1)) quad([x1,y1,z0],[x0,y1,z0],[x0,y0,z0],[x1,y0,z0], 0,0,-1, TILE/TW, WALL_H/TW);
-    if (isFloorCell(X, Z+1)) quad([x0,y1,z1],[x1,y1,z1],[x1,y0,z1],[x0,y0,z1], 0,0, 1, TILE/TW, WALL_H/TW);
-    if (isFloorCell(X-1, Z)) quad([x0,y1,z0],[x0,y1,z1],[x0,y0,z1],[x0,y0,z0], -1,0,0, TILE/TW, WALL_H/TW);
-    if (isFloorCell(X+1, Z)) quad([x1,y1,z1],[x1,y1,z0],[x1,y0,z0],[x1,y0,z1],  1,0,0, TILE/TW, WALL_H/TW);
+      // Грани на всех открытых сторонах: внутри комнаты и снаружи фасада.
+      const openAt = (nx,nz) => {
+        const n = layer.get(cellKey(X+nx,Z+nz));
+        return !n || (n.ch !== '#' && n.ch !== 'W');
+      };
+      if (openAt(0,-1)) quad([x1,y1,z0],[x0,y1,z0],[x0,y0,z0],[x1,y0,z0], 0,0,-1, TILE/TW,WALL_H/TW);
+      if (openAt(0, 1)) quad([x0,y1,z1],[x1,y1,z1],[x1,y0,z1],[x0,y0,z1], 0,0, 1, TILE/TW,WALL_H/TW);
+      if (openAt(-1,0)) quad([x0,y1,z0],[x0,y1,z1],[x0,y0,z1],[x0,y0,z0],-1,0,0, TILE/TW,WALL_H/TW);
+      if (openAt( 1,0)) quad([x1,y1,z1],[x1,y1,z0],[x1,y0,z0],[x1,y0,z1], 1,0,0, TILE/TW,WALL_H/TW);
+    }
   }
 
   const geo = new THREE.BufferGeometry();
-  geo.setAttribute('position', new THREE.Float32BufferAttribute(pos,3));
-  geo.setAttribute('normal',   new THREE.Float32BufferAttribute(nor,3));
-  geo.setAttribute('uv',       new THREE.Float32BufferAttribute(uvs,2));
+  geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
+  geo.setAttribute('normal',new THREE.Float32BufferAttribute(nor,3));
+  geo.setAttribute('uv',new THREE.Float32BufferAttribute(uvs,2));
   geo.setIndex(idx);
-  const mesh = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ map:WALL_TEX, color:0xffffff }));
+  const mesh = new THREE.Mesh(geo,new THREE.MeshLambertMaterial({ map:WALL_TEX, color:0xffffff, side:THREE.DoubleSide }));
   mesh.name = 'walls';
   scene.add(mesh);
 }
 
 /* ---- 8.2 Пол и потолок каждой зоны ---- */
 function buildFloors(){
-  for (const id in MAP.zones){
-    const z = MAP.zones[id];
-    const w = z.def.grid[0].length, h = z.def.grid.length;
-    const cx = (z.ox + (w-1)/2) * TILE, cz = (z.oz + (h-1)/2) * TILE;
-    const sizeX = w*TILE, sizeZ = h*TILE;
+  /** Собрать один буфер пола/потолка из квадратов ячеек; можно оставить шахту лестницы */
+  const makeGridSurface = (zone, y, isCeiling, texture) => {
+    const def=zone.def, cells=zone.cells, h=cells.length, w=cells[0].length;
+    const pos=[],nor=[],uv=[],idx=[]; let v=0;
+    for (let z=0;z<h;z++) for (let x=0;x<w;x++){
+      const ch=cells[z][x];
+      if (ch === '#' || ch === 'W') continue;
+      if (def.id === 'd2' && isStairHoleCell(x,z)) continue;
+      // На первом этаже оставляем открытый вертикальный пролёт лестницы.
+      if (def.id === 'start' && isStairHoleCell(x,z) && isCeiling) continue;
+      const X=(x+zone.ox)*TILE, Z=(z+zone.oz)*TILE, hlf=TILE/2;
+      pos.push(X-hlf,y,Z-hlf, X+hlf,y,Z-hlf, X+hlf,y,Z+hlf, X-hlf,y,Z+hlf);
+      for(let i=0;i<4;i++) nor.push(0,isCeiling?-1:1,0);
+      const u0=x/w,u1=(x+1)/w,v0=z/h,v1=(z+1)/h;
+      uv.push(u0,v0,u1,v0,u1,v1,u0,v1);
+      idx.push(v,v+2,v+1,v,v+3,v+2); v+=4;
+    }
+    if(!pos.length) return null;
+    const geo=new THREE.BufferGeometry();
+    geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
+    geo.setAttribute('normal',new THREE.Float32BufferAttribute(nor,3));
+    geo.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));
+    geo.setIndex(idx);
+    const tex=texture.clone(); tex.needsUpdate=true; tex.repeat.set(w,h);
+    const mesh=new THREE.Mesh(geo,new THREE.MeshLambertMaterial({map:tex,side:THREE.DoubleSide}));
+    mesh.name=isCeiling?'ceiling_'+def.id:'floor_'+def.id;
+    scene.add(mesh);
+    return mesh;
+  };
 
-    const fTex = FLOOR_TEX.clone(); fTex.needsUpdate = true; fTex.repeat.set(w, h);
-    const floor = new THREE.Mesh(new THREE.PlaneGeometry(sizeX, sizeZ), new THREE.MeshLambertMaterial({ map:fTex }));
-    floor.rotation.x = -Math.PI/2;
-    floor.position.set(cx, 0, cz);
-    scene.add(floor);
-
-    const cTex = CEIL_TEX.clone(); cTex.needsUpdate = true; cTex.repeat.set(w, h);
-    const ceil = new THREE.Mesh(new THREE.PlaneGeometry(sizeX, sizeZ), new THREE.MeshLambertMaterial({ map:cTex }));
-    ceil.rotation.x = Math.PI/2;
-    ceil.position.set(cx, WALL_H, cz);
-    scene.add(ceil);
+  for(const id in MAP.zones){
+    const z=MAP.zones[id], y=z.floorY||0;
+    if(z.def.outdoor){
+      // Двор — не бетонная плита, а грязный грунт аэродрома.
+      makeGridSurface(z, y-0.03, false, YARD_TEX);
+      continue;
+    }
+    makeGridSurface(z,y,false,FLOOR_TEX);
+    if(!z.def.noCeiling){
+      makeGridSurface(z,y+WALL_H,true,CEIL_TEX);
+    }
   }
 }
 
@@ -1825,19 +2031,20 @@ function buildProps(){
     const z = MAP.zones[id];
     for (const p of (z.def.props || [])){
       const wx = (p.x + z.ox) * TILE, wz = (p.z + z.oz) * TILE;
+      const floorY = z.floorY || 0;
       if (p.t === 'crate'){
         const s = 0.95;
         const m = new THREE.Mesh(crateGeo, Math.random() < 0.5 ? crateMat : crateMat2);
         m.scale.set(s, s, s);
-        m.position.set(wx, s/2, wz);
+        m.position.set(wx, floorY+s/2, wz);
         m.rotation.y = rand(-0.4, 0.4);
         scene.add(m);
-        MAP.propRects.push({ minX:wx-s/2, maxX:wx+s/2, minZ:wz-s/2, maxZ:wz+s/2 });
+        MAP.propRects.push({ minX:wx-s/2, maxX:wx+s/2, minZ:wz-s/2, maxZ:wz+s/2, floorY });
       } else {
         const m = new THREE.Mesh(barrelGeo, barrelMat);
-        m.position.set(wx, 0.525, wz);
+        m.position.set(wx, floorY+0.525, wz);
         scene.add(m);
-        MAP.propRects.push({ minX:wx-0.45, maxX:wx+0.45, minZ:wz-0.45, maxZ:wz+0.45 });
+        MAP.propRects.push({ minX:wx-0.45, maxX:wx+0.45, minZ:wz-0.45, maxZ:wz+0.45, floorY });
       }
     }
   }
@@ -1850,7 +2057,7 @@ function buildLamps(){
     const z = MAP.zones[id], L = z.def.lamp;
     if (!L) continue;
     const light = new THREE.PointLight(L.color, L.intensity, 16, 1.7);
-    light.position.set((L.x + z.ox)*TILE, WALL_H - 0.45, (L.z + z.oz)*TILE);
+    light.position.set((L.x+z.ox)*TILE,(z.floorY||0)+WALL_H-0.45,(L.z+z.oz)*TILE);
     scene.add(light);
     const bulb = new THREE.Mesh(
       new THREE.SphereGeometry(0.11, 8, 6),
@@ -1874,31 +2081,33 @@ function buildDoors(){
       : new THREE.BoxGeometry(0.42, WALL_H, TILE*1.02);
     const mat = new THREE.MeshLambertMaterial({ map: tex });
     const mesh = new THREE.Mesh(geo, mat);
-    mesh.position.set(wx, WALL_H/2, wz);
+    const floorY = def.floorY !== undefined ? def.floorY : (zone.floorY||0);
+    mesh.position.set(wx, floorY+WALL_H/2, wz);
     scene.add(mesh);
 
     // коллайдер двери (убирается при открытии)
     const b = 0.24;
     const barrier = def.horiz
-      ? { minX:wx-TILE/2, maxX:wx+TILE/2, minZ:wz-b, maxZ:wz+b }
-      : { minX:wx-b, maxX:wx+b, minZ:wz-TILE/2, maxZ:wz+TILE/2 };
+      ? { minX:wx-TILE/2, maxX:wx+TILE/2, minZ:wz-b, maxZ:wz+b, floorY }
+      : { minX:wx-b, maxX:wx+b, minZ:wz-TILE/2, maxZ:wz+TILE/2, floorY };
 
     const door = {
       def, mesh, barrier, open:false, price:def.price,
-      pos:new THREE.Vector3(wx, WALL_H/2, wz),
+      floorY, pos:new THREE.Vector3(wx, floorY+WALL_H/2, wz),
       // точка, где стоит игрок, чтобы купить дверь (перед дверью, со стороны комнаты)
       trigger:null
     };
     // триггер — центр соседней с дверью клетки пола со стороны комнаты (def.in)
     const tX = def.cx + zone.ox + def.in[0], tZ = def.cz + zone.oz + def.in[1];
-    door.trigger = new THREE.Vector3(tX*TILE, EYE, tZ*TILE);
+    const triggerY = floorHeightAt(tX*TILE,tZ*TILE,floorY);
+    door.trigger = new THREE.Vector3(tX*TILE, EYE+triggerY, tZ*TILE);
 
     // подпись над дверью
     const el = document.createElement('div');
     el.className = 'wlabel';
     el.textContent = `Дверь: ${def.price} очков · F`;
     document.getElementById('labels').appendChild(el);
-    MAP.labels.push({ el, pos:new THREE.Vector3(wx, WALL_H-0.35, wz), type:'door', ref:door });
+    MAP.labels.push({ el, pos:new THREE.Vector3(wx, floorY+WALL_H-0.35, wz), type:'door', ref:door });
 
     MAP.doors.push(door);
     // связи зон: из какой зоны дверь ведёт и в какую
@@ -1920,7 +2129,8 @@ function buildBuys(){
     const price = (def.cost !== undefined) ? def.cost : w.price;
     const mat = new THREE.MeshBasicMaterial({ map: makeBuyPosterTexture(w, price), transparent:false });
     const poster = new THREE.Mesh(posterGeo, mat);
-    poster.position.set(wx + nx*0.52, 1.62, wz + nz*0.52);
+    const floorY = def.floorY !== undefined ? def.floorY : (zone.floorY||0);
+    poster.position.set(wx + nx*0.52, floorY+1.62, wz + nz*0.52);
     poster.rotation.y = Math.atan2(nx, nz);
     scene.add(poster);
 
@@ -1928,8 +2138,8 @@ function buildBuys(){
     const fX = X+nx, fZ = Z+nz;
     const buy = {
       def, weapon:def.weapon, price, poster,
-      pos: new THREE.Vector3(fX*TILE, EYE, fZ*TILE),   // где нужно стоять
-      anchor: new THREE.Vector3(wx + nx*0.55, 1.95, wz + nz*0.55), // где висит подпись
+      pos: new THREE.Vector3(fX*TILE, EYE+floorY, fZ*TILE),   // где нужно стоять
+      anchor: new THREE.Vector3(wx + nx*0.55, floorY+1.95, wz + nz*0.55), // где висит подпись
       label:`${w.name}: ${price} · F`
     };
     const el = document.createElement('div');
@@ -1949,17 +2159,17 @@ function buildSpawns(){
     for (const [cx,cz] of s.cells){
       let x = (cx + zone.ox)*TILE, z = (cz + zone.oz)*TILE;
       // если точка занята пропсом — сдвигаем её в ближайшее свободное место
-      if (blocked(x, z, ZOMBIE_R, true)){
+      if (blocked(x, z, ZOMBIE_R, true, zone.floorY||0)){
         let ok = false;
         for (let rad = 0.5; rad <= 2.0 && !ok; rad += 0.5){
           for (let i=0;i<8;i++){
             const a = i*Math.PI/4;
             const nx = x + Math.cos(a)*rad, nz = z + Math.sin(a)*rad;
-            if (!blocked(nx, nz, ZOMBIE_R, true)){ x = nx; z = nz; ok = true; break; }
+            if (!blocked(nx, nz, ZOMBIE_R, true, zone.floorY||0)){ x = nx; z = nz; ok = true; break; }
           }
         }
       }
-      MAP.spawns.push({ x, z, zone:s.zone, active:false });
+      MAP.spawns.push({ x, z, zone:s.zone, floorY:zone.floorY||0, active:false });
     }
   }
 }
@@ -1993,9 +2203,270 @@ function nearbyColliders(x, z, out){
   return out;
 }
 
+/* ---- 8.9 Лестница на второй этаж и вертикальная коллизия ---- */
+function buildStaircase(){
+  const count=12,span=STAIR.lowZ-STAIR.highZ,stepD=span/count,stepH=(STAIR.highY-STAIR.lowY)/count;
+  const xMid=(STAIR.minX+STAIR.maxX)/2, width=(STAIR.maxX-STAIR.minX)*0.94;
+  const concrete=new THREE.MeshLambertMaterial({color:0x57534c});
+  const edge=new THREE.MeshLambertMaterial({color:0x363a3c});
+  for(let i=0;i<count;i++){
+    const z=STAIR.lowZ-(i+0.5)*stepD;
+    const yTop=STAIR.lowY+(i+1)*stepH;
+    const step=new THREE.Mesh(new THREE.BoxGeometry(width,stepH,stepD+0.04),i%2?concrete:edge);
+    step.position.set(xMid,STAIR.lowY+(i+0.5)*stepH,z);
+    scene.add(step);
+    // светлая узкая кромка у ступени
+    const lip=new THREE.Mesh(new THREE.BoxGeometry(width,0.045,0.08),new THREE.MeshLambertMaterial({color:0x887b62}));
+    lip.position.set(xMid,yTop-0.015,z-stepD/2+0.06);
+    scene.add(lip);
+  }
+  // Перила с наклонным поручнем; простые объёмы остаются дешёвыми для рендера.
+  for(const side of [-1,1]){
+    const x=xMid+side*(width/2+0.18);
+    for(let i=0;i<=count;i+=2){
+      const z=STAIR.lowZ-i*stepD;
+      const h=STAIR.lowY+i*stepH;
+      const post=new THREE.Mesh(new THREE.BoxGeometry(0.11,1.1,0.11),edge);
+      post.position.set(x,h+0.55,z);
+      scene.add(post);
+    }
+    const rail=new THREE.Mesh(new THREE.BoxGeometry(0.13,0.13,span+0.45),edge);
+    rail.position.set(x,(STAIR.lowY+STAIR.highY)/2+1.0,(STAIR.lowZ+STAIR.highZ)/2);
+    rail.rotation.x=Math.atan2(STAIR.highY-STAIR.lowY,STAIR.lowZ-STAIR.highZ);
+    scene.add(rail);
+    MAP.propRects.push({minX:x-0.08,maxX:x+0.08,minZ:STAIR.highZ-0.2,maxZ:STAIR.lowZ+0.2,
+      stairRail:true});
+  }
+  // Над лестницей — открытая шахта с ограждением по краям верхнего проёма.
+  for(const x of [STAIR.minX-0.3,STAIR.maxX+0.3]){
+    const guard=new THREE.Mesh(new THREE.BoxGeometry(0.12,0.9,13.2),edge);
+    guard.position.set(x,4.45,8);
+    scene.add(guard);
+  }
+  const sign=makeCanvas(256,96),ctx=sign.getContext('2d');
+  ctx.fillStyle='#25231e';ctx.fillRect(0,0,256,96);ctx.fillStyle='#e7c478';
+  ctx.font='bold 27px Arial';ctx.textAlign='center';ctx.fillText('ВЕРХНИЙ ЭТАЖ',128,42);
+  ctx.font='bold 17px Arial';ctx.fillText('ЛЕСТНИЦА ЗА 1000',128,72);
+  const board=new THREE.Mesh(new THREE.PlaneGeometry(1.45,0.55),new THREE.MeshBasicMaterial({map:finishTexture(sign,1,1),side:THREE.DoubleSide}));
+  board.position.set(12,2.5,14.35);
+  board.rotation.y=Math.PI;
+  scene.add(board);
+}
+
+/* ---- 8.10 Двор аэродрома: ограждение, поле, обломки и дальний горизонт ---- */
+function buildYardEnvironment(){
+  const yard=MAP.zones.d4, d=yard.def;
+  const xMin=(d.ox-0.5)*TILE, xMax=(d.ox+d.grid[0].length-0.5)*TILE;
+  const zMin=(d.oz-0.5)*TILE, zMax=(d.oz+d.grid.length-0.5)*TILE;
+  // Большой грунтовый подиум продолжается за оградой; виден край карты, а не чёрная пустота.
+  const snowTheme=MAP_VARIANT==='snow';
+  const soil=new THREE.Mesh(new THREE.PlaneGeometry(110,100),new THREE.MeshLambertMaterial({map:YARD_TEX,color:snowTheme?0x9aa9b3:0x777763}));
+  soil.rotation.x=-Math.PI/2;soil.position.set((xMin+xMax)/2,-0.09,(zMin+zMax)/2);
+  scene.add(soil);
+
+  const postGeo=new THREE.BoxGeometry(0.12,1.85,0.12);
+  const postMat=new THREE.MeshLambertMaterial({color:0x484b47});
+  const railMat=new THREE.MeshLambertMaterial({color:0x555852});
+  const posts=[],railsX=[],railsZ=[];
+  const addPost=(x,z)=>posts.push([x,0.92,z]);
+  const addRail=(x,z,axis)=>{(axis==='x'?railsX:railsZ).push([x,0.72,z],[x,1.34,z]);};
+  const rect=(x,z,axis)=>{
+    if(axis==='x') MAP.propRects.push({minX:x-1.03,maxX:x+1.03,minZ:z-0.09,maxZ:z+0.09,floorY:0,fence:true});
+    else MAP.propRects.push({minX:x-0.09,maxX:x+0.09,minZ:z-1.03,maxZ:z+1.03,floorY:0,fence:true});
+  };
+  const fenceLine=(axis,fixed,start,end,skip)=>{
+    let prev=null;
+    for(let p=start;p<=end;p+=2){
+      const x=axis==='x'?p:fixed, z=axis==='x'?fixed:p;
+      addPost(x,z);
+      if(prev!==null){
+        const mid=(prev+p)/2, mx=axis==='x'?mid:fixed, mz=axis==='x'?fixed:mid;
+        const gate=skip && skip(mx,mz);
+        if(!gate){addRail(mx,mz,axis);rect(mx,mz,axis);}
+      }
+      prev=p;
+    }
+    if(prev!==end){
+      const x=axis==='x'?end:fixed,z=axis==='x'?fixed:end;addPost(x,z);
+    }
+  };
+  fenceLine('x',zMin+0.25,xMin,xMax,null);
+  fenceLine('x',zMax-0.25,xMin,xMax,null);
+  fenceLine('z',xMax-0.25,zMin,zMax,null);
+  // Западная ограда прерывается в воротах, ведущих из комнаты Help.
+  fenceLine('z',xMin+0.25,zMin,zMax,(x,z)=>Math.abs(z-8)<1.2);
+  if(posts.length){
+    const inst=new THREE.InstancedMesh(postGeo,postMat,posts.length),m4=new THREE.Matrix4();
+    posts.forEach((p,i)=>{m4.makeTranslation(p[0],p[1],p[2]);inst.setMatrixAt(i,m4);});
+    inst.instanceMatrix.needsUpdate=true;scene.add(inst);
+  }
+  const geoX=new THREE.BoxGeometry(2,0.065,0.055),geoZ=new THREE.BoxGeometry(0.055,0.065,2);
+  if(railsX.length){const a=new THREE.InstancedMesh(geoX,railMat,railsX.length),m4=new THREE.Matrix4();railsX.forEach((p,i)=>{m4.makeTranslation(p[0],p[1],p[2]);a.setMatrixAt(i,m4);});a.instanceMatrix.needsUpdate=true;scene.add(a);}
+  if(railsZ.length){const a=new THREE.InstancedMesh(geoZ,railMat,railsZ.length),m4=new THREE.Matrix4();railsZ.forEach((p,i)=>{m4.makeTranslation(p[0],p[1],p[2]);a.setMatrixAt(i,m4);});a.instanceMatrix.needsUpdate=true;scene.add(a);}
+
+  // Старый транспортный самолёт, врезавшийся в край аэродрома.
+  const wreck=new THREE.Group();
+  const metal=new THREE.MeshLambertMaterial({color:0x55594f}),rust=new THREE.MeshLambertMaterial({color:0x563c2a}),dark=new THREE.MeshLambertMaterial({color:0x202522});
+  const fuselage=new THREE.Mesh(new THREE.CylinderGeometry(0.72,0.95,10,12),metal);
+  fuselage.rotation.x=Math.PI/2;fuselage.position.set(0,1.35,0);wreck.add(fuselage);
+  const nose=new THREE.Mesh(new THREE.ConeGeometry(0.72,1.8,12),rust);nose.rotation.x=-Math.PI/2;nose.position.set(0,1.35,-5.6);wreck.add(nose);
+  const wing=new THREE.Mesh(new THREE.BoxGeometry(11,0.24,1.8),rust);wing.position.set(0,1.55,0.7);wing.rotation.z=0.05;wreck.add(wing);
+  const tail=new THREE.Mesh(new THREE.BoxGeometry(3.4,0.18,1.35),metal);tail.position.set(0,2.15,4.3);wreck.add(tail);
+  const fin=new THREE.Mesh(new THREE.BoxGeometry(0.18,1.5,1.6),dark);fin.position.set(0,2.8,4.1);fin.rotation.x=0.16;wreck.add(fin);
+  const engineMat=new THREE.MeshLambertMaterial({color:0x282c2a});
+  for(const x of [-3.7,3.7]){
+    const engine=new THREE.Mesh(new THREE.CylinderGeometry(0.42,0.52,1.35,10),engineMat);
+    engine.rotation.x=Math.PI/2;engine.position.set(x,1.25,0.45);wreck.add(engine);
+    const prop=new THREE.Mesh(new THREE.BoxGeometry(0.08,2.1,0.08),dark);prop.position.set(x,1.25,-0.35);wreck.add(prop);
+  }
+  wreck.position.set(MAP_VARIANT==='snow'?70:73,0,19);
+  wreck.rotation.y=MAP_VARIANT==='snow'?0.18:-0.24;
+  wreck.rotation.z=-0.11;
+  scene.add(wreck);
+  MAP.propRects.push({minX:68,maxX:79,minZ:13,maxZ:25,floorY:0});
+
+  // Мешки, металлические бочки, обломки и трава объединены в пакетные объекты для быстрого рендера.
+  const seed=(MAP_SEED>>>0)||1945;let state=seed;
+  const rnd=()=>{state=(Math.imul(state,1664525)+1013904223)>>>0;return state/4294967296;};
+  const grassGeo=new THREE.ConeGeometry(0.12,0.45,4);
+  const grassMat=new THREE.MeshLambertMaterial({color:snowTheme?0x89949a:0x545d3e});
+  const grass=new THREE.InstancedMesh(grassGeo,grassMat,360),tmp=new THREE.Object3D();
+  let used=0;
+  for(let i=0;i<360;i++){
+    const x=xMin+2+rnd()*(xMax-xMin-4),z=zMin+2+rnd()*(zMax-zMin-4);
+    if(Math.hypot(x-73,z-19)<8 || (x<53 && Math.abs(z-8)<6)) continue;
+    tmp.position.set(x,0.18,z);tmp.rotation.set(0,rnd()*6.28,0);tmp.scale.setScalar(0.45+rnd()*0.9);tmp.updateMatrix();
+    grass.setMatrixAt(used++,tmp.matrix);
+  }
+  grass.count=used;grass.instanceMatrix.needsUpdate=true;grass.userData.noRay=true;scene.add(grass);
+  YARD_VISUALS.grass=grass;YARD_VISUALS.grassMax=used;
+
+  const bagGeo=new THREE.BoxGeometry(1.2,0.55,0.55),bagMat=new THREE.MeshLambertMaterial({color:0x71664e});
+  const bags=new THREE.InstancedMesh(bagGeo,bagMat,36);let bi=0;
+  for(let row=0;row<3;row++)for(let i=0;i<12;i++){
+    const x=55+i*1.2,z=-1+row*0.52;
+    tmp.position.set(x,0.28+row*0.48,z);tmp.rotation.set(0,(i%2)*0.04,0);tmp.scale.set(1,1,1);tmp.updateMatrix();bags.setMatrixAt(bi++,tmp.matrix);
+  }
+  bags.instanceMatrix.needsUpdate=true;bags.userData.noRay=true;scene.add(bags);
+  MAP.propRects.push({minX:54,maxX:70,minZ:-2,maxZ:1,floorY:0});
+
+  // Холодные тёмные холмы обрамляют дальний горизонт, не перекрывая прогулочную площадку.
+  const rockGeo=new THREE.IcosahedronGeometry(1,1),rockMat=new THREE.MeshLambertMaterial({color:0x2e3940});
+  const rocks=new THREE.InstancedMesh(rockGeo,rockMat,32);
+  for(let i=0;i<32;i++){
+    const a=i/32*Math.PI*2,r=54+rnd()*12;
+    tmp.position.set(70+Math.cos(a)*r,1.5+rnd()*3,10+Math.sin(a)*r);
+    tmp.scale.set(5+rnd()*8,3+rnd()*5,5+rnd()*8);tmp.rotation.set(rnd(),rnd()*3,rnd());tmp.updateMatrix();rocks.setMatrixAt(i,tmp.matrix);
+  }
+  rocks.instanceMatrix.needsUpdate=true;rocks.userData.noRay=true;scene.add(rocks);YARD_VISUALS.rocks=rocks;
+  if(snowTheme){
+    const snowGeo=new THREE.CircleGeometry(1,7),snowMat=new THREE.MeshLambertMaterial({color:0xd7e0e5,transparent:true,opacity:0.7,depthWrite:false});
+    const snow=new THREE.InstancedMesh(snowGeo,snowMat,120);
+    for(let i=0;i<120;i++){
+      const x=xMin+2+rnd()*(xMax-xMin-4),z=zMin+2+rnd()*(zMax-zMin-4);
+      tmp.position.set(x,0.012,z);tmp.rotation.set(-Math.PI/2,0,rnd()*6.28);tmp.scale.set(0.7+rnd()*2.5,0.4+rnd()*1.6,1);tmp.updateMatrix();snow.setMatrixAt(i,tmp.matrix);
+    }
+    snow.instanceMatrix.needsUpdate=true;snow.userData.noRay=true;scene.add(snow);YARD_VISUALS.snow=snow;
+  }else YARD_VISUALS.snow=null;
+  // Лунное пятно и тёплый прожектор у разбитого самолёта.
+  const beacon=new THREE.PointLight(0xff9b59,1.4,15,2);beacon.position.set(73,3,19);scene.add(beacon);
+  const lamp=new THREE.Mesh(new THREE.SphereGeometry(0.13,8,6),new THREE.MeshBasicMaterial({color:0xffad62}));lamp.position.copy(beacon.position);scene.add(lamp);
+}
+
+/* ---- Фасадная вывеска HELP, читаемая из комнаты появления и двора ---- */
+function buildHelpSign(){
+  const c=makeCanvas(320,128),x=c.getContext('2d');
+  x.fillStyle='#151a1d';x.fillRect(0,0,320,128);addNoise(x,320,128,1800,0.02,0.14,1,2);
+  x.strokeStyle='#b5a88b';x.lineWidth=7;x.strokeRect(8,8,304,112);
+  x.fillStyle='#bd342a';x.textAlign='center';x.font='bold 64px Arial Black,Arial';x.fillText('HELP!',160,78);
+  x.fillStyle='#d3c8ad';x.font='bold 18px Arial';x.fillText('УБЕЖИЩЕ • БЛОК Б',160,106);
+  const tex=finishTexture(c,1,1);
+  const d=MAP.doors.find(q=>q.def.id==='d4');
+  const sign=new THREE.Mesh(new THREE.PlaneGeometry(1.55,0.62),new THREE.MeshBasicMaterial({map:tex,side:THREE.DoubleSide}));
+  sign.position.set(d.pos.x,d.floorY+2.95,d.pos.z);sign.rotation.y=Math.PI/2;scene.add(sign);
+  const lamp=new THREE.PointLight(0xff5a3d,0.55,5,2);lamp.position.set(d.pos.x-0.7,d.floorY+2.5,d.pos.z);scene.add(lamp);
+}
+
+/* ---- 8.11 Грузовой лифт во дворе: доступ на обзорную площадку ---- */
+function buildElevator(){
+  const dev=makeDevice('elevator','d4',20,6,[0,-1],{});
+  ELEVATOR.dev=dev;
+  // Верхняя площадка наблюдения (дополнительный игровой уровень во дворе).
+  const deck=new THREE.Mesh(new THREE.BoxGeometry(YARD_DECK.maxX-YARD_DECK.minX,0.28,YARD_DECK.maxZ-YARD_DECK.minZ),
+    new THREE.MeshLambertMaterial({color:0x454b4c}));
+  deck.position.set((YARD_DECK.minX+YARD_DECK.maxX)/2,YARD_DECK.y-0.16,(YARD_DECK.minZ+YARD_DECK.maxZ)/2);
+  scene.add(deck);ELEVATOR.deck=deck;deck.userData.noRay=true;
+  const steel=new THREE.MeshLambertMaterial({color:0x535d60});
+  // Опорные сваи башни
+  for(const sx of [-1,1])for(const sz of [-1,1]){
+    const col=new THREE.Mesh(new THREE.BoxGeometry(0.22,4.4,0.22),steel);
+    col.position.set(ELEVATOR.x+sx*2.0,2.0,ELEVATOR.z+sz*2.0);scene.add(col);
+  }
+  const railGeo=new THREE.BoxGeometry(1.1,0.12,0.12);
+  const rails=[];
+  for(let i=0;i<12;i++){
+    const x=YARD_DECK.minX+0.5+i;
+    if(Math.abs(x-ELEVATOR.x)<2.3) continue;
+    rails.push([x,YARD_DECK.y+0.65,YARD_DECK.minZ+0.25,0]);
+    rails.push([x,YARD_DECK.y+0.65,YARD_DECK.maxZ-0.25,0]);
+  }
+  for(let i=0;i<8;i++){
+    const z=YARD_DECK.minZ+0.8+i*1.8;
+    rails.push([YARD_DECK.minX+0.25,YARD_DECK.y+0.65,z,Math.PI/2]);
+    rails.push([YARD_DECK.maxX-0.25,YARD_DECK.y+0.65,z,Math.PI/2]);
+  }
+  for(const [x,y,z,r] of rails){const m=new THREE.Mesh(railGeo,steel);m.position.set(x,y,z);m.rotation.y=r;scene.add(m);}
+  MAP.propRects.push(
+    {minX:YARD_DECK.minX-0.12,maxX:YARD_DECK.minX+0.12,minZ:YARD_DECK.minZ,maxZ:YARD_DECK.maxZ,floorY:YARD_DECK.y},
+    {minX:YARD_DECK.maxX-0.12,maxX:YARD_DECK.maxX+0.12,minZ:YARD_DECK.minZ,maxZ:YARD_DECK.maxZ,floorY:YARD_DECK.y},
+    {minX:YARD_DECK.minX,maxX:YARD_DECK.maxX,minZ:YARD_DECK.minZ-0.12,maxZ:YARD_DECK.minZ+0.12,floorY:YARD_DECK.y},
+    {minX:YARD_DECK.minX,maxX:YARD_DECK.maxX,minZ:YARD_DECK.maxZ-0.12,maxZ:YARD_DECK.maxZ+0.12,floorY:YARD_DECK.y}
+  );
+  const plat=new THREE.Mesh(new THREE.BoxGeometry(3.5,0.22,3.5),new THREE.MeshLambertMaterial({color:0x777e7d}));
+  plat.position.set(ELEVATOR.x,ELEVATOR.y-0.11,ELEVATOR.z);scene.add(plat);
+  const warning=new THREE.PointLight(0xffcc66,0.7,5,2);warning.position.set(ELEVATOR.x,ELEVATOR.y+2,ELEVATOR.z);scene.add(warning);
+  ELEVATOR.platform=plat;ELEVATOR.warning=warning;
+  MAP.propRects.push({minX:ELEVATOR.x-1.8,maxX:ELEVATOR.x+1.8,minZ:ELEVATOR.z-1.8,maxZ:ELEVATOR.z+1.8,
+    floorY:0,liftPlatform:true});
+  dev.pos.set(ELEVATOR.x,EYE,ELEVATOR.z);
+  dev.anchor.set(ELEVATOR.x,ELEVATOR.y+2.6,ELEVATOR.z);
+}
+function callElevator(dev){
+  if(ELEVATOR.rider){SFX.deny();setToast('Лифт уже движется','warn');return;}
+  const px=PLAYER.pos.x,pz=PLAYER.pos.z;
+  if(Math.hypot(px-ELEVATOR.x,pz-ELEVATOR.z)>2.25){setToast('Встаньте на платформу лифта','warn');SFX.deny();return;}
+  ELEVATOR.target=ELEVATOR.y<2?4:0;
+  ELEVATOR.rider=true;
+  setToast(ELEVATOR.target>0?'Подъём на наблюдательную вышку…':'Спуск во двор…','good');
+  SFX.elevator();
+}
+function updateElevator(dt){
+  const diff=ELEVATOR.target-ELEVATOR.y;
+  if(Math.abs(diff)<0.015){
+    ELEVATOR.y=ELEVATOR.target;
+    if(ELEVATOR.rider){
+      PLAYER.floorY=ELEVATOR.y;PLAYER.pos.y=PLAYER.floorY+EYE;
+      ELEVATOR.rider=false;
+      setToast(ELEVATOR.y>2?'Верхняя площадка. Осмотритесь вокруг.':'Вы во дворе аэродрома','good');
+    }
+  }else{
+    ELEVATOR.y+=Math.sign(diff)*Math.min(Math.abs(diff),ELEVATOR.speed*dt);
+    if(ELEVATOR.rider){PLAYER.floorY=ELEVATOR.y;PLAYER.pos.y=PLAYER.floorY+EYE;}
+  }
+  if(ELEVATOR.platform){
+    ELEVATOR.platform.position.y=ELEVATOR.y-0.11;
+    if(ELEVATOR.warning){ELEVATOR.warning.position.y=ELEVATOR.y+2;ELEVATOR.warning.intensity=ELEVATOR.rider?1.5:0.65;}
+  }
+  if(ELEVATOR.dev){
+    ELEVATOR.dev.floorY=ELEVATOR.y;
+    ELEVATOR.dev.pos.y=EYE+ELEVATOR.y;
+    ELEVATOR.dev.anchor.y=ELEVATOR.y+2.6;
+  }
+}
+
 /** Построить весь уровень */
 function buildLevel(){
-  for (const def of ZONE_DEFS) MAP.zones[def.id] = { def, ox:def.ox, oz:def.oz };
+  for (const def of ZONE_DEFS) MAP.zones[def.id] = { def, ox:def.ox, oz:def.oz, floorY:def.floorY||0 };
   for (const id in MAP.zones) applyPlacements(MAP.zones[id]);
   buildWalls();             // заполняет MAP.wallRects
   buildProps();             // ящики и бочки -> MAP.propRects
@@ -2006,11 +2477,15 @@ function buildLevel(){
   buildTurret();           // стационарная турель
   buildWindows();          // окна-баррикады
   buildEasterEgg();        // радио, вентили, телепорт
-  buildColliderIndex();    // единый пространственный индекс коллайдеров
   buildFloors();
+  buildStaircase();        // подъём на верхний этаж
+  buildYardEnvironment();  // аэродром, ограждение, обломки, трава
+  buildElevator();         // рабочий подъёмник на вышку наблюдения
   buildLamps();            // мерцающие аварийные лампы
   buildDoors();
+  buildHelpSign();
   buildBuys();
+  buildColliderIndex();    // индекс строится после всех рам/пропсов
   buildSpawns();
 }
 
@@ -2265,7 +2740,8 @@ const FX = {
    10. ИГРОК: состояние, коллизии, перемещение
    ============================================================ */
 const PLAYER = {
-  pos: new THREE.Vector3(6*TILE, EYE, 3*TILE),     // старт в холле (центр)
+  pos: new THREE.Vector3(4*TILE, EYE, 8*TILE),     // старт в комнате появления
+  floorY:0,                                         // высота поверхности (лестницы и второй этаж)
   vel: new THREE.Vector3(),
   yaw: Math.PI, pitch: 0,
   health: 100, maxHealth: 100,
@@ -2286,42 +2762,64 @@ function circleRect(x, z, r, c){
   return dx*dx + dz*dz < r*r;
 }
 /** Занято ли место? Закрытые двери блокируют и игрока, и зомби */
-function blocked(x, z, r, zombie){
+function blocked(x, z, r, zombie, levelY){
+  const floorY = levelY !== undefined ? levelY : (zombie ? 0 : PLAYER.floorY);
   const list = nearbyColliders(x, z, _tmpCols);
-  for (let i=0;i<list.length;i++) if (circleRect(x, z, r, list[i])) return true;
-  for (let i=0;i<MAP.doors.length;i++){
-    const d = MAP.doors[i];
-    if (!d.open && circleRect(x, z, r, d.barrier)) return true;
+  for (let i=0;i<list.length;i++){
+    const c=list[i];
+    if (c.floorY !== undefined && Math.abs(c.floorY-floorY)>1.55) continue;
+    if (circleRect(x,z,r,c)) return true;
   }
+  for (let i=0;i<MAP.doors.length;i++){
+    const d=MAP.doors[i];
+    if (!d.open && Math.abs((d.floorY||0)-floorY)<1.55 && circleRect(x,z,r,d.barrier)) return true;
+  }
+  // Неповреждённые доски действительно закрывают оконный проём; зомби подходят и ломают их.
+  for (const d of MAP.devices){
+    if (d.kind==='window' && d.boards>0 && Math.abs(d.floorY-floorY)<1.4 && circleRect(x,z,r,d.barrier)) return true;
+  }
+  // Две вертикальные стены лестничной шахты, не позволяющие обойти завал сбоку.
+  if (MAP.zoneDoor.d2 && !MAP.zoneDoor.d2.open && z>STAIR.highZ-0.4 && z<STAIR.lowZ+0.4 &&
+      ((x>STAIR.minX-0.5 && x<STAIR.minX+0.05)||(x>STAIR.maxX-0.05 && x<STAIR.maxX+0.5))) return true;
   return false;
 }
-/** Сдвинуть объект с учётом коллизий (по одной оси — так не «залипаешь» в углах) */
-function moveWithCollision(pos, dx, dz, r, zombie){
-  // если объект уже «внутри» препятствия (например, заспавнился в ящике) — даём ему выбраться
-  const escaping = zombie && blocked(pos.x, pos.z, r, true);
-  if (Math.abs(dx) > 1e-6){
-    const nx = pos.x + dx;
-    if (escaping || !blocked(nx, pos.z, r, zombie)) pos.x = nx;
-    else {                                   // скользим по стене в свободную сторону
-      if (!blocked(nx, pos.z + (dz>0?0.02:-0.02), r, zombie)) pos.x = nx;
-    }
+/** Сдвинуть объект с учётом горизонтальных и этажных коллизий */
+function moveWithCollision(pos, dx, dz, r, zombie, levelY){
+  const baseY=levelY!==undefined?levelY:(zombie?pos.y:PLAYER.floorY);
+  const escaping=zombie && blocked(pos.x,pos.z,r,true,baseY);
+  if(Math.abs(dx)>1e-6){
+    const nx=pos.x+dx;
+    if(escaping||!blocked(nx,pos.z,r,zombie,baseY)) pos.x=nx;
+    else if(!blocked(nx,pos.z+(dz>0?0.02:-0.02),r,zombie,baseY)) pos.x=nx;
   }
-  if (Math.abs(dz) > 1e-6){
-    const nz = pos.z + dz;
-    if (escaping || !blocked(pos.x, nz, r, zombie)) pos.z = nz;
+  if(Math.abs(dz)>1e-6){
+    const nz=pos.z+dz;
+    if(escaping||!blocked(pos.x,nz,r,zombie,baseY)) pos.z=nz;
+  }
+  if(zombie){
+    pos.y=floorHeightAt(pos.x,pos.z,baseY);
+  }else{
+    PLAYER.floorY=floorHeightAt(pos.x,pos.z,baseY);
+    pos.y=EYE+PLAYER.floorY;
   }
 }
 
 /** Обновление игрока: ввод, перемещение, регенерация, камера */
-function updatePlayer(dt, now){
-  const run = Input.shift && !weaponState.aiming;
+function updatePlayer(dt,now){
+  pollGamepad(dt);
+  weaponState.aiming=!!(weaponState.mouseAim||GAMEPAD.aim||TOUCH.aiming);
+  const run=Input.shift&&!weaponState.aiming;
   let fx = 0, fz = 0;
   if (Input.w) fz -= 1;
   if (Input.s) fz += 1;
   if (Input.a) fx -= 1;
-  if (Input.d) fx += 1;
-  // мобильный джойстик
-  if (TOUCH.active){ fx += TOUCH.moveX; fz += TOUCH.moveY; }
+  if(Input.d)fx+=1;
+  // виртуальный и аппаратный стики
+  if(TOUCH.active){fx+=TOUCH.moveX;fz+=TOUCH.moveY;}
+  fx+=GAMEPAD.moveX;fz+=GAMEPAD.moveY;
+  PLAYER.yaw-=GAMEPAD.lookX*2.1*dt;
+  PLAYER.pitch=clamp(PLAYER.pitch-GAMEPAD.lookY*1.65*dt,-Math.PI/2+0.05,Math.PI/2-0.05);
+  if(GAMEPAD.aim)weaponState.aiming=true;
   // резервный поворот (если мышь без захвата курсора)
   if (Input.q) PLAYER.yaw += 1.9*dt;
   if (Input.e) PLAYER.yaw -= 1.9*dt;
@@ -2333,13 +2831,18 @@ function updatePlayer(dt, now){
   const sin = Math.sin(PLAYER.yaw), cos = Math.cos(PLAYER.yaw);
   const wantX = fx*cos + fz*sin;
   const wantZ = -fx*sin + fz*cos;
-  const speed = (run ? PLAYER.speedRun : PLAYER.speedWalk) * (weaponState.aiming ? 0.62 : 1) * (PLAYER.slowed>0?0.55:1);
+  const speed=(run?PLAYER.speedRun:PLAYER.speedWalk)*(weaponState.aiming?0.62:1)*(PERKS.stamin?1.3:1)*(PLAYER.slowed>0?0.55:1);
 
   const accel = 30;
   PLAYER.vel.x = damp(PLAYER.vel.x, wantX*speed, accel*0.35, dt);
   PLAYER.vel.z = damp(PLAYER.vel.z, wantZ*speed, accel*0.35, dt);
 
-  moveWithCollision(PLAYER.pos, PLAYER.vel.x*dt, PLAYER.vel.z*dt, PLAYER.radius, false);
+  const oldFloor=PLAYER.floorY;
+  moveWithCollision(PLAYER.pos,PLAYER.vel.x*dt,PLAYER.vel.z*dt,PLAYER.radius,false,oldFloor);
+  if(oldFloor-PLAYER.floorY>2.0&&GAME.state==='play'&&!ELEVATOR.rider){
+    const fall=oldFloor-PLAYER.floorY;
+    if(fall>2.6)damagePlayer(Math.min(45,(fall-1.8)*14));
+  }
 
   // покачивание камеры при ходьбе
   const moveSpeed = Math.hypot(PLAYER.vel.x, PLAYER.vel.z);
@@ -2356,20 +2859,20 @@ function updatePlayer(dt, now){
   // камера
   const bobY = Math.sin(PLAYER.bob*2) * 0.032 * PLAYER.bobAmp;
   const bobX = Math.cos(PLAYER.bob) * 0.028 * PLAYER.bobAmp;
-  camera.position.set(PLAYER.pos.x + bobX*0.15, EYE + bobY - PLAYER.shootKick*0.02, PLAYER.pos.z);
+  camera.position.set(PLAYER.pos.x + bobX*0.15, PLAYER.floorY+EYE + bobY - PLAYER.shootKick*0.02, PLAYER.pos.z);
   camera.rotation.set(0,0,0);
   camera.rotation.order = 'YXZ';
   camera.rotation.y = PLAYER.yaw;
   camera.rotation.x = PLAYER.pitch - PLAYER.shootKick*0.025;
   camera.rotation.z = bobX*0.02 + PLAYER.shootKick*0.02;
 
-  flashlight.position.set(PLAYER.pos.x, EYE - 0.1, PLAYER.pos.z);
+  flashlight.position.set(PLAYER.pos.x, PLAYER.floorY+EYE - 0.1, PLAYER.pos.z);
   flashlight.target.position.set(
     PLAYER.pos.x - Math.sin(PLAYER.yaw)*Math.cos(PLAYER.pitch),
-    EYE - 0.1 + Math.sin(PLAYER.pitch),
+    PLAYER.floorY+EYE - 0.1 + Math.sin(PLAYER.pitch),
     PLAYER.pos.z - Math.cos(PLAYER.yaw)*Math.cos(PLAYER.pitch)
   );
-  muzzleLight.position.set(PLAYER.pos.x, EYE+0.25, PLAYER.pos.z);
+  muzzleLight.position.set(PLAYER.pos.x, PLAYER.floorY+EYE+0.25, PLAYER.pos.z);
 }
 
 /** Урон игроку */
@@ -2406,7 +2909,7 @@ function damagePlayer(amount){
 /* ============================================================
    11. ЗОМБИ: модели из примитивов, ИИ, анимация
    ============================================================ */
-const zombiesRoot = new THREE.Group();      // все зомби — в одной группе (для raycast)
+const zombiesRoot = new THREE.Group();      // все зомби — в одной группе для проверки попаданий лучом
 scene.add(zombiesRoot);
 const zombies = [];
 
@@ -2510,7 +3013,7 @@ function createZombieMesh(skinIdx, scale){
     limbMeshes.push([legMesh, 0.72]);
   }
 
-  // метки для raycast (вешаются на меши — по ним и бьёт луч): часть тела и множитель урона
+  // Метки частей тела крепятся к мешам: луч определяет область попадания и множитель урона.
   const tag = (mesh, part, mult) => { mesh.userData.part = part; mesh.userData.mult = mult; };
   tag(skull, 'head', 2.6); tag(jaw, 'head', 2.6);
   tag(torso, 'body', 1); tag(chest, 'body', 1); tag(belly, 'body', 0.9);
@@ -2595,7 +3098,7 @@ function spawnZombie(spawnPoint, forcedType){
   const mesh = cfg.quadruped ? createDogMesh(skinIdx, scale) : createZombieMesh(skinIdx, scale);
 
   const hp = (100 + 52*(wave-1)) * cfg.hp * (wave > 10 ? Math.pow(1.06, wave-10) : 1) * TWEAKS.hp;
-  const speed = Math.min(3.1, 1.28 + 0.085*(wave-1)) * cfg.sp * TWEAKS.speed;
+  const speed=Math.min(3.1,1.28+0.085*(wave-1))*cfg.sp*TWEAKS.speed*(GAME.daily?1.08:1);
   const dmg = Math.min(38, ZOMBIE_DMG_BASE + 1.15*wave) * cfg.dmg * TWEAKS.dmg;
 
   const finalScale = scale * cfg.size;
@@ -2603,13 +3106,14 @@ function spawnZombie(spawnPoint, forcedType){
   if (cfg.cloth) mesh.mCloth.color.setHex(cfg.cloth);
   if (cfg.size !== 1) mesh.root.scale.setScalar(finalScale);
 
-  mesh.root.position.set(spawnPoint.x, -1.75, spawnPoint.z);
-  mesh.root.rotation.y = Math.atan2(spawnPoint.x - PLAYER.pos.x, spawnPoint.z - PLAYER.pos.z);
+  const spawnFloor=spawnPoint.floorY!==undefined?spawnPoint.floorY:(MAP.zones[spawnPoint.zone] ? MAP.zones[spawnPoint.zone].floorY : floorHeightAt(spawnPoint.x,spawnPoint.z,0));
+  mesh.root.position.set(spawnPoint.x,spawnFloor-1.75,spawnPoint.z);
+  mesh.root.rotation.y = Math.atan2(spawnPoint.x-PLAYER.pos.x,spawnPoint.z-PLAYER.pos.z);
 
   zombiesRoot.add(mesh.root);
 
   const z = {
-    mesh, root: mesh.root, pos: new THREE.Vector3(spawnPoint.x, 0, spawnPoint.z),
+    mesh, root:mesh.root, pos:new THREE.Vector3(spawnPoint.x,spawnFloor,spawnPoint.z), floorY:spawnFloor,
     hp, hpMax:hp, speed, dmg, type, cfg, scale:finalScale,
     radius: ZOMBIE_R * (cfg.quadruped ? 0.62 : cfg.size) * rand(0.95,1.05),
     phase: Math.random()*6.28, dying:false, deathT:0, spawnT:0, spawning:!spawnPoint.window,
@@ -2621,6 +3125,20 @@ function spawnZombie(spawnPoint, forcedType){
     navT:0, navX:spawnPoint.x, navZ:spawnPoint.z,      // маршрут через двери
     navDoorId:null, navSide:'out'
   };
+  if(z.boss){
+    z.baseSpeed=z.speed;z.baseDmg=z.dmg;z.bossPhase=1;z.armor={left:180,right:180};z.slamT=0;z.slamReady=GAME.time+4;
+    const armorMat=new THREE.MeshLambertMaterial({color:0x414d3e,emissive:0x080d08});
+    const weakMat=new THREE.MeshBasicMaterial({color:0x91ff55});
+    const plateL=new THREE.Mesh(new THREE.BoxGeometry(0.32,0.52,0.16),armorMat);
+    const plateR=new THREE.Mesh(new THREE.BoxGeometry(0.32,0.52,0.16),armorMat);
+    plateL.position.set(-0.34,1.48,-0.12);plateR.position.set(0.34,1.48,-0.12);
+    z.root.add(plateL,plateR);
+    plateL.userData.part='armorL';plateR.userData.part='armorR';
+    const core=new THREE.Mesh(new THREE.SphereGeometry(0.14,10,8),weakMat);
+    core.position.set(0,1.22,-0.22);core.userData.part='weakpoint';z.root.add(core);
+    z.bossArmor=[plateL,plateR];z.bossCore=core;
+    z.mesh.mats.push(armorMat);
+  }
   mesh.root.traverse(o => { if (o.isMesh) o.userData.zref = z; });
 
   // аура босса и «появление через окно»
@@ -2630,10 +3148,11 @@ function spawnZombie(spawnPoint, forcedType){
     mesh.root.add(light);
   }
   if (spawnPoint.window){
-    z.root.position.y = 0;
+    z.root.position.y = z.floorY || 0;
     z.spawning = false;
     z.windowClimb = 0.9;                    // «перелезает» через подоконник
   }
+  if(!COOP.online||COOP.isHost)z.netId=COOP.netSeq++;
   zombies.push(z);
   if (z.boss) SFX.bossRoar();
   else if (type === 'dog') SFX.dog();
@@ -2645,9 +3164,10 @@ function now0(){ return GAME.time; }
 
 /** Сплёвывание кислоты (зомби-плевуны) */
 const spitList = [];
-function spitProjectile(z){
-  const from = new THREE.Vector3(z.pos.x, 1.45 * z.scale, z.pos.z);
-  const to = new THREE.Vector3(PLAYER.pos.x, EYE - 0.1, PLAYER.pos.z);
+function spitProjectile(z,target){
+  target=target||getZombieTarget(z);
+  const from=new THREE.Vector3(z.pos.x,(z.floorY||0)+1.45*z.scale,z.pos.z);
+  const to=new THREE.Vector3(target.x,(target.floorY||0)+EYE-0.1,target.z);
   const dir = to.sub(from).normalize();
   dir.y += 0.06;
   const mesh = new THREE.Mesh(
@@ -2659,7 +3179,7 @@ function spitProjectile(z){
   mesh.add(spr);
   mesh.position.copy(from);
   scene.add(mesh);
-  spitList.push({ mesh, vel: dir.multiplyScalar(13), life: 2.6 });
+  spitList.push({mesh,vel:dir.multiplyScalar(13),life:2.6,targetRemote:!!target.remote,targetId:target.id,floorY:z.floorY||0});
   SFX.spit();
 }
 /** Обновление кислотных плевков */
@@ -2669,14 +3189,21 @@ function updateSpits(dt){
     p.life -= dt;
     p.vel.y -= 2.2*dt;
     p.mesh.position.addScaledVector(p.vel, dt);
-    const hitPlayer = p.mesh.position.distanceTo(camera.position) < 0.55;
-    const hitWall = blocked(p.mesh.position.x, p.mesh.position.z, 0.1, false) || p.mesh.position.y < 0.05;
-    if (hitPlayer){
-      damagePlayer(9);
-      DOM.damageFlash.style.background = 'radial-gradient(ellipse at center, rgba(90,180,0,.15) 25%, rgba(120,220,20,.7) 100%)';
-      setTimeout(()=>{ DOM.damageFlash.style.background = ''; }, 120);
+    const remote=p.targetRemote&&COOP.partnerState;
+    const tx=remote?remote.x:PLAYER.pos.x,tz=remote?remote.z:PLAYER.pos.z;
+    const ty=remote?(remote.floorY||0)+EYE:PLAYER.floorY+EYE;
+    const hitPlayer=p.mesh.position.distanceTo(new THREE.Vector3(tx,ty,tz))<0.62;
+    const groundY=floorHeightAt(p.mesh.position.x,p.mesh.position.z,p.floorY);
+    const hitWall=blocked(p.mesh.position.x,p.mesh.position.z,0.1,false,p.floorY)||p.mesh.position.y<groundY+0.05;
+    if(hitPlayer){
+      if(remote)sendNet({type:'damage',to:remote.id,amount:9});
+      else{
+        damagePlayer(9);
+        DOM.damageFlash.style.background='radial-gradient(ellipse at center, rgba(90,180,0,.15) 25%, rgba(120,220,20,.7) 100%)';
+        setTimeout(()=>{DOM.damageFlash.style.background='';},120);
+      }
     }
-    if (hitPlayer || hitWall || p.life <= 0){
+    if(hitPlayer||hitWall||p.life<=0){
       FX.burst(p.mesh.position.x, p.mesh.position.y, p.mesh.position.z, 0,1,0, 8, 0.62,0.94,0.23, 2.0, 8);
       scene.remove(p.mesh);
       p.mesh.geometry.dispose(); p.mesh.material.dispose();
@@ -2690,21 +3217,22 @@ function updateSpits(dt){
    ============================================================ */
 const POWER_KEYS = ['insta','double','maxammo','nuke','firesale'];
 
-function maybeDropPowerup(x, z){
-  let chance = 0.045 + (GAME.wave >= 5 ? 0.012 : 0);
-  if (Math.random() < chance) spawnPowerup(x, z);
+function maybeDropPowerup(x,z,floorY){
+  let chance=0.045+(GAME.wave>=5?0.012:0);
+  if(Math.random()<chance) spawnPowerup(x,z,undefined,floorY);
 }
 /** Принудительно выдать павер-ап (гарантированные награды: собаки, босс) */
-function spawnPowerup(x, z, key){
-  key = key || pick(POWER_KEYS);
+function spawnPowerup(x,z,key,floorY){
+  key=key||pick(POWER_KEYS);
+  floorY=floorY!==undefined?floorY:floorHeightAt(x,z,PLAYER.floorY);
   const d = POWER_DEFS[key];
   const mat = new THREE.SpriteMaterial({ map:TX.power, color:d.color, transparent:true,
                                          blending:THREE.AdditiveBlending, depthWrite:false });
   const spr = new THREE.Sprite(mat);
-  spr.position.set(x, 0.9, z);
+  spr.position.set(x,floorY+0.9,z);
   spr.scale.set(0.55, 0.55, 0.55);
   scene.add(spr);
-  powerDrops.push({ key, spr, life: 24, phase: Math.random()*6.28 });
+  powerDrops.push({key,spr,life:24,phase:Math.random()*6.28,floorY});
 }
 /** Подбор и действие бонусов */
 function updatePowerups(dt, now){
@@ -2718,10 +3246,10 @@ function updatePowerups(dt, now){
   for (let i=powerDrops.length-1;i>=0;i--){
     const p = powerDrops[i];
     p.life -= dt;
-    p.spr.position.y = 0.9 + Math.sin(now*2.4 + p.phase)*0.12;
-    p.spr.material.rotation += dt*0.8;
-    const d = Math.hypot(p.spr.position.x - PLAYER.pos.x, p.spr.position.z - PLAYER.pos.z);
-    if (d < 1.15){
+    p.spr.position.y=p.floorY+0.9+Math.sin(now*2.4+p.phase)*0.12;
+    p.spr.material.rotation+=dt*0.8;
+    const d=Math.hypot(p.spr.position.x-PLAYER.pos.x,p.spr.position.z-PLAYER.pos.z);
+    if(d<1.15&&Math.abs(p.floorY-PLAYER.floorY)<1.4){
       applyPowerup(p.key);
       scene.remove(p.spr);
       p.spr.material.dispose();
@@ -2762,8 +3290,8 @@ function applyPowerup(key){
       }
     }
     addPoints(400);
-    FX.ring(PLAYER.pos.x, 0.4, PLAYER.pos.z, 0x66ffdd);
-    FX.ring(PLAYER.pos.x, 0.9, PLAYER.pos.z, 0xffffff);
+    FX.ring(PLAYER.pos.x,PLAYER.floorY+0.4,PLAYER.pos.z,0x66ffdd);
+    FX.ring(PLAYER.pos.x,PLAYER.floorY+0.9,PLAYER.pos.z,0xffffff);
   } else {
     POWER[key] = Math.max(POWER[key], d.dur);
     setToast(d.name.toUpperCase() + '!', 'good');
@@ -2773,15 +3301,31 @@ function applyPowerup(key){
 }
 
 /** Применить урон зомби. Возвращает 'kill' | 'hit' */
-function damageZombie(z, dmg, isHead){
-  if (z.dying) return 'hit';
-  z.hp -= dmg;
-  z.flashT = 0.11;                                   // красная вспышка «получил урон»
-  for (const m of z.mesh.mats) m.emissive.setHex(0x8c1210);
-  if (z.hp <= 0){
-    z.dying = true; z.deathT = 0; z.alive = false;
-    return 'kill';
+function damageZombie(z,dmg,isHead,part){
+  if(z.dying)return 'hit';
+  if(COOP.online&&!COOP.isHost)sendNet({type:'hit',x:z.pos.x,z:z.pos.z,floorY:z.floorY||0,damage:dmg,head:!!isHead,part});
+  if(z.boss){
+    if(part==='armorL'||part==='armorR'){
+      const side=part==='armorL'?'left':'right';
+      if(z.armor[side]>0){z.armor[side]-=dmg;if(z.armor[side]<=0){z.armor[side]=0;z.bossArmor[side==='left'?0:1].visible=false;setToast('Бронепластина босса разрушена — цельтесь в ядро!','good');SFX.achievement();}}
+      dmg*=z.armor[side]>0?0.55:1.25;
+    }else if(part==='weakpoint')dmg*=4.2;
+    else if(!z.armor.left&&!z.armor.right)dmg*=1.25;
+    else dmg*=isHead?1.15:0.65;
   }
+  z.hp-=dmg;z.flashT=0.11;
+  for(const m of z.mesh.mats)m.emissive.setHex(0x8c1210);
+  if(z.boss){
+    const ratio=z.hp/z.hpMax,phase=ratio>0.66?1:(ratio>0.33?2:3);
+    if(phase!==z.bossPhase){
+      z.bossPhase=phase;z.speed=z.baseSpeed*(phase===1?1:phase===2?1.2:1.48);
+      z.dmg=z.baseDmg*(phase===1?1:phase===2?1.2:1.5);
+      if(z.bossCore)z.bossCore.material.color.setHex(phase===3?0xff351a:phase===2?0xffb82e:0x91ff55);
+      setToast(phase===3?'Босс в ярости — третья фаза!':`Броня треснула — фаза ${phase}`,'warn');
+      SFX.bossRoar();
+    }
+  }
+  if(z.hp<=0){z.dying=true;z.deathT=0;z.alive=false;return 'kill';}
   return 'hit';
 }
 
@@ -2796,7 +3340,7 @@ function updateZombieFlash(z, dt){
 /** Смерть: падение, затем удаление */
 function updateZombieDeath(z, dt){
   if (z.deathT === 0){
-    if (z.boss) spawnPowerup(z.pos.x, z.pos.z, 'maxammo');       // с босса — гарантированный бонус
+    if (z.boss) spawnPowerup(z.pos.x,z.pos.z,'maxammo',z.floorY);       // с босса — гарантированный бонус
     if (z.fromWindow === undefined && false) {}                  // (заглушка совместимости)
   }
   z.deathT += dt;
@@ -2821,8 +3365,14 @@ function removeZombie(z){
 }
 
 /** Зона, в которой находится точка (для маршрутизации зомби через двери) */
-function zoneAt(x, z){
-  const c = worldCells.get(cellKey(Math.round(x/TILE), Math.round(z/TILE)));
+function zoneAt(x, z, y){
+  const level = (y === undefined) ? 0 : y;
+  // Открытая лестница связывает оба этажа; зомби получают правильное дерево маршрута
+  if (MAP.zoneDoor.d2 && MAP.zoneDoor.d2.open && x >= STAIR.minX && x <= STAIR.maxX && z <= STAIR.lowZ && z >= STAIR.highZ) return 'd2';
+  const key = cellKey(Math.round(x/TILE), Math.round(z/TILE));
+  const g = worldCells.get(key), u = upperCells.get(key);
+  if (g && u) return Math.abs(level-(u.floorY||0)) < Math.abs(level-(g.floorY||0)) ? u.zone : g.zone;
+  const c = (level >= 2 && u) ? u : (g || u);
   return c ? c.zone : null;
 }
 /**
@@ -2875,7 +3425,7 @@ const ZOMBIE_PROBES = [0, 0.4, -0.4, 0.85, -0.85, 1.3, -1.3, 1.75, -1.75];
 function steerZombie(z, dx, dz, dt){
   const R = z.radius*1.06;      // чуть больше радиуса столкновения — иначе зомби «вклинивается» в углы
   const P = 0.95 + z.radius;
-  const free = (nx, nz) => !blocked(z.pos.x + nx*P, z.pos.z + nz*P, R, true);
+  const free = (nx, nz) => !blocked(z.pos.x + nx*P, z.pos.z + nz*P, R, true, z.floorY);
 
   if (z.detourT > 0){
     z.detourT -= dt;
@@ -2907,8 +3457,8 @@ function relocateZombie(z){
   const dist = s => Math.hypot(s.x - PLAYER.pos.x, s.z - PLAYER.pos.z);
   const near = active.filter(s => dist(s) > 5 && dist(s) < 16);
   const p = near.length ? pick(near) : active[0];
-  z.pos.x = p.x; z.pos.z = p.z;
-  z.root.position.set(p.x, -1.75, p.z);
+  z.pos.x=p.x; z.pos.z=p.z; z.floorY=p.floorY||0; z.pos.y=z.floorY;
+  z.root.position.set(p.x,z.floorY-1.75,p.z);
   z.spawning = true; z.spawnT = 0;
   z.stuckTime = 0; z.movedAcc = 0; z.moveT = 0; z.detourT = 0;
   z.progT = 0; z.progRef = 999; z.noProg = 0; z.navDoorId = null;
@@ -2924,18 +3474,19 @@ function updateZombies(dt, now){
     if (!z.alive){ updateZombieDeath(z, dt); continue; }
     updateZombieFlash(z, dt);
 
-    const toPX = PLAYER.pos.x - z.pos.x;      // направление на игрока (для атаки/разворота)
-    const toPZ = PLAYER.pos.z - z.pos.z;
-    const dist = Math.hypot(toPX, toPZ) || 0.0001;
+    const target=getZombieTarget(z);
+    const toPX=target.x-z.pos.x,toPZ=target.z-z.pos.z;
+    const verticalGap=Math.abs((target.floorY||0)-(z.floorY||0));
+    const dist=Math.hypot(toPX,toPZ,verticalGap)||0.0001;
 
     // --- появление из-под земли ---
     if (z.spawning){
       z.spawnT += dt;
       const t = Math.min(1, z.spawnT/0.7);
-      z.root.position.y = -1.75 * (1 - t*t);
+      z.root.position.y = z.floorY-1.75*(1-t*t);
       if (z.spawnT > 0.7){
         z.spawning = false;
-        FX.burst(z.pos.x, 0.2, z.pos.z, 0,1,0, 10, 0.5,0.45,0.4, 1.4, 3);
+        FX.burst(z.pos.x,(z.floorY||0)+0.2,z.pos.z,0,1,0,10,0.5,0.45,0.4,1.4,3);
       }
       z.root.rotation.y = Math.atan2(-toPX, -toPZ);
       continue;
@@ -2945,12 +3496,12 @@ function updateZombies(dt, now){
     z.navT -= dt;
     if (z.navT <= 0){
       z.navT = 0.45;
-      const door = navDoorFor(zoneAt(z.pos.x, z.pos.z), zoneAt(PLAYER.pos.x, PLAYER.pos.z));
+      const door=navDoorFor(zoneAt(z.pos.x,z.pos.z,z.floorY),zoneAt(target.x,target.z,target.floorY));
       if (door){
         const wp = doorWaypoint(door, z);
         z.navX = wp[0]; z.navZ = wp[1];
       } else {
-        z.navX = PLAYER.pos.x; z.navZ = PLAYER.pos.z;
+        z.navX=target.x;z.navZ=target.z;
         z.navDoorId = null;
       }
     }
@@ -2988,7 +3539,8 @@ function updateZombies(dt, now){
       // «шейк» толпы, чтобы зомби не шли строго по одной линии
       const jitter = Math.sin(now*2.3 + z.phase*3.1) * 0.06;
       const spd = z.speed * (z.attackT > 0 ? 0.25 : 1) * (z.detourT > 0 ? 0.95 : 1);
-      moveWithCollision(z.pos, (dx + jitter)*spd*dt, (dz + jitter*0.7)*spd*dt, z.radius, true);
+      moveWithCollision(z.pos,(dx+jitter)*spd*dt,(dz+jitter*0.7)*spd*dt,z.radius,true,z.floorY);
+      z.floorY=z.pos.y;
 
       // контроль застревания: за 0.6 с нужно пройти хотя бы 0.25 м
       z.moveT += dt;
@@ -3000,13 +3552,13 @@ function updateZombies(dt, now){
           z.stuckTime += 0.6;
         } else z.stuckTime = 0;
         // страховка: если зомби заклинило внутри геометрии — выталкиваем наружу
-        if (z.movedAcc < 0.06 && blocked(z.pos.x, z.pos.z, z.radius, true)){
+        if (z.movedAcc < 0.06 && blocked(z.pos.x,z.pos.z,z.radius,true,z.floorY)){
           let rescued = false;
           for (let rad = 0.3; rad <= 1.2 && !rescued; rad += 0.3){
             for (let i=0;i<8;i++){
               const a = i*Math.PI/4;
               const nx = z.pos.x + Math.cos(a)*rad, nz = z.pos.z + Math.sin(a)*rad;
-              if (!blocked(nx, nz, z.radius, true)){ z.pos.x = nx; z.pos.z = nz; rescued = true; break; }
+              if (!blocked(nx,nz,z.radius,true,z.floorY)){ z.pos.x=nx; z.pos.z=nz; rescued=true; break; }
             }
           }
         }
@@ -3017,11 +3569,22 @@ function updateZombies(dt, now){
       z.mesh.body.rotation.z = Math.sin(z.phase)*0.07;
     } else {
       // --- атака вплотную ---
-      if (now >= z.nextAttack){
+      if (verticalGap < 1.45 && now >= z.nextAttack){
         z.nextAttack = now + (z.type === 'dog' ? rand(0.55, 0.8) : (z.boss ? rand(1.35, 1.6) : rand(1.0, 1.25)));
         z.attackT = 0.32;
-        damagePlayer(z.dmg);
-        FX.bloodBurst(PLAYER.pos.x, 1.25, PLAYER.pos.z, 3);
+        if(target.remote)sendNet({type:'damage',to:target.id,amount:z.dmg});
+        else damagePlayer(z.dmg);
+        FX.bloodBurst(target.x,(target.floorY||0)+1.25,target.z,3);
+      }
+    }
+
+    // --- босс: тяжёлый удар по земле с предупреждающим кольцом и уроном по площади ---
+    if(z.boss&&dist<6&&now>=z.slamReady&&z.slamT<=0){z.slamT=0.72;z.slamReady=now+3.2;FX.ring(z.pos.x,z.floorY+0.08,z.pos.z,0xff4725);}
+    if(z.boss&&z.slamT>0){
+      z.slamT-=dt;
+      if(z.slamT<=0&&dist<5.2&&verticalGap<1.5){
+        if(target.remote)sendNet({type:'damage',to:target.id,amount:18*z.bossPhase});else damagePlayer(18*z.bossPhase);
+        FX.ring(z.pos.x,z.floorY+0.15,z.pos.z,0xff351a);SFX.explosion();
       }
     }
 
@@ -3029,15 +3592,15 @@ function updateZombies(dt, now){
     if (z.type === 'spitter' && now >= z.spitT && dist > 3.2 && dist < 19){
       z.spitT = now + rand(2.6, 4.4);
       z.attackT = 0.4;
-      spitProjectile(z);
+      spitProjectile(z,target);
     }
 
     // --- «перелезание» через подоконник (спавн из окна) ---
     if (z.windowClimb > 0){
       z.windowClimb -= dt;
-      const wx = PLAYER.pos.x - z.pos.x, wz = PLAYER.pos.z - z.pos.z;
+      const wx=target.x-z.pos.x,wz=target.z-z.pos.z;
       const wd = Math.hypot(wx, wz) || 1;
-      moveWithCollision(z.pos, wx/wd*3.0*dt, wz/wd*3.0*dt, z.radius, true);
+      moveWithCollision(z.pos,wx/wd*3.0*dt,wz/wd*3.0*dt,z.radius,true,z.floorY);z.floorY=z.pos.y;
     }
     if (z.attackT > 0) z.attackT -= dt;
 
@@ -3077,7 +3640,7 @@ function updateZombies(dt, now){
     z.mesh.body.position.y = Math.abs(sw)*0.05;
     z.mesh.head.rotation.z = sw*0.09;
     z.mesh.head.rotation.y = Math.sin(z.phase*0.5)*0.18;
-    z.root.position.y = 0;
+    z.root.position.y=z.floorY||0;
 
     // --- звуки зомби ---
     z.growlT -= dt;
@@ -3097,8 +3660,8 @@ function updateZombies(dt, now){
     if (!a.alive) continue;
     for (let j=i+1;j<zombies.length;j++){
       const b = zombies[j];
-      if (!b.alive) continue;
-      const dx = b.pos.x - a.pos.x, dz = b.pos.z - a.pos.z;
+      if(!b.alive||Math.abs((b.floorY||0)-(a.floorY||0))>1.35)continue;
+      const dx=b.pos.x-a.pos.x,dz=b.pos.z-a.pos.z;
       const d2 = dx*dx + dz*dz;
       const minD = (a.radius + b.radius) * 0.92;
       if (d2 > minD*minD || d2 < 1e-6) continue;
@@ -3108,7 +3671,8 @@ function updateZombies(dt, now){
       a.pos.x -= nx*push; a.pos.z -= nz*push;
       b.pos.x += nx*push; b.pos.z += nz*push;
     }
-    // не залезать внутрь игрока
+    // не залезать внутрь игрока на одном этаже
+    if (Math.abs((a.floorY||0)-(PLAYER.floorY||0))>1.4){ a.root.position.set(a.pos.x,a.floorY||0,a.pos.z); continue; }
     const pdx = a.pos.x - PLAYER.pos.x, pdz = a.pos.z - PLAYER.pos.z;
     const pd = Math.hypot(pdx, pdz);
     const minP = a.radius + PLAYER.radius;
@@ -3133,7 +3697,7 @@ const _endPoint = new THREE.Vector3();
 const weaponState = {
   id:'pistol', ammo:WEAPONS.pistol.mag, reserve:WEAPONS.pistol.reserve, upgraded:false,
   nextShot:0, reloading:false, reloadEnd:0, reloadT:0,
-  aiming:false, aimT:0, recoil:0, raiseT:0, model:null,
+  aiming:false,mouseAim:false,aimT:0,recoil:0,raiseT:0,model:null,
   owned:{ pistol:true },
   slot:0,
   /* два слота: у каждого своё оружие, патроны и улучшение */
@@ -3198,8 +3762,8 @@ function splashDamage(x, y, z, radius, dmg, ignore){
   for (let i=zombies.length-1;i>=0;i--){
     const zb = zombies[i];                       // вариант-жертва (не путать с координатой z)
     if (!zb.alive || zb === ignore) continue;
-    const d = Math.hypot(zb.pos.x - x, zb.pos.z - z);
-    if (d > radius) continue;
+    const d=Math.hypot(zb.pos.x-x,zb.pos.z-z);
+    if(d>radius||Math.abs((zb.floorY||0)+1.0-y)>radius) continue;
     const falloff = clamp(1 - d/radius, 0.35, 1);
     const res = damageZombie(zb, dmg*falloff, false);
     if (res === 'kill'){ kills++; onZombieKilled(zb, zb.pos.x, y, zb.pos.z); }
@@ -3251,7 +3815,7 @@ function onZombieKilled(z, x, y, zz, noPoints){
   FX.decal(x, zz, rand(1.2, 1.9));
   FX.burst(x, y, zz, 0,1,0, 10, 0.55,0.05,0.05, 2.2, 8);
   showHitmarker(true);
-  maybeDropPowerup(z.pos.x, z.pos.z);
+  maybeDropPowerup(z.pos.x,z.pos.z,z.floorY);
   checkAchievements();
 }
 
@@ -3326,7 +3890,7 @@ function fireWeapon(){
       const mult = (hitPart === 'head') ? 2.6 : (hitPart === 'limb' ? 0.75 : 1);
       const isHead = hitPart === 'head';
       GAME.hits++;
-      const res = damageZombie(hitZombie, w.damage * mult, isHead);
+      const res = damageZombie(hitZombie,w.damage*mult,isHead,hitPart);
       addPoints(10);                                     // +10 за попадание
       onZombieHit(hitZombie, _endPoint.x, _endPoint.y, _endPoint.z, isHead);
       if (res === 'kill'){
@@ -3397,10 +3961,11 @@ function updateGrenades(dt){
     g.vel.y -= 19*dt;
     const nx = g.pos.x + g.vel.x*dt, nz = g.pos.z + g.vel.z*dt;
     // простые отскоки: от стен (по осям) и от пола
-    if (!blocked(nx, g.pos.z, 0.12, false)) g.pos.x = nx; else { g.vel.x *= -0.45; g.bounces++; }
-    if (!blocked(g.pos.x, nz, 0.12, false)) g.pos.z = nz; else { g.vel.z *= -0.45; g.bounces++; }
+    if(!blocked(nx,g.pos.z,0.12,false,g.floorY))g.pos.x=nx;else{g.vel.x*=-0.45;g.bounces++;}
+    if(!blocked(g.pos.x,nz,0.12,false,g.floorY))g.pos.z=nz;else{g.vel.z*=-0.45;g.bounces++;}
     g.pos.y += g.vel.y*dt;
-    if (g.pos.y < 0.1){ g.pos.y = 0.1; g.vel.y *= -0.42; g.vel.x *= 0.7; g.vel.z *= 0.7; }
+    const gy=floorHeightAt(g.pos.x,g.pos.z,g.floorY);
+    if(g.pos.y<gy+0.1){g.pos.y=gy+0.1;g.vel.y*=-0.42;g.vel.x*=0.7;g.vel.z*=0.7;g.floorY=gy;}
     g.mesh.position.copy(g.pos);
     g.mesh.rotation.x += dt*6; g.mesh.rotation.z += dt*4;
 
@@ -3423,6 +3988,74 @@ function explodeGrenade(pos){
   // оглушение и урон игроку при близком взрыве (небольшой)
   const d = Math.hypot(pos.x - PLAYER.pos.x, pos.z - PLAYER.pos.z);
   if (d < GRENADE_R*0.7) damagePlayer(20);
+}
+
+/* ============================================================
+   12.2 БЛИЖНИЙ БОЙ И ВТОРИЧНЫЙ ОГОНЬ
+   ============================================================ */
+/** Удар ножом — короткая дистанция, направление взгляда и этаж учитываются. */
+function meleeAttack(){
+  if(GAME.state!=='play'||GAME.time<GAME.meleeReady)return;
+  GAME.meleeReady=GAME.time+0.78;
+  SFX.knife();
+  weaponState.recoil=clamp(weaponState.recoil+0.2,0,1.4);
+  const fx=-Math.sin(PLAYER.yaw),fz=-Math.cos(PLAYER.yaw);
+  let target=null,best=2.25;
+  for(const z of zombies){
+    if(!z.alive||Math.abs((z.floorY||0)-PLAYER.floorY)>1.4)continue;
+    const dx=z.pos.x-PLAYER.pos.x,dz=z.pos.z-PLAYER.pos.z,d=Math.hypot(dx,dz);
+    if(d>best||d<0.001)continue;
+    const facing=(dx*fx+dz*fz)/d;
+    if(facing<0.18)continue;
+    best=d;target=z;
+  }
+  if(!target){setToast('Нож: слишком далеко','');return;}
+  GAME.shots++;
+  GAME.hits++;
+  const isHead=best<1.35;
+  const res=damageZombie(target,165*(isHead?1.2:1),isHead);
+  addPoints(10);
+  onZombieHit(target,target.pos.x,target.floorY+1.1,target.pos.z,isHead);
+  FX.tracer(new THREE.Vector3(PLAYER.pos.x,PLAYER.floorY+1.1,PLAYER.pos.z),
+    new THREE.Vector3(target.pos.x,target.floorY+1.0,target.pos.z),0xffd8a0);
+  if(res==='kill'){GAME.meleeKills++;if(isHead)GAME.headshotKills++;onZombieKilled(target,target.pos.x,target.floorY+1.0,target.pos.z);}
+}
+/** Вторичный огонь: точный мощный одиночный выстрел, расходует 2 патрона. */
+function secondaryFire(){
+  if(GAME.state!=='play'||GAME.time<weaponState.nextShot||weaponState.reloading)return;
+  const w=getWeaponStats();
+  const cost=(weaponState.id==='raygun'||weaponState.id==='wunder')?1:2;
+  if(weaponState.ammo<cost){SFX.empty();startReload();return;}
+  weaponState.ammo-=cost;
+  weaponState.nextShot=GAME.time+Math.max(0.75,w.fireDelay*3.2);
+  GAME.shots++;GAME.secondaryShots++;
+  SFX.secondary();
+  weaponState.recoil=clamp(weaponState.recoil+0.55,0,1.4);
+  const vm=weaponState.model;if(vm)vm.flashTimer=0.08;
+  _rayOrigin.copy(camera.position);
+  _rayDir.set(0,0,-1).applyQuaternion(camera.quaternion).normalize();
+  raycaster.set(_rayOrigin,_rayDir);raycaster.far=w.range*0.88;raycaster.near=0;
+  zombiesRoot.updateMatrixWorld(true);
+  const hits=raycaster.intersectObjects(worldRayTargets,true);
+  let zombie=null,point=null,part=null,dist=Infinity;
+  for(const h of hits){
+    const ref=h.object.userData.zref;
+    if(ref&&!ref.dying){zombie=ref;point=h.point;part=h.object.userData.part;dist=h.distance;break;}
+    if(!ref){point=h.point;dist=h.distance;break;}
+  }
+  if(!point){point=_rayOrigin.clone().addScaledVector(_rayDir,w.range*0.88);dist=w.range*0.88;}
+  _endPoint.copy(point);
+  FX.tracer(camera.position,_endPoint,w.tracer);
+  if(zombie){
+    const isHead=part==='head';GAME.hits++;
+    const res=damageZombie(zombie,w.damage*(isHead?3.1:2.05),isHead,part);
+    addPoints(10);onZombieHit(zombie,point.x,point.y,point.z,isHead);
+    if(res==='kill'){if(isHead)GAME.headshotKills++;onZombieKilled(zombie,point.x,point.y,point.z);}
+    if(w.splash>0){splashDamage(point.x,point.y,point.z,w.splash*1.25,w.splashDamage*1.4,zombie);if(w.chain)chainLightning(zombie,w.chain+1);}
+  }else{
+    FX.burst(point.x,point.y,point.z,-_rayDir.x,-_rayDir.y,-_rayDir.z,10,0.9,0.8,0.55,2.7,8);
+  }
+  updateHUD();updateCrosshair();
 }
 
 /* мелкие «следы» попаданий (отдельно от FX — короткоживущие) */
@@ -3481,6 +4114,7 @@ function buyDoor(door){
   }
   GAME.points -= door.price;
   door.open = true;
+  if(COOP.online&&!COOP.isHost)sendNet({type:'door',id:door.def.id});
   GAME.doorsOpened++;
   scene.remove(door.mesh);
   const ri = worldRayTargets.indexOf(door.mesh);
@@ -3490,8 +4124,8 @@ function buyDoor(door){
   for (const s of MAP.spawns) if (s.zone === door.def.to) s.active = true;
   for (const l of MAP.labels) if (l.ref === door) l.el.style.display = 'none';
 
-  FX.burst(door.pos.x, 0.5, door.pos.z, 0,1,0, 24, 0.6,0.6,0.58, 2.4, 5);
-  FX.burst(door.pos.x, 2.2, door.pos.z, 0,1,0, 14, 0.6,0.6,0.58, 2.0, 5);
+  FX.burst(door.pos.x,(door.floorY||0)+0.5,door.pos.z, 0,1,0, 24, 0.6,0.6,0.58, 2.4, 5);
+  FX.burst(door.pos.x,(door.floorY||0)+2.2,door.pos.z, 0,1,0, 14, 0.6,0.6,0.58, 2.0, 5);
   SFX.door();
   setToast(`Открыт путь: ${MAP.zones[door.def.to].def.name}`, 'good');
   updateHUD();
@@ -3561,7 +4195,7 @@ function updateViewModel(dt){
    13. ВОЛНЫ И ДИРИЖЁР ЗОМБИ
    ============================================================ */
 const GAME = {
-  state:'menu',           // menu | play | dead
+  state:'menu',           // меню | бой | поражение
   time:0,                 // игровые секунды (идут только в бою)
   points:START_POINTS,
   earnedTotal:0,
@@ -3570,9 +4204,10 @@ const GAME = {
   doorsOpened:0,
   shots:0, hits:0,
   waveActive:false,
-  noLockLook:false,       // резервный режим обзора (если Pointer Lock недоступен)
+  noLockLook:false,       // резервный режим обзора, если захват курсора недоступен
   headshotKills:0, powerupsTaken:0, powerupsSeen:{}, boxSpins:0,
-  dogRound:false, bossPending:0, touchMode:false, coopPartner:false,
+  dogRound:false,bossPending:0,touchMode:false,coopPartner:false,
+  mode:'survival',daily:false,runTimeLimit:180,checkpointT:0,meleeReady:0,meleeKills:0,secondaryShots:0,
   aliveCount:0,
   intermission:0,
   noKillT:0,              // время без убийств (страховка от «затянувшейся» волны)
@@ -3584,7 +4219,7 @@ const GAME = {
 /** Параметры волны */
 function waveConfig(n){
   return {
-    total: Math.round((5 + n*2.35) * (GAME.dogRound ? 0.75 : 1)),
+    total: Math.round((5+n*2.35)*(GAME.dogRound?0.75:1)*(GAME.daily?1.12:1)),
     maxAlive: Math.min(9 + n*2, GAME.dogRound ? 20 : 30),
     interval: Math.max(0.28, 1.55 - n*0.075) / TWEAKS.spawn
   };
@@ -3631,6 +4266,10 @@ function pickSpawn(){
 
 /** Дирижёр: спавн зомби и переход между волнами */
 function updateDirector(dt){
+  if(COOP.online&&!COOP.isHost){GAME.aliveCount=zombies.filter(z=>z.alive).length;return;}
+  if(GAME.mode==='timed'&&GAME.time>=GAME.runTimeLimit){
+    GAME.state='won';GAME.timedVictory=true;SFX.win();saveRunRecords();showWinScreen();return;
+  }
   const alive = zombies.filter(z => z.alive).length;
   GAME.aliveCount = alive;
 
@@ -3712,7 +4351,8 @@ const DOM = {
   powerRow: document.getElementById('powerRow'),
   grenades: document.getElementById('grenadesTxt'),
   slots:    document.getElementById('slotsTxt'),
-  coop:     document.getElementById('coopInfo')
+  coop: document.getElementById('coopInfo'),
+  modeTimer: document.getElementById('modeTimer')
 };
 const hudCache = { points:-1, health:-1, ammo:'', wave:-1, left:-1, perks:'', power:'' };
 let toastTimer = 0;
@@ -3793,6 +4433,10 @@ function updatePerkHUD(){
 }
 
 function updateWaveHUD(){
+  if(DOM.modeTimer){
+    const timed=GAME.mode==='timed';DOM.modeTimer.style.display=timed?'block':'none';
+    if(timed){const left=Math.max(0,GAME.runTimeLimit-GAME.time),m=Math.floor(left/60),ss=Math.floor(left%60);DOM.modeTimer.textContent=`${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;}
+  }
   const shown = Math.max(1, GAME.wave);
   if (hudCache.wave !== shown){ DOM.wave.textContent = shown; hudCache.wave = shown; }
   const left = zombies.filter(z=>z.alive).length + Math.max(0, GAME.waveTotal - GAME.waveSpawned);
@@ -4015,6 +4659,73 @@ function renderAchievements(){
 }
 
 /* ============================================================
+   14.15 АВТОСОХРАНЕНИЕ ЗАБЕГА И ТАБЛИЦА ЛИДЕРОВ
+   ============================================================ */
+const CHECKPOINT_KEY='zombie3d_checkpoint_v1';
+let RESTORE_SNAPSHOT=null;
+function checkpointSnapshot(){
+  return {version:1,time:GAME.time,points:GAME.points,earned:GAME.earnedTotal,wave:GAME.wave,kills:GAME.kills,
+    doors:MAP.doors.filter(d=>d.open).map(d=>d.def.id),map:MAP_VARIANT,seed:MAP_SEED,mode:GAME.mode,
+    pos:[PLAYER.pos.x,PLAYER.pos.y,PLAYER.pos.z],floorY:PLAYER.floorY,elevatorY:ELEVATOR.y,yaw:PLAYER.yaw,pitch:PLAYER.pitch,
+    health:PLAYER.health,slots:weaponState.slots,slot:weaponState.slot,owned:weaponState.owned,
+    perks:PERKS,grenades:GRENADES.count,records:RECORDS};
+}
+function saveCheckpoint(){
+  if(GAME.state!=='play')return;
+  try{localStorage.setItem(CHECKPOINT_KEY,JSON.stringify(checkpointSnapshot()));}catch(e){}
+}
+function loadCheckpointData(){
+  try{const s=JSON.parse(localStorage.getItem(CHECKPOINT_KEY)||'null');return s&&s.version===1?s:null;}catch(e){return null;}
+}
+function clearCheckpoint(){try{localStorage.removeItem(CHECKPOINT_KEY);}catch(e){}}
+function resumeCheckpoint(){
+  const snap=loadCheckpointData();if(!snap){setToast('Сохранённый забег не найден','warn');return;}
+  MAP_VARIANT=snap.map||MAP_VARIANT;MODE_SELECT=snap.mode||'survival';RESTORE_SNAPSHOT=snap;
+  const mp=document.getElementById('mapPick');if(mp)mp.value=MAP_VARIANT;
+  startGame();RESTORE_SNAPSHOT=null;
+  for(const id of snap.doors||[]){
+    const d=MAP.doors.find(q=>q.def.id===id);if(!d)continue;
+    d.open=true;MAP.zoneOpen[d.def.to]=true;scene.remove(d.mesh);
+    const i=worldRayTargets.indexOf(d.mesh);if(i>=0)worldRayTargets.splice(i,1);
+    const lb=MAP.labels.find(l=>l.ref===d);if(lb)lb.el.style.display='none';
+  }
+  GAME.time=snap.time||0;GAME.points=snap.points||START_POINTS;GAME.earnedTotal=snap.earned||0;
+  GAME.wave=snap.wave||0;GAME.kills=snap.kills||0;GAME.doorsOpened=(snap.doors||[]).length;GAME.waveActive=false;GAME.waveSpawned=0;GAME.intermission=1.2;
+  PLAYER.pos.set(snap.pos[0],snap.pos[1],snap.pos[2]);PLAYER.floorY=snap.floorY||0;
+  ELEVATOR.y=snap.elevatorY||0;ELEVATOR.target=ELEVATOR.y;if(ELEVATOR.platform)ELEVATOR.platform.position.y=ELEVATOR.y-0.11;
+  PLAYER.yaw=snap.yaw||0;PLAYER.pitch=snap.pitch||0;PLAYER.health=snap.health||100;
+  weaponState.slots=snap.slots||weaponState.slots;weaponState.slot=snap.slot||0;
+  weaponState.owned=snap.owned||{pistol:true};
+  const active=weaponState.slots[weaponState.slot]||weaponState.slots[0];
+  if(active){equipWeapon(active.id,weaponState.slot);weaponState.slots[weaponState.slot]=active;
+    weaponState.ammo=active.ammo;weaponState.reserve=active.reserve;weaponState.upgraded=!!active.upgraded;}
+  if(snap.perks)for(const k in snap.perks)if(k in PERKS)PERKS[k]=snap.perks[k];
+  refreshMaxHealth();GRENADES.count=snap.grenades||2;
+  GAME.mode=snap.mode||'survival';GAME.daily=GAME.mode==='daily';GAME.checkpointT=GAME.time;
+  clearCheckpoint();updateHUD();updateWaveHUD();setToast('Забег восстановлен','good');
+}
+function maybeSaveCheckpoint(){
+  if(GAME.time-GAME.checkpointT<20)return;
+  GAME.checkpointT=GAME.time;saveCheckpoint();
+}
+/** Обновить рекорд в сетевой таблице, если сервер запущен. */
+function submitOnlineScore(){
+  const name=(document.getElementById('playerName')||{}).value||'Игрок';
+  const payload={name:name.slice(0,16),wave:GAME.wave,kills:GAME.kills,seconds:Math.floor(GAME.time),mode:GAME.mode,map:MAP_VARIANT};
+  const url='/api/score';
+  if(typeof fetch==='function')fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}).then(()=>requestLeaderboard()).catch(()=>{});
+}
+function requestLeaderboard(){
+  const box=document.getElementById('onlineScores');if(box)box.textContent='Подключаемся к таблице…';
+  if(typeof fetch!=='function'){if(box)box.textContent='Запустите node server.js для онлайн-таблицы';return;}
+  fetch('/api/leaderboard').then(r=>r.json()).then(data=>{
+    if(!box)return;
+    const rows=(data.entries||[]).slice(0,5);
+    box.innerHTML='<b>Таблица аэродрома</b><br>'+ (rows.length?rows.map((r,i)=>`${i+1}. ${r.name} — волна ${r.wave}, ${r.kills} убийств`).join('<br>'):'Пока нет результатов');
+  }).catch(()=>{if(box)box.textContent='Онлайн-сервер недоступен; личные рекорды сохраняются локально.';});
+}
+
+/* ============================================================
    14.2 ПУЛЬТ БАЛАНСА (тонкая настройка сложности игроком)
    ============================================================ */
 const TWEAKS_DEFAULT = { hp:1, speed:1, dmg:1, spawn:1, points:1, difficulty:'normal' };
@@ -4063,7 +4774,7 @@ function bindTweaksUI(){
 /* ============================================================
    15.1 МОБИЛЬНОЕ УПРАВЛЕНИЕ (виртуальный джойстик + кнопки)
    ============================================================ */
-const TOUCH = { active:false, moveX:0, moveY:0, stickId:null, lookId:null, lastLX:0, lastLY:0, cx:0, cy:0 };
+const TOUCH={active:false,moveX:0,moveY:0,aiming:false,stickId:null,lookId:null,lastLX:0,lastLY:0,cx:0,cy:0};
 
 function initTouchControls(){
   const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
@@ -4138,11 +4849,13 @@ function initTouchControls(){
     el.addEventListener('touchend',   (e) => { if (off) off(); e.preventDefault(); }, { passive:false });
   };
   hold('tFire',  () => { Input.firing = true; fireWeapon(); }, () => { Input.firing = false; });
-  hold('tAim',   () => { weaponState.aiming = true; }, () => { weaponState.aiming = false; });
+  hold('tAim',()=>{TOUCH.aiming=true;},()=>{TOUCH.aiming=false;});
   hold('tReload',() => startReload());
   hold('tUse',   () => tryInteract());
   hold('tGren',  () => throwGrenade());
   hold('tSwitch',() => switchSlot(weaponState.slot === 0 ? 1 : 0));
+  hold('tMelee',() => meleeAttack());
+  hold('tAlt',() => secondaryFire());
   const hint = document.getElementById('startHint');
   if (hint) hint.textContent = 'Мобильное управление: джойстик слева — движение, свайп по экрану — обзор, кнопки справа — действия.';
 }
@@ -4153,28 +4866,146 @@ function initTouchControls(){
    Используется BroadcastChannel: игра синхронизируется между двумя
    окнами/вкладками одного браузера (без сервера).
    ============================================================ */
-const COOP = { active:false, chan:null, sendT:0, lastRecv:0, partnerState:null, model:null };
-
+const COOP={active:false,online:false,isHost:false,chan:null,ws:null,sendT:0,worldT:0,lastRecv:0,
+  partnerState:null,model:null,id:null,room:'NACHT',netSeq:1,receivedWorld:null};
+function sendNet(msg){
+  if(COOP.ws&&COOP.ws.readyState===1){try{COOP.ws.send(JSON.stringify(msg));return true;}catch(e){}}
+  return false;
+}
 function startCoop(){
-  if (COOP.active){ setToast('Кооп-режим уже включён', ''); return; }
-  if (typeof BroadcastChannel === 'undefined'){
-    setToast('Браузер не поддерживает кооп-канал (BroadcastChannel)', 'warn');
+  if(COOP.active&&COOP.online){setToast('Вы уже в сетевой комнате '+COOP.room,'');return;}
+  COOP.active=true;buildPartnerModel();
+  const roomBox=document.getElementById('roomCode');
+  COOP.room=((roomBox&&roomBox.value)||'NACHT').trim().replace(/[^a-zA-Z0-9_-]/g,'').slice(0,18)||'NACHT';
+  if(typeof BroadcastChannel!=='undefined'){
+    try{
+      COOP.chan=new BroadcastChannel('zombie3d_coop_'+COOP.room);
+      COOP.chan.onmessage=e=>{
+        const m=e.data;if(!m||m.type!=='state')return;
+        COOP.partnerState=m;COOP.lastRecv=performance.now();GAME.coopPartner=true;
+      };
+      COOP.chan.postMessage({type:'hello'});
+    }catch(e){COOP.chan=null;}
+  }
+  if(typeof WebSocket!=='undefined'){
+    try{
+      const proto=location.protocol==='https:'?'wss:':'ws:';
+      COOP.ws=new WebSocket(`${proto}//${location.host}/ws?room=${encodeURIComponent(COOP.room)}`);
+      COOP.ws.onopen=()=>{COOP.online=true;if(DOM.coop)DOM.coop.style.display='';
+        setToast('Сетевая комната '+COOP.room+' подключена','good');};
+      COOP.ws.onmessage=e=>{try{handleCoopMessage(JSON.parse(e.data));}catch(err){}};
+      COOP.ws.onclose=()=>{COOP.online=false;COOP.isHost=false;
+        if(DOM.coop)DOM.coop.textContent='Онлайн-сервер отключён; локальный кооп доступен в одной вкладке';};
+      COOP.ws.onerror=()=>{COOP.online=false;};
+    }catch(e){COOP.ws=null;}
+  }
+  if(DOM.coop)DOM.coop.style.display='';
+  setToast('Кооп: оба игрока вводят одинаковый код комнаты ('+COOP.room+')','good');
+}
+/** Обработать сообщения комнаты: мир, урон, двери, сетевой рекорд. */
+function handleCoopMessage(m){
+  if(!m||!m.type)return;
+  if(m.type==='welcome'){
+    COOP.id=m.id;COOP.isHost=!!m.host;COOP.online=true;
+    if(DOM.coop)DOM.coop.textContent=`КОOП ${COOP.room}: ${COOP.isHost?'хост':'напарник'} (${m.players}/2)`;
     return;
   }
-  try { COOP.chan = new BroadcastChannel('zombie3d_coop'); }
-  catch (e){ setToast('Не удалось открыть кооп-канал', 'warn'); return; }
-  COOP.active = true;
-  COOP.chan.onmessage = (e) => {
-    const m = e.data;
-    if (!m || m.type !== 'state') return;
-    COOP.partnerState = m;
-    COOP.lastRecv = (window.performance ? performance.now() : Date.now());
-    GAME.coopPartner = true;
-  };
-  COOP.chan.postMessage({ type:'hello' });
-  buildPartnerModel();
-  if (DOM.coop) DOM.coop.style.display = '';
-  setToast('Кооп включён: откройте игру во втором окне и нажмите «Кооп»', 'good');
+  if(m.type==='host'){COOP.isHost=!!m.host;return;}
+  if(m.type==='state'){
+    if(m.id===COOP.id)return;
+    COOP.partnerState=m;COOP.lastRecv=performance.now();GAME.coopPartner=true;return;
+  }
+  if(m.type==='world'&&!COOP.isHost){applyRemoteWorld(m);return;}
+  if(m.type==='hit'&&COOP.isHost){receiveCoopHit(m);return;}
+  if(m.type==='damage'&&m.to===COOP.id){damagePlayer(m.amount||8);return;}
+  if(m.type==='door'&&COOP.isHost){openDoorForCoop(m.id);return;}
+  if(m.type==='leaderboard'){
+    const box=document.getElementById('onlineScores');if(box){
+      const rows=(m.entries||[]).slice(0,5);box.innerHTML='<b>Таблица аэродрома</b><br>'+
+        (rows.length?rows.map((r,i)=>`${i+1}. ${r.name} — волна ${r.wave}, ${r.kills} убийств`).join('<br>'):'Пока нет результатов');
+    }
+  }
+}
+function openDoorForCoop(id){
+  const d=MAP.doors.find(q=>q.def.id===id);if(!d||d.open)return;
+  d.open=true;MAP.zoneOpen[d.def.to]=true;GAME.doorsOpened++;scene.remove(d.mesh);
+  const i=worldRayTargets.indexOf(d.mesh);if(i>=0)worldRayTargets.splice(i,1);
+  const l=MAP.labels.find(q=>q.ref===d);if(l)l.el.style.display='none';
+}
+function receiveCoopHit(m){
+  let best=null,bestD=2.4;
+  for(const z of zombies){
+    if(!z.alive)continue;
+    const d=Math.hypot(z.pos.x-m.x,z.pos.z-m.z);
+    if(d<bestD&&Math.abs((z.floorY||0)-(m.floorY||0))<1.5){best=z;bestD=d;}
+  }
+  if(!best)return;
+  const res=damageZombie(best,Math.max(1,Math.min(1000,Number(m.damage)||0)),!!m.head,m.part);
+  if(res==='kill')onZombieKilled(best,best.pos.x,best.floorY+1,best.pos.z);
+}
+function applyRemoteWorld(m){
+  COOP.receivedWorld=m;GAME.wave=m.wave||GAME.wave;GAME.waveActive=!!m.waveActive;
+  GAME.waveTotal=m.waveTotal||GAME.waveTotal;GAME.waveSpawned=m.waveSpawned||0;
+  if(m.elevatorY!==undefined){ELEVATOR.y=m.elevatorY;if(ELEVATOR.platform)ELEVATOR.platform.position.y=ELEVATOR.y-0.11;
+    if(ELEVATOR.dev){ELEVATOR.dev.floorY=ELEVATOR.y;ELEVATOR.dev.pos.y=EYE+ELEVATOR.y;ELEVATOR.dev.anchor.y=ELEVATOR.y+2.6;}}
+  if(m.mode)GAME.mode=m.mode;if(m.daily!==undefined)GAME.daily=!!m.daily;
+  if(m.time!==undefined)GAME.time=m.time;
+  for(const id of m.doors||[])openDoorForCoop(id);
+  const seen=new Set();
+  for(const st of m.zombies||[]){
+    seen.add(st.id);
+    let z=zombies.find(a=>a.netId===st.id);
+    if(!z){
+      const zone=zoneAt(st.x,st.z,st.floorY)||'start';
+      z=spawnZombie({x:st.x,z:st.z,zone,floorY:st.floorY},st.type);z.netId=st.id;z.spawning=false;
+    }
+    z.pos.set(st.x,st.floorY||0,st.z);z.floorY=st.floorY||0;z.root.position.set(st.x,z.floorY,st.z);
+    z.root.rotation.y=st.yaw||0;z.hp=st.hp;z.hpMax=st.hpMax;z.dying=!!st.dying;z.alive=!st.dying;
+    if(st.bossPhase)z.bossPhase=st.bossPhase;
+    if(st.armor&&z.boss){z.armor=st.armor;if(z.bossArmor){z.bossArmor[0].visible=z.armor.left>0;z.bossArmor[1].visible=z.armor.right>0;}}
+    if(st.bossPhase&&z.bossCore)z.bossCore.material.color.setHex(st.bossPhase===3?0xff351a:st.bossPhase===2?0xffb82e:0x91ff55);
+  }
+  for(const z of zombies.slice())if(z.netId!==undefined&&!seen.has(z.netId))removeZombie(z);
+  if(m.state==='won'&&GAME.state==='play'){GAME.state='won';GAME.timedVictory=GAME.mode==='timed';showWinScreen();}
+  if(m.state==='dead'&&GAME.state==='play')gameOver();
+}
+function getZombieTarget(z){
+  let best={x:PLAYER.pos.x,z:PLAYER.pos.z,floorY:PLAYER.floorY||0,remote:false};
+  let bd=Math.hypot(z.pos.x-best.x,z.pos.z-best.z)+Math.abs((z.floorY||0)-best.floorY)*1.2;
+  const p=COOP.online?COOP.partnerState:null;
+  if(p&&performance.now()-COOP.lastRecv<2500){
+    const d=Math.hypot(z.pos.x-p.x,z.pos.z-p.z)+Math.abs((z.floorY||0)-(p.floorY||0))*1.2;
+    if(d<bd)best={x:p.x,z:p.z,floorY:p.floorY||0,remote:true,id:p.id};
+  }
+  return best;
+}
+function updateCoop(dt){
+  if(!COOP.active)return;
+  COOP.sendT-=dt;
+  if(COOP.sendT<=0){
+    COOP.sendT=0.1;
+    const state={type:'state',x:PLAYER.pos.x,z:PLAYER.pos.z,floorY:PLAYER.floorY||0,yaw:PLAYER.yaw,
+      hp:PLAYER.health,wave:GAME.wave,points:GAME.points,kills:GAME.kills};
+    if(COOP.chan)try{COOP.chan.postMessage(state);}catch(e){}
+    if(COOP.online)sendNet(state);
+  }
+  const p=COOP.partnerState;
+  if(COOP.online&&COOP.isHost){
+    COOP.worldT-=dt;
+    if(COOP.worldT<=0){
+      COOP.worldT=0.15;
+      sendNet({type:'world',state:GAME.state,time:GAME.time,mode:GAME.mode,daily:GAME.daily,elevatorY:ELEVATOR.y,
+        wave:GAME.wave,waveActive:GAME.waveActive,waveTotal:GAME.waveTotal,waveSpawned:GAME.waveSpawned,
+        points:GAME.points,kills:GAME.kills,doors:MAP.doors.filter(d=>d.open).map(d=>d.def.id),
+        zombies:zombies.filter(z=>z.alive||z.dying).map(z=>({id:z.netId,x:z.pos.x,z:z.pos.z,floorY:z.floorY||0,
+          hp:z.hp,hpMax:z.hpMax,type:z.type,yaw:z.root.rotation.y,dying:z.dying,bossPhase:z.bossPhase,armor:z.armor}))});
+    }
+  }
+  if(p&&COOP.model){
+    COOP.model.visible=true;COOP.model.position.set(p.x,p.floorY||0,p.z);COOP.model.rotation.y=p.yaw+Math.PI;
+    if(DOM.coop){const live=performance.now()-COOP.lastRecv<2500;
+      DOM.coop.textContent=live?`КОOП ${COOP.room}: напарник — волна ${p.wave}, ${Math.ceil(p.hp)} HP, ${p.points} очков`:'КООП: напарник не в сети';}
+  }
 }
 
 /** Модель напарника (простой солдат из примитивов) */
@@ -4205,26 +5036,64 @@ function buildPartnerModel(){
   COOP.model = g;
 }
 
-/** Обмен состоянием с напарником */
-function updateCoop(dt){
-  if (!COOP.active) return;
-  COOP.sendT -= dt;
-  if (COOP.sendT <= 0){
-    COOP.sendT = 0.1;
-    COOP.chan.postMessage({ type:'state', x:PLAYER.pos.x, z:PLAYER.pos.z, yaw:PLAYER.yaw,
-      hp:PLAYER.health, wave:GAME.wave, points:GAME.points, kills:GAME.kills });
-  }
-  const p = COOP.partnerState;
-  if (p && COOP.model){
-    COOP.model.visible = true;
-    COOP.model.position.set(p.x, 0, p.z);
-    COOP.model.rotation.y = p.yaw + Math.PI;
-    if (DOM.coop){
-      const online = ((window.performance ? performance.now() : Date.now()) - COOP.lastRecv) < 2500;
-      DOM.coop.textContent = online
-        ? `КООП: напарник — волна ${p.wave}, ${Math.ceil(p.hp)} HP, ${p.points} очков`
-        : 'КООП: напарник не в сети';
-    }
+/** Выбор темы карты/режима сохраняется между запусками. */
+function bindMapModeUI(){
+  const mapPick=document.getElementById('mapPick'),modePick=document.getElementById('modePick');
+  const qualityPick=document.getElementById('qualityPick');
+  try{
+    MAP_VARIANT=localStorage.getItem('zombie3d_map_v1')||MAP_VARIANT;
+    MODE_SELECT=localStorage.getItem('zombie3d_mode_v1')||MODE_SELECT;
+  }catch(e){}
+  if(mapPick){mapPick.value=MAP_VARIANT;mapPick.addEventListener('change',()=>{
+    MAP_VARIANT=mapPick.value;try{localStorage.setItem('zombie3d_map_v1',MAP_VARIANT);}catch(e){}
+    setToast(MAP_VARIANT==='snow'?'Выбрана метельная версия аэродрома':'Выбрана Nacht der Untoten','good');
+  });}
+  if(modePick){modePick.value=MODE_SELECT;modePick.addEventListener('change',()=>{
+    MODE_SELECT=modePick.value;try{localStorage.setItem('zombie3d_mode_v1',MODE_SELECT);}catch(e){}
+    setToast(MODE_SELECT==='timed'?'Режим: забег на 3 минуты':(MODE_SELECT==='daily'?'Ежедневное испытание обновляется раз в сутки':'Режим: бесконечное выживание'),'');
+  });}
+  if(qualityPick){qualityPick.value=QUALITY;qualityPick.addEventListener('change',()=>setGraphicsQuality(qualityPick.value));}
+  const nameBox=document.getElementById('playerName');
+  if(nameBox)try{nameBox.value=localStorage.getItem('zombie3d_player_name')||'Игрок';}catch(e){}
+  if(nameBox)nameBox.addEventListener('change',()=>{try{localStorage.setItem('zombie3d_player_name',nameBox.value.slice(0,16));}catch(e){}});
+  const room=document.getElementById('roomCode');
+  if(room)try{room.value=localStorage.getItem('zombie3d_room')||'NACHT';}catch(e){}
+  if(room)room.addEventListener('change',()=>{try{localStorage.setItem('zombie3d_room',room.value.trim().slice(0,18));}catch(e){}});
+  const lb=document.getElementById('btnLeaderboard');
+  if(lb)lb.addEventListener('click',requestLeaderboard);
+  const resume=document.getElementById('btnResume');
+  if(resume)resume.style.display=loadCheckpointData()?'inline-flex':'none';
+  if(resume)resume.addEventListener('click',e=>{e.stopPropagation();resumeCheckpoint();});
+}
+function setGraphicsQuality(q){
+  QUALITY=q;
+  const pixel=q==='low'?1:(q==='medium'?Math.min(1.35,window.devicePixelRatio||1):Math.min(2,window.devicePixelRatio||1));
+  renderer.setPixelRatio(pixel);
+  if(scene.fog)scene.fog.far=q==='low'?72:(q==='medium'?88:105);
+  if(YARD_VISUALS.grass)YARD_VISUALS.grass.count=q==='low'?80:(q==='medium'?200:YARD_VISUALS.grassMax);
+  if(YARD_VISUALS.rocks)YARD_VISUALS.rocks.visible=q!=='low';
+  if(YARD_VISUALS.snow)YARD_VISUALS.snow.visible=q!=='low';
+  if(renderer.domElement)renderer.setSize(window.innerWidth,window.innerHeight);
+  try{localStorage.setItem('zombie3d_quality',q);}catch(e){}
+}
+function bindQualityUI(){
+  try{QUALITY=localStorage.getItem('zombie3d_quality')||QUALITY;}catch(e){}
+  const el=document.getElementById('qualityPick');if(el){el.value=QUALITY;setGraphicsQuality(QUALITY);}
+}
+function dailySeed(){
+  const d=new Date();return d.getFullYear()*10000+(d.getMonth()+1)*100+d.getDate();
+}
+function applyMapMood(){
+  if(MAP_VARIANT==='snow'){
+    scene.background.setHex(0x1d2a39);
+    scene.fog.color.setHex(0x1d2a39);
+    ambient.color.setHex(0xb2c7e4);ambient.intensity=0.19;
+    skyFill.color.setHex(0x90b0da);skyFill.intensity=0.38;
+  }else{
+    scene.background.setHex(0x131d29);
+    scene.fog.color.setHex(0x131d29);
+    ambient.color.setHex(0xa8b6cc);ambient.intensity=0.15;
+    skyFill.color.setHex(0x7185a1);skyFill.intensity=0.32;
   }
 }
 
@@ -4242,41 +5111,112 @@ function updateLamps(dt){
 /* ============================================================
    15. УПРАВЛЕНИЕ (Pointer Lock, клавиатура, мышь)
    ============================================================ */
-const Input = { w:false, a:false, s:false, d:false, shift:false, firing:false, q:false, e:false };
-const SENS = 0.0022;
+/* Назначения клавиш сохраняются отдельно от рекордов; любую клавишу можно переназначить в меню. */
+const KEYMAP_DEFAULT={forward:'KeyW',backward:'KeyS',left:'KeyA',right:'KeyD',sprint:'ShiftLeft',interact:'KeyF',
+  reload:'KeyR',grenade:'KeyG',melee:'KeyV',secondary:'KeyB',slot1:'Digit1',slot2:'Digit2',pause:'KeyP'};
+let KEYMAP=Object.assign({},KEYMAP_DEFAULT);
+const KEY_LABELS={forward:'Вперёд',backward:'Назад',left:'Влево',right:'Вправо',sprint:'Бег',interact:'Действие',
+  reload:'Перезарядка',grenade:'Граната',melee:'Нож',secondary:'Alt-огонь',slot1:'Слот 1',slot2:'Слот 2',pause:'Пауза'};
+const Input={w:false,a:false,s:false,d:false,shift:false,firing:false,q:false,e:false};
+const GAMEPAD={id:null,prev:[],lookX:0,lookY:0,moveX:0,moveY:0,aim:false,fire:false};
+const PADMAP_DEFAULT={fire:7,aim:6,interact:0,melee:1,reload:2,swap:3,grenade:4,secondary:11,slot1:12,slot2:13,pause:9};
+let PADMAP=Object.assign({},PADMAP_DEFAULT);
+const PAD_LABELS={fire:'Огонь',aim:'Прицел',interact:'Действие',melee:'Нож',reload:'Перезарядка',swap:'Сменить оружие',grenade:'Граната',secondary:'Alt-огонь',slot1:'Слот 1',slot2:'Слот 2',pause:'Пауза'};
+let pendingPad=null;
+let pendingKey=null;
+function keyName(code){
+  if(code==='ShiftLeft'||code==='ShiftRight')return 'Shift';
+  if(code.startsWith('Key'))return code.slice(3);
+  if(code.startsWith('Digit'))return code.slice(5);
+  if(code==='Space')return 'Space';
+  return code;
+}
+function saveKeyMap(){try{localStorage.setItem('zombie3d_keymap_v1',JSON.stringify(KEYMAP));}catch(e){}}
+function loadKeyMap(){try{const v=JSON.parse(localStorage.getItem('zombie3d_keymap_v1')||'null');if(v)KEYMAP=Object.assign({},KEYMAP_DEFAULT,v);}catch(e){}}
+function renderKeyBindings(){
+  const box=document.getElementById('keyBindings');if(!box)return;
+  box.innerHTML='';
+  for(const action in KEY_LABELS){
+    const b=document.createElement('button');b.type='button';b.className='bindkey';b.dataset.action=action;
+    b.textContent=`${KEY_LABELS[action]}: ${keyName(KEYMAP[action])}`;
+    b.addEventListener('click',e=>{e.stopPropagation();pendingKey=action;renderKeyBindings();});
+    if(pendingKey===action){b.classList.add('pending');b.textContent=`${KEY_LABELS[action]}: нажмите клавишу…`;}
+    box.appendChild(b);
+  }
+}
+function renderPadBindings(){
+  const box=document.getElementById('padBindings');if(!box)return;box.innerHTML='';
+  for(const action in PAD_LABELS){
+    const b=document.createElement('button');b.type='button';b.className='bindkey';
+    b.textContent=pendingPad===action?`${PAD_LABELS[action]}: нажмите кнопку…`:`${PAD_LABELS[action]}: кнопка ${Number(PADMAP[action])+1}`;
+    if(pendingPad===action)b.classList.add('pending');
+    b.addEventListener('click',e=>{e.stopPropagation();pendingPad=action;renderPadBindings();});box.appendChild(b);
+  }
+}
+function savePadMap(){try{localStorage.setItem('zombie3d_padmap_v1',JSON.stringify(PADMAP));}catch(e){}}
+function loadPadMap(){try{const v=JSON.parse(localStorage.getItem('zombie3d_padmap_v1')||'null');if(v)PADMAP=Object.assign({},PADMAP_DEFAULT,v);}catch(e){}}
+function actionForKey(code){for(const a in KEYMAP)if(KEYMAP[a]===code)return a;return null;}
+function activateKeyAction(action){
+  switch(action){
+    case 'forward':Input.w=true;break;case 'backward':Input.s=true;break;
+    case 'left':Input.a=true;break;case 'right':Input.d=true;break;case 'sprint':Input.shift=true;break;
+    case 'interact':tryInteract();break;case 'reload':startReload();break;case 'grenade':throwGrenade();break;
+    case 'melee':meleeAttack();break;case 'secondary':secondaryFire();break;
+    case 'slot1':switchSlot(0);break;case 'slot2':switchSlot(1);break;case 'pause':togglePause();break;
+  }
+}
+function releaseKeyAction(action){
+  switch(action){case 'forward':Input.w=false;break;case 'backward':Input.s=false;break;case 'left':Input.a=false;break;case 'right':Input.d=false;break;case 'sprint':Input.shift=false;break;}
+}
+document.addEventListener('keydown',e=>{
+  if(pendingKey){
+    e.preventDefault();e.stopImmediatePropagation();
+    const dup=Object.keys(KEYMAP).find(a=>a!==pendingKey&&KEYMAP[a]===e.code);
+    if(dup){setToast('Эта клавиша уже назначена: '+KEY_LABELS[dup],'warn');pendingKey=null;renderKeyBindings();return;}
+    KEYMAP[pendingKey]=e.code;pendingKey=null;saveKeyMap();renderKeyBindings();return;
+  }
+  const action=actionForKey(e.code);
+  if(action){if(!e.repeat)activateKeyAction(action);e.preventDefault();}
+  else if(e.code==='KeyQ')Input.q=true;
+  else if(e.code==='KeyE')Input.e=true;
+  else if(e.code==='KeyM')setToast(SFX.toggle()?'Звук выключен':'Звук включён','');
+  else if(e.code==='Space')e.preventDefault();
+});
+document.addEventListener('keyup',e=>{
+  const action=actionForKey(e.code);if(action)releaseKeyAction(action);
+  if(e.code==='KeyQ')Input.q=false;if(e.code==='KeyE')Input.e=false;
+});
+window.addEventListener('blur',()=>{Input.w=Input.a=Input.s=Input.d=Input.shift=Input.firing=false;});
 
-document.addEventListener('keydown', (e) => {
-  switch (e.code){
-    case 'KeyW': case 'ArrowUp':    Input.w = true; break;
-    case 'KeyS': case 'ArrowDown':  Input.s = true; break;
-    case 'KeyA': case 'ArrowLeft':  Input.a = true; break;
-    case 'KeyD': case 'ArrowRight': Input.d = true; break;
-    case 'ShiftLeft': case 'ShiftRight': Input.shift = true; break;
-    case 'KeyQ': Input.q = true; break;                     // поворот влево (резерв)
-    case 'KeyE': Input.e = true; break;                     // поворот вправо (резерв)
-    case 'Digit1': switchSlot(0); break;                    // первый слот оружия
-    case 'Digit2': switchSlot(1); break;                    // второй слот оружия
-    case 'KeyG': throwGrenade(); break;                     // граната
-    case 'KeyR': startReload(); break;
-    case 'KeyF': tryInteract(); break;
-    case 'KeyM': setToast(SFX.toggle() ? 'Звук выключен' : 'Звук включён',''); break;
-    default: break;
+/* --- Геймпад: WASD/стик, поворот, огонь, граната, нож и перезарядка --- */
+function pollGamepad(dt){
+  const pads=navigator.getGamepads?navigator.getGamepads():null;
+  let gp=null;if(pads)for(let i=0;i<pads.length;i++)if(pads[i]){gp=pads[i];break;}
+  if(!gp){GAMEPAD.id=null;GAMEPAD.moveX=GAMEPAD.moveY=GAMEPAD.lookX=GAMEPAD.lookY=0;GAMEPAD.aim=false;GAMEPAD.fire=false;GAMEPAD.prev=[];return;}
+  GAMEPAD.id=gp.index;
+  const dz=v=>Math.abs(v)<0.16?0:v;
+  GAMEPAD.moveX=dz(gp.axes[0]||0);GAMEPAD.moveY=dz(gp.axes[1]||0);
+  GAMEPAD.lookX=dz(gp.axes[2]||0);GAMEPAD.lookY=dz(gp.axes[3]||0);
+  const pressed=i=>!!(gp.buttons[i]&&gp.buttons[i].pressed);
+  const edge=i=>pressed(i)&&!GAMEPAD.prev[i];
+  if(pendingPad){
+    const found=gp.buttons.findIndex((b,i)=>b.pressed&&!GAMEPAD.prev[i]);
+    if(found>=0){PADMAP[pendingPad]=found;pendingPad=null;savePadMap();renderPadBindings();}
+    GAMEPAD.prev=gp.buttons.map(b=>!!b.pressed);return;
   }
-  if (e.code === 'Space') e.preventDefault();
-});
-document.addEventListener('keyup', (e) => {
-  switch (e.code){
-    case 'KeyW': case 'ArrowUp':    Input.w = false; break;
-    case 'KeyS': case 'ArrowDown':  Input.s = false; break;
-    case 'KeyA': case 'ArrowLeft':  Input.a = false; break;
-    case 'KeyD': case 'ArrowRight': Input.d = false; break;
-    case 'ShiftLeft': case 'ShiftRight': Input.shift = false; break;
-    case 'KeyQ': Input.q = false; break;
-    case 'KeyE': Input.e = false; break;
-    default: break;
-  }
-});
-window.addEventListener('blur', () => { Input.w = Input.a = Input.s = Input.d = Input.shift = Input.firing = false; });
+  if(GAME.state!=='play'){GAMEPAD.prev=gp.buttons.map(b=>!!b.pressed);return;}
+  GAMEPAD.fire=pressed(PADMAP.fire);GAMEPAD.aim=pressed(PADMAP.aim);
+  if(edge(PADMAP.fire)&&!getWeaponStats().auto)fireWeapon();
+  if(edge(PADMAP.interact))tryInteract();
+  if(edge(PADMAP.melee))meleeAttack();
+  if(edge(PADMAP.reload))startReload();
+  if(edge(PADMAP.swap))switchSlot(weaponState.slot===0?1:0);
+  if(edge(PADMAP.grenade))throwGrenade();
+  if(edge(PADMAP.pause))togglePause();
+  if(edge(PADMAP.secondary))secondaryFire();
+  if(edge(PADMAP.slot1))switchSlot(0);if(edge(PADMAP.slot2))switchSlot(1);
+  GAMEPAD.prev=gp.buttons.map(b=>!!b.pressed);
+}
 
 /* --- Мышь: обзор + стрельба + прицеливание --- */
 document.addEventListener('mousemove', (e) => {
@@ -4297,12 +5237,12 @@ document.addEventListener('mousedown', (e) => {
     Input.firing = true;
     fireWeapon();                       // первый выстрел — сразу
   } else if (e.button === 2){
-    weaponState.aiming = true;
+    weaponState.mouseAim = true; weaponState.aiming = true;
   }
 });
 document.addEventListener('mouseup', (e) => {
   if (e.button === 0) Input.firing = false;
-  else if (e.button === 2) weaponState.aiming = false;
+  else if(e.button===2){weaponState.mouseAim=false;weaponState.aiming=!!(GAMEPAD.aim||TOUCH.aiming);}
 });
 document.addEventListener('contextmenu', e => e.preventDefault());
 
@@ -4310,13 +5250,13 @@ document.addEventListener('contextmenu', e => e.preventDefault());
 function requestLock(){
   const el = renderer.domElement;
   const p = el.requestPointerLock ? el.requestPointerLock() : null;
-  if (p && p.catch) p.catch(()=>{});     // Chrome может «придержать» захват после Esc
+  if (p && p.catch) p.catch(()=>{});     // Браузер может отклонить захват после нажатия Esc.
 }
 document.addEventListener('pointerlockchange', () => {
   const locked = document.pointerLockElement === renderer.domElement;
   if (!locked){
-    Input.firing = false; weaponState.aiming = false;
-    if (GAME.state === 'play') showOverlay(DOM.overlayPause);
+    Input.firing=false;weaponState.aiming=false;weaponState.mouseAim=false;
+    if(GAME.state==='play'){GAME.state='paused';saveCheckpoint();showOverlay(DOM.overlayPause);}
   } else {
     hideOverlays();
   }
@@ -4325,7 +5265,7 @@ renderer.domElement.addEventListener('click', () => {
   if (GAME.state === 'play' && !document.pointerLockElement && !GAME.noLockLook && !isOverlayOpen()) requestLock();
 });
 
-// Если браузер/iframe запрещает Pointer Lock — включаем резервный режим обзора
+// Если браузер или встроенная рамка запрещает захват курсора — включаем запасной обзор.
 document.addEventListener('pointerlockerror', () => {
   GAME.noLockLook = true;
   setToast('Захват курсора недоступен — включён резервный режим: обзор мышью/клавишами Q и E', 'warn');
@@ -4339,10 +5279,21 @@ function isOverlayOpen(){
 }
 function showOverlay(el){ hideOverlays(); el.classList.remove('hidden'); }
 function hideOverlays(){
-  DOM.overlayStart.classList.add('hidden');
-  DOM.overlayPause.classList.add('hidden');
-  DOM.overlayOver.classList.add('hidden');
-  DOM.overlayWin.classList.add('hidden');
+  DOM.overlayStart.classList.add('hidden');DOM.overlayPause.classList.add('hidden');
+  DOM.overlayOver.classList.add('hidden');DOM.overlayWin.classList.add('hidden');
+}
+function togglePause(){
+  if(GAME.state==='play'){
+    GAME.state='paused';Input.firing=false;saveCheckpoint();
+    if(document.pointerLockElement)document.exitPointerLock();
+    document.getElementById('pauseWave').textContent=GAME.wave;
+    document.getElementById('pausePoints').textContent=GAME.points;
+    showOverlay(DOM.overlayPause);
+  }else if(GAME.state==='paused')resumeGame();
+}
+function resumeGame(){
+  if(GAME.state!=='paused')return;
+  GAME.state='play';hideOverlays();requestLock();
 }
 
 /* ============================================================
@@ -4363,7 +5314,7 @@ function resetLevel(){
   for (const o of levelObjects){ scene.remove(o); disposeDeep(o); }
   levelObjects = [];
   DOM.labels.innerHTML = '';
-  worldCells.clear();
+  worldCells.clear(); upperCells.clear();
   MAP.zones = {}; MAP.wallRects.length = 0; MAP.propRects.length = 0;
   MAP.doors.length = 0; MAP.buys.length = 0; MAP.spawns.length = 0; MAP.labels.length = 0;
   MAP.devices.length = 0;
@@ -4374,6 +5325,7 @@ function resetLevel(){
   buildLevel();
   levelObjects = scene.children.filter(o => !before.has(o));
   collectRayTargets();
+  if(typeof QUALITY!=='undefined')setGraphicsQuality(QUALITY);
 }
 
 /** Собрать меши, по которым считаем попадания лучей */
@@ -4386,19 +5338,28 @@ function collectRayTargets(){
 
 /** Начать игру (и рестарт) */
 function startGame(){
+  const restoring=RESTORE_SNAPSHOT;
+  clearCheckpoint();
+  GAME.mode=restoring?(restoring.mode||'survival'):MODE_SELECT;
+  GAME.daily=GAME.mode==='daily';
+  GAME.runTimeLimit=180;GAME.timedVictory=false;
+  MAP_SEED=restoring?(restoring.seed||dailySeed()):(GAME.daily?dailySeed():(Date.now()>>>0));
+  applyMapMood();
+  ELEVATOR.y=0;ELEVATOR.target=0;ELEVATOR.rider=false;
   resetLevel();
   // очистить зомби
   for (const z of zombies.slice()) removeZombie(z);
   zombies.length = 0;
   // сбросить состояние игрока
-  PLAYER.pos.set(6*TILE, EYE, 3*TILE);
+  PLAYER.pos.set(4*TILE, EYE, 8*TILE);
+  PLAYER.floorY=0;
   PLAYER.vel.set(0,0,0);
   PLAYER.yaw = 0; PLAYER.pitch = 0;                // смотрим в сторону северной двери
   PLAYER.health = PLAYER.maxHealth;
   PLAYER.lastDamage = -99; PLAYER.slowed = 0;
   PLAYER.shootKick = 0;
-  GAME.state = 'play';
-  GAME.time = 0;
+  GAME.state='play';
+  GAME.time=0;
   GAME.points = START_POINTS;
   GAME.earnedTotal = 0;
   GAME.wave = 0;
@@ -4406,8 +5367,8 @@ function startGame(){
   GAME.shots = 0; GAME.hits = 0;
   GAME.waveActive = false;
   GAME.intermission = 3.0;
-  GAME.noKillT = 0;
-  GAME.headshotKills = 0; GAME.powerupsTaken = 0; GAME.powerupsSeen = {};
+  GAME.noKillT=0;GAME.checkpointT=0;
+  GAME.headshotKills=0;GAME.powerupsTaken=0;GAME.powerupsSeen={};GAME.meleeKills=0;GAME.secondaryShots=0;
   GAME.boxSpins = 0; GAME.dogRound = false; GAME.bossPending = 0;
 
   // перки, бонусы, гранаты, пасхалка, ящик
@@ -4451,7 +5412,7 @@ function gameOver(){
   document.getElementById('goAcc').textContent = GAME.shots ? Math.round(GAME.hits/GAME.shots*100) + '%' : '0%';
   const mins = Math.floor(GAME.time/60), secs = Math.floor(GAME.time%60);
   document.getElementById('goTime').textContent = `${mins}:${String(secs).padStart(2,'0')}`;
-  saveRunRecords();
+  saveRunRecords();submitOnlineScore();clearCheckpoint();
   showOverlay(DOM.overlayOver);
 }
 
@@ -4468,7 +5429,12 @@ function saveRunRecords(){
 
 /** Экран победы (пасхалка пройдена) */
 function showWinScreen(){
-  const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  const title=document.querySelector('#overlayWin .winTitle');
+  const sub=document.querySelector('#overlayWin .subtitle');
+  const desc=document.querySelector('#overlayWin .desc');
+  if(GAME.mode==='timed'&&GAME.timedVictory){if(title)title.textContent='ВЫЖИЛИ 3 МИНУТЫ';if(sub)sub.textContent='Забег на время завершён';if(desc)desc.textContent='Выстояли до конца таймера. Результат отправлен в таблицу лидеров.';}
+  else if(title)title.textContent='ВЫ ВЫБРАЛИСЬ';
   set('winWave', GAME.wave);
   set('winKills', GAME.kills);
   set('winPoints', GAME.earnedTotal);
@@ -4477,13 +5443,12 @@ function showWinScreen(){
   set('winPerks', perks + ' / 5');
   const mins = Math.floor(GAME.time/60), secs = Math.floor(GAME.time%60);
   set('winTime', `${mins}:${String(secs).padStart(2,'0')}`);
-  saveRunRecords();
+  saveRunRecords();submitOnlineScore();clearCheckpoint();
   showOverlay(DOM.overlayWin);
 }
 
-DOM.overlayStart.addEventListener('click', () => { startGame(); });
-DOM.overlayStart.querySelector('#btnStart').addEventListener('click', (e) => { e.stopPropagation(); startGame(); });
-DOM.overlayPause.querySelector('#btnResume').addEventListener('click', (e) => { e.stopPropagation(); requestLock(); });
+DOM.overlayStart.querySelector('#btnStart').addEventListener('click',(e)=>{e.stopPropagation();startGame();});
+DOM.overlayPause.querySelector('#btnResume').addEventListener('click',(e)=>{e.stopPropagation();resumeGame();});
 DOM.overlayOver.querySelector('#btnRestart').addEventListener('click', (e) => { e.stopPropagation(); startGame(); });
 DOM.overlayWin.querySelector('#btnWinRestart').addEventListener('click', (e) => { e.stopPropagation(); startGame(); });
 DOM.overlayWin.addEventListener('click', () => startGame());
@@ -4521,21 +5486,21 @@ function animate(ms){
   lastTime = ms;
 
   if (GAME.state === 'play'){
-    GAME.time += dt;
+    GAME.time+=dt;
+    maybeSaveCheckpoint();
 
-    updatePlayer(dt, GAME.time);
-    updateZombies(dt, GAME.time);
-    updateSpits(dt);
+    updatePlayer(dt,GAME.time);
+    if(!(COOP.online&&!COOP.isHost))updateZombies(dt,GAME.time);
+    if(!(COOP.online&&!COOP.isHost)){
+      updateSpits(dt);updateWindows(dt);updateElevator(dt);updateTraps(dt);
+      updateTurrets(dt,GAME.time);updateMysteryBox(dt);
+    }
     updateGrenades(dt);
-    updatePowerups(dt, GAME.time);
-    updateWindows(dt);
-    updateTraps(dt);
-    updateTurrets(dt, GAME.time);
-    updateMysteryBox(dt);
+    updatePowerups(dt,GAME.time);
     updateCoop(dt);
 
     // автоогонь (автомат — зажим ЛКМ или кнопка на мобильном)
-    if (Input.firing && getWeaponStats().auto) fireWeapon();
+    if((Input.firing||GAMEPAD.fire)&&getWeaponStats().auto)fireWeapon();
     if (weaponState.reloading && GAME.time >= weaponState.reloadEnd) finishReload();
 
     updateDirector(dt);
@@ -4547,6 +5512,7 @@ function animate(ms){
     updateCrosshair();
     updateHUD();
   } else {
+    pollGamepad(dt);                // можно переназначить кнопки до начала игры
     updateViewModel(dt*0.6);        // в паузе/меню оружие «дышит»
   }
 
@@ -4568,7 +5534,8 @@ function init(){
   updateHUD(); updateWaveHUD(); updateCrosshair();
 
   // стартовая позиция камеры (смотрим вглубь холла)
-  PLAYER.pos.set(6*TILE, EYE, 3*TILE);
+  PLAYER.pos.set(4*TILE, EYE, 8*TILE);
+  PLAYER.floorY = 0;
   PLAYER.yaw = 0;
   camera.position.copy(PLAYER.pos);
   camera.rotation.order = 'YXZ';
@@ -4583,7 +5550,8 @@ function init(){
   });
 
   loadRecords();
-  bindTweaksUI();
+  loadKeyMap();renderKeyBindings();loadPadMap();renderPadBindings();
+  bindTweaksUI();bindMapModeUI();bindQualityUI();
   initTouchControls();
   requestAnimationFrame(animate);
 }
