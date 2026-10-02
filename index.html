@@ -324,6 +324,14 @@ kbd{display:inline-block;min-width:26px;padding:2px 8px;border-radius:4px;backgr
           <option value="timed">Забег на 3 минуты</option>
           <option value="daily">Ежедневное испытание</option>
         </select></div>
+      <div class="slider"><span style="width:auto">Погода</span>
+        <select id="weatherPick" style="background:#151a1f;color:#ffd071;border:1px solid #454c52;padding:5px;border-radius:4px">
+          <option value="auto">Авто</option>
+          <option value="clear">Ясно</option>
+          <option value="rain">Дождь</option>
+          <option value="snow">Снег</option>
+          <option value="fog">Туман</option>
+        </select></div>
       <div class="slider"><span style="width:auto">Графика</span>
         <select id="qualityPick" style="background:#151a1f;color:#ffd071;border:1px solid #454c52;padding:5px;border-radius:4px">
           <option value="high">Высокая</option><option value="medium">Средняя</option><option value="low">Производительная</option>
@@ -353,6 +361,7 @@ kbd{display:inline-block;min-width:26px;padding:2px 8px;border-radius:4px;backgr
     <div class="hint" id="startHint">Клик по экрану захватывает курсор (Pointer Lock). Если браузер
       запрещает захват, обзор всё равно работает перемещением мыши по экрану и клавишами Q/E.
       В снежной версии за южными воротами двора находится дополнительный северный ангар.
+      Погоду можно выбрать в настройках: дождь, снег и туман меняют двор и звуковой фон.
       «Продолжить забег» восстановит сохранённую карту; для новой карты нажмите «Начать бой».
       Кооп поддерживает BroadcastChannel в соседней вкладке и онлайн-комнаты через WebSocket-сервер.</div>
   </div>
@@ -429,6 +438,8 @@ const ZOMBIE_DMG_BASE = 12;
 let MAP_VARIANT='nacht';                       // ночная карта | снежный аэродром
 let MAP_SEED=1945;
 let MODE_SELECT='survival';
+let WEATHER_SELECT='auto';                       // выбранная погода или автоматический выбор
+let CURRENT_WEATHER='clear';                     // погода текущего забега
 let QUALITY='high';
 let DAILY_ACTIVE=false;                            // меняется вместе с испытанием дня
 
@@ -778,14 +789,17 @@ function makeFlashTexture(){
    4. ЗВУК (WebAudio, всё синтезируется на лету)
    ============================================================ */
 const SFX = {
-  ctx:null, master:null, noiseBuf:null, ready:false, muted:false,
+  ctx:null,master:null,noiseBuf:null,ready:false,muted:false,ambience:null,ambienceWeather:'clear',ambienceOutdoor:false,
   init(){
-    if (this.ctx){ if (this.ctx.state === 'suspended') this.ctx.resume(); return; }
-    const AC = window.AudioContext || window.webkitAudioContext;
-    if (!AC) return;
-    this.ctx = new AC();
+    if(this.ctx){
+      if(this.ctx.state==='suspended')try{const resumed=this.ctx.resume();if(resumed&&resumed.catch)resumed.catch(()=>{});}catch(e){}
+      return;
+    }
+    const AC=window.AudioContext||window.webkitAudioContext;
+    if(!AC)return;
+    try{this.ctx=new AC();}catch(e){this.ctx=null;return;}
     this.master = this.ctx.createGain();
-    this.master.gain.value = 0.5;
+    this.master.gain.value = this.muted ? 0 : 0.5;
     this.master.connect(this.ctx.destination);
     const len = Math.floor(this.ctx.sampleRate * 2);
     const buf = this.ctx.createBuffer(1, len, this.ctx.sampleRate);
@@ -797,8 +811,58 @@ const SFX = {
   toggle(){
     this.muted = !this.muted;
     if (this.master) this.master.gain.value = this.muted ? 0 : 0.5;
+    if (!this.muted && this.ambienceWeather) this.setAmbience(this.ambienceWeather);
     return this.muted;
   },
+  setAmbience(weather,outside){
+    this.ambienceWeather=weather||'clear';
+    if(typeof outside==='boolean')this.ambienceOutdoor=outside;
+    if(!this.ready||this.muted)return;
+    const profiles={
+      clear:{wind:360,windGain:0.018,rainGain:0},
+      rain:{wind:620,windGain:0.022,rainGain:0.042},
+      snow:{wind:520,windGain:0.036,rainGain:0},
+      fog:{wind:280,windGain:0.027,rainGain:0}
+    };
+    const profile=profiles[this.ambienceWeather]||profiles.clear,now=this.ctx.currentTime;
+    if(!this.ambience){
+      const source=this.ctx.createBufferSource(),filter=this.ctx.createBiquadFilter(),gain=this.ctx.createGain();
+      source.buffer=this.noiseBuf;source.loop=true;filter.type='lowpass';filter.Q.value=0.45;
+      source.connect(filter);filter.connect(gain);gain.connect(this.master);source.start();
+      const rainSource=this.ctx.createBufferSource(),rainFilter=this.ctx.createBiquadFilter(),rainGain=this.ctx.createGain();
+      rainSource.buffer=this.noiseBuf;rainSource.loop=true;rainFilter.type='highpass';rainFilter.frequency.value=1600;
+      rainSource.connect(rainFilter);rainFilter.connect(rainGain);rainGain.connect(this.master);rainSource.start();
+      this.ambience={source,filter,gain,rainSource,rainFilter,rainGain};
+    }
+    const a=this.ambience,roomGain=this.ambienceOutdoor?1:(this.ambienceWeather==='rain'?0.18:0.3);
+    a.filter.frequency.setTargetAtTime(profile.wind,now,0.8);
+    a.gain.gain.setTargetAtTime(profile.windGain*roomGain,now,0.8);
+    a.rainGain.gain.setTargetAtTime(profile.rainGain*roomGain,now,0.8);
+  },
+  stopAmbience(){
+    if(!this.ambience)return;
+    const a=this.ambience,t=this.ctx.currentTime+0.12;
+    try{a.source.stop(t);a.rainSource.stop(t);}catch(e){}
+    this.ambience=null;
+  },
+  footstep(surface){
+    if(!this.ready||this.muted)return;
+    if(surface==='snow'){
+      this.noise(0.075,0.11,'lowpass',720,0.8);
+      this.tone(105,0.055,'triangle',0.055,0,62);
+    }else if(surface==='metal'){
+      this.tone(170,0.075,'triangle',0.09,0,92);
+      this.noise(0.045,0.07,'bandpass',1250,2);
+    }else if(surface==='wet'){
+      this.noise(0.065,0.1,'bandpass',1100,1.2);
+      this.tone(82,0.045,'triangle',0.045,0,52);
+    }else{
+      this.noise(0.05,0.085,'lowpass',560,0.8);
+      this.tone(92,0.045,'triangle',0.05,0,58);
+    }
+  },
+  grenadeBounce(){this.tone(190,0.055,'triangle',0.1,0,115);this.noise(0.035,0.06,'bandpass',900,2);},
+  thunder(){this.noise(2.8,0.12,'lowpass',260,0.6,0,48);this.tone(48,2.4,'sine',0.08,0.12,30);},
   tone(freq, dur, type, vol, delay, freqEnd){
     if (!this.ready || this.muted) return;
     const t0 = this.ctx.currentTime + (delay||0);
@@ -932,8 +996,11 @@ const renderer = new THREE.WebGLRenderer({ antialias:true, powerPreference:'high
 renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.outputEncoding = THREE.sRGBEncoding;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.08;
 renderer.autoClear = false;                 // сами управляем очисткой (нужно для слоя оружия)
-renderer.shadowMap.enabled = false;         // тени выключены: важнее производительность при толпах зомби
+renderer.shadowMap.enabled = false;         // качество включает тени отдельно, чтобы сохранить запас производительности
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 canvasHost.appendChild(renderer.domElement);
 
 /* --- Основная сцена (мир) --- */
@@ -962,7 +1029,12 @@ scene.add(ambient);
 const skyFill = new THREE.HemisphereLight(0x7185a1,0x24231c,0.32);
 scene.add(skyFill);
 const moonFill = new THREE.DirectionalLight(0x9aaac4,0.38);
-moonFill.position.set(-35,48,-20);scene.add(moonFill);
+moonFill.position.set(-35,48,-20);moonFill.castShadow=true;scene.add(moonFill);
+moonFill.shadow.mapSize.set(1024,1024);
+moonFill.shadow.camera.left=-70;moonFill.shadow.camera.right=70;
+moonFill.shadow.camera.top=70;moonFill.shadow.camera.bottom=-70;
+moonFill.shadow.camera.near=1;moonFill.shadow.camera.far=150;moonFill.shadow.camera.updateProjectionMatrix();
+moonFill.shadow.bias=-0.00018;moonFill.shadow.normalBias=0.025;moonFill.shadow.radius=3;
 
 const flashlight = new THREE.SpotLight(0xf2f0e4, 1.5, 30, Math.PI/6.5, 0.45, 1.2); // фонарик игрока
 flashlight.position.set(0, EYE, 0);
@@ -974,6 +1046,85 @@ camera.add(flashlightHemi);
 
 const muzzleLight = new THREE.PointLight(0xffbb66, 0, 9, 2);            // вспышка выстрела
 scene.add(muzzleLight);
+
+/* --- Погодные частицы и атмосферное состояние --- */
+const WEATHER_SYSTEM={root:null,geometry:null,material:null,particles:[],position:null,mode:'clear',thunderTimer:24,zoneTimer:0,outdoor:false};
+function clearWeather(){
+  if(!WEATHER_SYSTEM.root)return;
+  scene.remove(WEATHER_SYSTEM.root);
+  if(WEATHER_SYSTEM.geometry)WEATHER_SYSTEM.geometry.dispose();
+  if(WEATHER_SYSTEM.material)WEATHER_SYSTEM.material.dispose();
+  WEATHER_SYSTEM.root=null;WEATHER_SYSTEM.geometry=null;WEATHER_SYSTEM.material=null;
+  WEATHER_SYSTEM.position=null;WEATHER_SYSTEM.particles.length=0;
+}
+function buildWeather(mode){
+  clearWeather();
+  WEATHER_SYSTEM.mode=mode||'clear';WEATHER_SYSTEM.thunderTimer=rand(22,42);
+  WEATHER_SYSTEM.zoneTimer=0;WEATHER_SYSTEM.outdoor=false;
+  if(WEATHER_SYSTEM.mode!=='rain'&&WEATHER_SYSTEM.mode!=='snow')return;
+  const snow=WEATHER_SYSTEM.mode==='snow';
+  const count=QUALITY==='low'?90:(QUALITY==='medium'?180:300);
+  const root=new THREE.Group(),geometry=new THREE.BufferGeometry();
+  const particles=new Array(count),positions=new Float32Array(count*(snow?3:6));
+  for(let i=0;i<count;i++){
+    const p={x:rand(-22,22),y:rand(0.5,17),z:rand(-22,22),
+      speed:snow?rand(0.8,2.0):rand(8,14),drift:snow?rand(-0.9,0.9):rand(-0.25,0.25),
+      length:snow?0:rand(0.35,0.8)};
+    particles[i]=p;
+    if(snow){positions[i*3]=p.x;positions[i*3+1]=p.y;positions[i*3+2]=p.z;}
+    else{
+      const j=i*6;positions[j]=p.x;positions[j+1]=p.y;positions[j+2]=p.z;
+      positions[j+3]=p.x-0.04;positions[j+4]=p.y-p.length;positions[j+5]=p.z+0.02;
+    }
+  }
+  const attribute=new THREE.BufferAttribute(positions,3);attribute.setUsage(THREE.DynamicDrawUsage);
+  geometry.setAttribute('position',attribute);
+  const material=snow
+    ?new THREE.PointsMaterial({color:0xe3f2ff,size:0.12,transparent:true,opacity:0.82,depthWrite:false,sizeAttenuation:true})
+    :new THREE.LineBasicMaterial({color:0x9db4c5,transparent:true,opacity:0.42,depthWrite:false});
+  const mesh=snow?new THREE.Points(geometry,material):new THREE.LineSegments(geometry,material);
+  mesh.frustumCulled=false;mesh.userData.noRay=true;mesh.castShadow=false;root.add(mesh);
+  scene.add(root);
+  WEATHER_SYSTEM.root=root;WEATHER_SYSTEM.geometry=geometry;WEATHER_SYSTEM.material=material;
+  WEATHER_SYSTEM.particles=particles;WEATHER_SYSTEM.position=attribute;root.visible=false;
+}
+function updateWeather(dt){
+  WEATHER_SYSTEM.zoneTimer-=dt;
+  if(WEATHER_SYSTEM.zoneTimer<=0){
+    WEATHER_SYSTEM.zoneTimer=0.25;
+    WEATHER_SYSTEM.outdoor=zoneAt(PLAYER.pos.x,PLAYER.pos.z,PLAYER.floorY)==='d4';
+    if(WEATHER_SYSTEM.outdoor!==SFX.ambienceOutdoor)SFX.setAmbience(WEATHER_SYSTEM.mode,WEATHER_SYSTEM.outdoor);
+  }
+  const root=WEATHER_SYSTEM.root;
+  if(root){
+    root.visible=GAME.state==='play'&&WEATHER_SYSTEM.outdoor;
+    root.position.set(PLAYER.pos.x,PLAYER.floorY,PLAYER.pos.z);
+    if(root.visible){
+      const snow=WEATHER_SYSTEM.mode==='snow',a=WEATHER_SYSTEM.position.array;
+      const wind=snow?0.7:1.8;
+      for(let i=0;i<WEATHER_SYSTEM.particles.length;i++){
+        const p=WEATHER_SYSTEM.particles[i];
+        p.y-=p.speed*dt;p.x+=wind*dt;p.z+=p.drift*dt;
+        if(p.y < -0.5){p.y=rand(10,18);p.x=rand(-22,22);p.z=rand(-22,22);}
+        if(p.x>23)p.x=-23;
+        if(p.z>23)p.z=-23;else if(p.z<-23)p.z=23;
+        if(snow){const j=i*3;a[j]=p.x;a[j+1]=p.y;a[j+2]=p.z;}
+        else{
+          const j=i*6;a[j]=p.x;a[j+1]=p.y;a[j+2]=p.z;
+          a[j+3]=p.x-0.045;a[j+4]=p.y-p.length;a[j+5]=p.z+0.02;
+        }
+      }
+      WEATHER_SYSTEM.position.needsUpdate=true;
+    }
+  }
+  if(GAME.state==='play'&&WEATHER_SYSTEM.mode==='rain'){
+    WEATHER_SYSTEM.thunderTimer-=dt;
+    if(WEATHER_SYSTEM.thunderTimer<=0){
+      if(Math.random()<0.42)SFX.thunder();
+      WEATHER_SYSTEM.thunderTimer=rand(28,48);
+    }
+  }
+}
 
 /* ============================================================
    6. МОДЕЛИ ОРУЖИЯ (вид от первого лица)
@@ -1990,7 +2141,7 @@ function buildWalls(){
   geo.setAttribute('normal',new THREE.Float32BufferAttribute(nor,3));
   geo.setAttribute('uv',new THREE.Float32BufferAttribute(uvs,2));
   geo.setIndex(idx);
-  const mesh = new THREE.Mesh(geo,new THREE.MeshLambertMaterial({ map:WALL_TEX, color:0xffffff, side:THREE.DoubleSide }));
+  const mesh = new THREE.Mesh(geo,new THREE.MeshStandardMaterial({ map:WALL_TEX, color:0xffffff, side:THREE.DoubleSide, roughness:0.94, metalness:0.02 }));
   mesh.name = 'walls';
   scene.add(mesh);
 }
@@ -2021,7 +2172,7 @@ function buildFloors(){
     geo.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));
     geo.setIndex(idx);
     const tex=texture.clone(); tex.needsUpdate=true; tex.repeat.set(w,h);
-    const mesh=new THREE.Mesh(geo,new THREE.MeshLambertMaterial({map:tex,side:THREE.DoubleSide}));
+    const mesh=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({map:tex,side:THREE.DoubleSide,roughness:isCeiling?0.98:0.91,metalness:0.01}));
     mesh.name=isCeiling?'ceiling_'+def.id:'floor_'+def.id;
     scene.add(mesh);
     return mesh;
@@ -2043,9 +2194,9 @@ function buildFloors(){
 
 /* ---- 8.3 Пропсы: ящики и бочки (+ коллайдеры) ---- */
 function buildProps(){
-  const crateMat  = new THREE.MeshLambertMaterial({ color:0x6b5636 });
-  const crateMat2 = new THREE.MeshLambertMaterial({ color:0x54452c });
-  const barrelMat = new THREE.MeshLambertMaterial({ color:0x4a5a4a });
+  const crateMat  = new THREE.MeshStandardMaterial({ color:0x6b5636,roughness:0.88,metalness:0.02 });
+  const crateMat2 = new THREE.MeshStandardMaterial({ color:0x54452c,roughness:0.92,metalness:0.02 });
+  const barrelMat = new THREE.MeshStandardMaterial({ color:0x4a5a4a,roughness:0.62,metalness:0.38 });
   const crateGeo  = new THREE.BoxGeometry(1,1,1);
   const barrelGeo = new THREE.CylinderGeometry(0.42,0.42,1.05,14);
 
@@ -2102,7 +2253,7 @@ function buildDoors(){
     const geo = def.horiz
       ? new THREE.BoxGeometry(TILE*1.02, WALL_H, 0.42)
       : new THREE.BoxGeometry(0.42, WALL_H, TILE*1.02);
-    const mat = new THREE.MeshLambertMaterial({ map: tex });
+    const mat = new THREE.MeshStandardMaterial({ map:tex,roughness:0.78,metalness:0.08 });
     const mesh = new THREE.Mesh(geo, mat);
     const floorY = def.floorY !== undefined ? def.floorY : (zone.floorY||0);
     mesh.position.set(wx, floorY+WALL_H/2, wz);
@@ -2232,8 +2383,9 @@ function nearbyColliders(x, z, out){
 function buildStaircase(){
   const count=12,span=STAIR.lowZ-STAIR.highZ,stepD=span/count,stepH=(STAIR.highY-STAIR.lowY)/count;
   const xMid=(STAIR.minX+STAIR.maxX)/2, width=(STAIR.maxX-STAIR.minX)*0.94;
-  const concrete=new THREE.MeshLambertMaterial({color:0x57534c});
-  const edge=new THREE.MeshLambertMaterial({color:0x363a3c});
+  const concrete=new THREE.MeshStandardMaterial({color:0x57534c,roughness:0.9,metalness:0.02});
+  const edge=new THREE.MeshStandardMaterial({color:0x363a3c,roughness:0.76,metalness:0.12});
+  const lipMat=new THREE.MeshStandardMaterial({color:0x887b62,roughness:0.72,metalness:0.08});
   for(let i=0;i<count;i++){
     const z=STAIR.lowZ-(i+0.5)*stepD;
     const yTop=STAIR.lowY+(i+1)*stepH;
@@ -2241,7 +2393,7 @@ function buildStaircase(){
     step.position.set(xMid,STAIR.lowY+(i+0.5)*stepH,z);
     scene.add(step);
     // светлая узкая кромка у ступени
-    const lip=new THREE.Mesh(new THREE.BoxGeometry(width,0.045,0.08),new THREE.MeshLambertMaterial({color:0x887b62}));
+    const lip=new THREE.Mesh(new THREE.BoxGeometry(width,0.045,0.08),lipMat);
     lip.position.set(xMid,yTop-0.015,z-stepD/2+0.06);
     scene.add(lip);
   }
@@ -2268,14 +2420,7 @@ function buildStaircase(){
     guard.position.set(x,4.45,8);
     scene.add(guard);
   }
-  const sign=makeCanvas(256,96),ctx=sign.getContext('2d');
-  ctx.fillStyle='#25231e';ctx.fillRect(0,0,256,96);ctx.fillStyle='#e7c478';
-  ctx.font='bold 27px Arial';ctx.textAlign='center';ctx.fillText('ВЕРХНИЙ ЭТАЖ',128,42);
-  ctx.font='bold 17px Arial';ctx.fillText('ЛЕСТНИЦА ЗА 1000',128,72);
-  const board=new THREE.Mesh(new THREE.PlaneGeometry(1.45,0.55),new THREE.MeshBasicMaterial({map:finishTexture(sign,1,1),side:THREE.DoubleSide}));
-  board.position.set(12,2.5,14.35);
-  board.rotation.y=Math.PI;
-  scene.add(board);
+  // Убрана неплотно закреплённая серая табличка возле комнаты появления.
 }
 
 /* ---- 8.10 Двор аэродрома: ограждение, поле, обломки и дальний горизонт ---- */
@@ -2284,14 +2429,14 @@ function buildYardEnvironment(){
   const xMin=(d.ox-0.5)*TILE, xMax=(d.ox+d.grid[0].length-0.5)*TILE;
   const zMin=(d.oz-0.5)*TILE, zMax=(d.oz+d.grid.length-0.5)*TILE;
   // Большой грунтовый подиум продолжается за оградой; виден край карты, а не чёрная пустота.
-  const snowTheme=MAP_VARIANT==='snow';
-  const soil=new THREE.Mesh(new THREE.PlaneGeometry(110,100),new THREE.MeshLambertMaterial({map:YARD_TEX,color:snowTheme?0x9aa9b3:0x777763}));
+  const snowMap=MAP_VARIANT==='snow',snowTheme=snowMap||CURRENT_WEATHER==='snow';
+  const soil=new THREE.Mesh(new THREE.PlaneGeometry(110,100),new THREE.MeshStandardMaterial({map:YARD_TEX,color:snowTheme?0x9aa9b3:0x777763,roughness:0.96,metalness:0.01}));
   soil.rotation.x=-Math.PI/2;soil.position.set((xMin+xMax)/2,-0.09,(zMin+zMax)/2);
   scene.add(soil);
 
   const postGeo=new THREE.BoxGeometry(0.12,1.85,0.12);
-  const postMat=new THREE.MeshLambertMaterial({color:0x484b47});
-  const railMat=new THREE.MeshLambertMaterial({color:0x555852});
+  const postMat=new THREE.MeshStandardMaterial({color:0x484b47,roughness:0.72,metalness:0.18});
+  const railMat=new THREE.MeshStandardMaterial({color:0x555852,roughness:0.65,metalness:0.28});
   const posts=[],railsX=[],railsZ=[];
   const addPost=(x,z)=>posts.push([x,0.92,z]);
   const addRail=(x,z,axis)=>{(axis==='x'?railsX:railsZ).push([x,0.72,z],[x,1.34,z]);};
@@ -2316,7 +2461,7 @@ function buildYardEnvironment(){
     }
   };
   fenceLine('x',zMin+0.25,xMin,xMax,null);
-  fenceLine('x',zMax-0.25,xMin,xMax,(x,z)=>snowTheme&&Math.abs(x-72)<1.2);
+  fenceLine('x',zMax-0.25,xMin,xMax,(x,z)=>snowMap&&Math.abs(x-72)<1.2);
   fenceLine('z',xMax-0.25,zMin,zMax,null);
   // Западная ограда прерывается у Help; зимой есть ещё ворота к северному ангару.
   fenceLine('z',xMin+0.25,zMin,zMax,(x,z)=>Math.abs(z-8)<1.2);
@@ -2331,14 +2476,16 @@ function buildYardEnvironment(){
 
   // Старый транспортный самолёт, врезавшийся в край аэродрома.
   const wreck=new THREE.Group();
-  const metal=new THREE.MeshLambertMaterial({color:0x55594f}),rust=new THREE.MeshLambertMaterial({color:0x563c2a}),dark=new THREE.MeshLambertMaterial({color:0x202522});
+  const metal=new THREE.MeshStandardMaterial({color:0x55594f,roughness:0.58,metalness:0.45});
+  const rust=new THREE.MeshStandardMaterial({color:0x563c2a,roughness:0.82,metalness:0.28});
+  const dark=new THREE.MeshStandardMaterial({color:0x202522,roughness:0.72,metalness:0.42});
   const fuselage=new THREE.Mesh(new THREE.CylinderGeometry(0.72,0.95,10,12),metal);
   fuselage.rotation.x=Math.PI/2;fuselage.position.set(0,1.35,0);wreck.add(fuselage);
   const nose=new THREE.Mesh(new THREE.ConeGeometry(0.72,1.8,12),rust);nose.rotation.x=-Math.PI/2;nose.position.set(0,1.35,-5.6);wreck.add(nose);
   const wing=new THREE.Mesh(new THREE.BoxGeometry(11,0.24,1.8),rust);wing.position.set(0,1.55,0.7);wing.rotation.z=0.05;wreck.add(wing);
   const tail=new THREE.Mesh(new THREE.BoxGeometry(3.4,0.18,1.35),metal);tail.position.set(0,2.15,4.3);wreck.add(tail);
   const fin=new THREE.Mesh(new THREE.BoxGeometry(0.18,1.5,1.6),dark);fin.position.set(0,2.8,4.1);fin.rotation.x=0.16;wreck.add(fin);
-  const engineMat=new THREE.MeshLambertMaterial({color:0x282c2a});
+  const engineMat=new THREE.MeshStandardMaterial({color:0x282c2a,roughness:0.62,metalness:0.5});
   for(const x of [-3.7,3.7]){
     const engine=new THREE.Mesh(new THREE.CylinderGeometry(0.42,0.52,1.35,10),engineMat);
     engine.rotation.x=Math.PI/2;engine.position.set(x,1.25,0.45);wreck.add(engine);
@@ -2353,8 +2500,20 @@ function buildYardEnvironment(){
   // Мешки, металлические бочки, обломки и трава объединены в пакетные объекты для быстрого рендера.
   const seed=(MAP_SEED>>>0)||1945;let state=seed;
   const rnd=()=>{state=(Math.imul(state,1664525)+1013904223)>>>0;return state/4294967296;};
+  if(CURRENT_WEATHER==='rain'){
+    const puddleGeo=new THREE.CircleGeometry(1,14);
+    const puddleMat=new THREE.MeshStandardMaterial({color:0x26343a,roughness:0.2,metalness:0.08,transparent:true,opacity:0.66,depthWrite:false});
+    const puddles=new THREE.InstancedMesh(puddleGeo,puddleMat,38),puddleTmp=new THREE.Object3D();
+    for(let i=0;i<38;i++){
+      let x=xMin+3+rnd()*(xMax-xMin-6),z=zMin+3+rnd()*(zMax-zMin-6);
+      if(Math.hypot(x-73,z-19)<9){x=xMin+5+rnd()*(xMax-xMin-10);z=zMin+5+rnd()*(zMax-zMin-10);}
+      puddleTmp.position.set(x,-0.012,z);puddleTmp.rotation.set(-Math.PI/2,0,rnd()*6.28);
+      puddleTmp.scale.set(0.4+rnd()*1.7,0.2+rnd()*0.65,1);puddleTmp.updateMatrix();puddles.setMatrixAt(i,puddleTmp.matrix);
+    }
+    puddles.instanceMatrix.needsUpdate=true;puddles.userData.noRay=true;puddles.userData.noShadow=true;scene.add(puddles);
+  }
   const grassGeo=new THREE.ConeGeometry(0.12,0.45,4);
-  const grassMat=new THREE.MeshLambertMaterial({color:snowTheme?0x89949a:0x545d3e});
+  const grassMat=new THREE.MeshStandardMaterial({color:snowTheme?0x89949a:0x545d3e,roughness:0.96});
   const grass=new THREE.InstancedMesh(grassGeo,grassMat,360),tmp=new THREE.Object3D();
   let used=0;
   for(let i=0;i<360;i++){
@@ -2363,10 +2522,10 @@ function buildYardEnvironment(){
     tmp.position.set(x,0.18,z);tmp.rotation.set(0,rnd()*6.28,0);tmp.scale.setScalar(0.45+rnd()*0.9);tmp.updateMatrix();
     grass.setMatrixAt(used++,tmp.matrix);
   }
-  grass.count=used;grass.instanceMatrix.needsUpdate=true;grass.userData.noRay=true;scene.add(grass);
+  grass.count=used;grass.instanceMatrix.needsUpdate=true;grass.userData.noRay=true;grass.userData.noShadow=true;scene.add(grass);
   YARD_VISUALS.grass=grass;YARD_VISUALS.grassMax=used;
 
-  const bagGeo=new THREE.BoxGeometry(1.2,0.55,0.55),bagMat=new THREE.MeshLambertMaterial({color:0x71664e});
+  const bagGeo=new THREE.BoxGeometry(1.2,0.55,0.55),bagMat=new THREE.MeshStandardMaterial({color:0x71664e,roughness:0.9});
   const bags=new THREE.InstancedMesh(bagGeo,bagMat,36);let bi=0;
   for(let row=0;row<3;row++)for(let i=0;i<12;i++){
     const x=55+i*1.2,z=-1+row*0.52;
@@ -2376,22 +2535,22 @@ function buildYardEnvironment(){
   MAP.propRects.push({minX:54,maxX:70,minZ:-2,maxZ:1,floorY:0});
 
   // Холодные тёмные холмы обрамляют дальний горизонт, не перекрывая прогулочную площадку.
-  const rockGeo=new THREE.IcosahedronGeometry(1,1),rockMat=new THREE.MeshLambertMaterial({color:0x2e3940});
+  const rockGeo=new THREE.IcosahedronGeometry(1,1),rockMat=new THREE.MeshStandardMaterial({color:0x2e3940,roughness:0.96});
   const rocks=new THREE.InstancedMesh(rockGeo,rockMat,32);
   for(let i=0;i<32;i++){
     const a=i/32*Math.PI*2,r=54+rnd()*12;
     tmp.position.set(70+Math.cos(a)*r,1.5+rnd()*3,10+Math.sin(a)*r);
     tmp.scale.set(5+rnd()*8,3+rnd()*5,5+rnd()*8);tmp.rotation.set(rnd(),rnd()*3,rnd());tmp.updateMatrix();rocks.setMatrixAt(i,tmp.matrix);
   }
-  rocks.instanceMatrix.needsUpdate=true;rocks.userData.noRay=true;scene.add(rocks);YARD_VISUALS.rocks=rocks;
+  rocks.instanceMatrix.needsUpdate=true;rocks.userData.noRay=true;rocks.userData.noShadow=true;scene.add(rocks);YARD_VISUALS.rocks=rocks;
   if(snowTheme){
-    const snowGeo=new THREE.CircleGeometry(1,7),snowMat=new THREE.MeshLambertMaterial({color:0xd7e0e5,transparent:true,opacity:0.7,depthWrite:false});
+    const snowGeo=new THREE.CircleGeometry(1,7),snowMat=new THREE.MeshStandardMaterial({color:0xd7e0e5,roughness:0.96,transparent:true,opacity:0.7,depthWrite:false});
     const snow=new THREE.InstancedMesh(snowGeo,snowMat,120);
     for(let i=0;i<120;i++){
       const x=xMin+2+rnd()*(xMax-xMin-4),z=zMin+2+rnd()*(zMax-zMin-4);
       tmp.position.set(x,0.012,z);tmp.rotation.set(-Math.PI/2,0,rnd()*6.28);tmp.scale.set(0.7+rnd()*2.5,0.4+rnd()*1.6,1);tmp.updateMatrix();snow.setMatrixAt(i,tmp.matrix);
     }
-    snow.instanceMatrix.needsUpdate=true;snow.userData.noRay=true;scene.add(snow);YARD_VISUALS.snow=snow;
+    snow.instanceMatrix.needsUpdate=true;snow.userData.noRay=true;snow.userData.noShadow=true;scene.add(snow);YARD_VISUALS.snow=snow;
   }else YARD_VISUALS.snow=null;
   // Лунное пятно и тёплый прожектор у разбитого самолёта.
   const beacon=new THREE.PointLight(0xff9b59,1.4,15,2);beacon.position.set(73,3,19);scene.add(beacon);
@@ -2789,7 +2948,7 @@ const PLAYER = {
   health: 100, maxHealth: 100,
   lastDamage: -99,              // время последнего урона (для регенерации)
   radius: PLAYER_R,
-  bob: 0, bobAmp: 0,           // покачивание камеры
+  bob: 0, bobAmp: 0,stepTimer:0, // покачивание камеры и шаги
   shootKick: 0,                // отдача камеры
   slowed: 0,                   // кратковременное замедление после удара зомби
   speedWalk: 4.05, speedRun: 6.15
@@ -2825,18 +2984,27 @@ function blocked(x, z, r, zombie, levelY){
       ((x>STAIR.minX-0.5 && x<STAIR.minX+0.05)||(x>STAIR.maxX-0.05 && x<STAIR.maxX+0.5))) return true;
   return false;
 }
+function overlapsLivingZombie(x,z,r,floorY){
+  for(const enemy of zombies){
+    if(!enemy.alive||Math.abs((enemy.floorY||0)-floorY)>1.4)continue;
+    const reach=r+(enemy.radius||ZOMBIE_R)*0.8,dx=x-enemy.pos.x,dz=z-enemy.pos.z;
+    if(dx*dx+dz*dz<reach*reach)return true;
+  }
+  return false;
+}
 /** Сдвинуть объект с учётом горизонтальных и этажных коллизий */
-function moveWithCollision(pos, dx, dz, r, zombie, levelY){
+function moveWithCollision(pos,dx,dz,r,zombie,levelY,collideActors){
   const baseY=levelY!==undefined?levelY:(zombie?pos.y:PLAYER.floorY);
-  const escaping=zombie && blocked(pos.x,pos.z,r,true,baseY);
+  const collides=(x,z)=>blocked(x,z,r,zombie,baseY)||(collideActors&&overlapsLivingZombie(x,z,r,baseY));
+  const escaping=zombie&&blocked(pos.x,pos.z,r,true,baseY);
   if(Math.abs(dx)>1e-6){
     const nx=pos.x+dx;
-    if(escaping||!blocked(nx,pos.z,r,zombie,baseY)) pos.x=nx;
-    else if(!blocked(nx,pos.z+(dz>0?0.02:-0.02),r,zombie,baseY)) pos.x=nx;
+    if(escaping||!collides(nx,pos.z))pos.x=nx;
+    else if(!collides(nx,pos.z+(dz>0?0.02:-0.02)))pos.x=nx;
   }
   if(Math.abs(dz)>1e-6){
     const nz=pos.z+dz;
-    if(escaping||!blocked(pos.x,nz,r,zombie,baseY)) pos.z=nz;
+    if(escaping||!collides(pos.x,nz))pos.z=nz;
   }
   if(zombie){
     pos.y=floorHeightAt(pos.x,pos.z,baseY);
@@ -2873,14 +3041,17 @@ function updatePlayer(dt,now){
   const sin = Math.sin(PLAYER.yaw), cos = Math.cos(PLAYER.yaw);
   const wantX = fx*cos + fz*sin;
   const wantZ = -fx*sin + fz*cos;
-  const speed=(run?PLAYER.speedRun:PLAYER.speedWalk)*(weaponState.aiming?0.62:1)*(PERKS.stamin?1.3:1)*(PLAYER.slowed>0?0.55:1);
-
-  const accel = 30;
-  PLAYER.vel.x = damp(PLAYER.vel.x, wantX*speed, accel*0.35, dt);
-  PLAYER.vel.z = damp(PLAYER.vel.z, wantZ*speed, accel*0.35, dt);
+  const outdoor=zoneAt(PLAYER.pos.x,PLAYER.pos.z,PLAYER.floorY)==='d4';
+  const wet=outdoor&&CURRENT_WEATHER==='rain';
+  const slippery=outdoor&&(CURRENT_WEATHER==='snow'||MAP_VARIANT==='snow')&&!wet;
+  const traction=slippery?0.88:(wet?0.96:1);
+  const speed=(run?PLAYER.speedRun:PLAYER.speedWalk)*traction*(weaponState.aiming?0.62:1)*(PERKS.stamin?1.3:1)*(PLAYER.slowed>0?0.55:1);
+  const accel=slippery?20:(wet?26:30);
+  PLAYER.vel.x=damp(PLAYER.vel.x,wantX*speed,accel*0.35,dt);
+  PLAYER.vel.z=damp(PLAYER.vel.z,wantZ*speed,accel*0.35,dt);
 
   const oldFloor=PLAYER.floorY;
-  moveWithCollision(PLAYER.pos,PLAYER.vel.x*dt,PLAYER.vel.z*dt,PLAYER.radius,false,oldFloor);
+  moveWithCollision(PLAYER.pos,PLAYER.vel.x*dt,PLAYER.vel.z*dt,PLAYER.radius,false,oldFloor,true);
   if(oldFloor-PLAYER.floorY>2.0&&GAME.state==='play'&&!ELEVATOR.rider){
     const fall=oldFloor-PLAYER.floorY;
     if(fall>2.6)damagePlayer(Math.min(45,(fall-1.8)*14));
@@ -2890,6 +3061,18 @@ function updatePlayer(dt,now){
   const moveSpeed = Math.hypot(PLAYER.vel.x, PLAYER.vel.z);
   PLAYER.bob += dt * moveSpeed * 1.75;
   PLAYER.bobAmp = damp(PLAYER.bobAmp, clamp(moveSpeed/PLAYER.speedRun,0,1), 6, dt);
+  if(moveSpeed>0.85){
+    PLAYER.stepTimer-=dt;
+    if(PLAYER.stepTimer<=0){
+      PLAYER.stepTimer=run?0.31:0.43;
+      const zone=zoneAt(PLAYER.pos.x,PLAYER.pos.z,PLAYER.floorY);
+      const outside=zone==='d4';
+      const surface=outside&&(CURRENT_WEATHER==='snow'||MAP_VARIANT==='snow')&&CURRENT_WEATHER!=='rain'?'snow':
+        (outside&&CURRENT_WEATHER==='rain'?'wet':
+        (PLAYER.pos.x>STAIR.minX&&PLAYER.pos.x<STAIR.maxX&&PLAYER.pos.z>STAIR.highZ&&PLAYER.pos.z<STAIR.lowZ?'metal':'concrete'));
+      SFX.footstep(surface);
+    }
+  }else PLAYER.stepTimer=Math.min(PLAYER.stepTimer,0.08);
   PLAYER.shootKick = damp(PLAYER.shootKick, 0, 9, dt);
   if (PLAYER.slowed > 0) PLAYER.slowed -= dt;
 
@@ -3156,8 +3339,8 @@ function spawnZombie(spawnPoint, forcedType){
 
   const z = {
     mesh, root:mesh.root, pos:new THREE.Vector3(spawnPoint.x,spawnFloor,spawnPoint.z), floorY:spawnFloor,
-    hp, hpMax:hp, speed, dmg, type, cfg, scale:finalScale,
-    radius: ZOMBIE_R * (cfg.quadruped ? 0.62 : cfg.size) * rand(0.95,1.05),
+    hp,hpMax:hp,speed,dmg,type,cfg,scale:finalScale,impulseX:0,impulseZ:0,deathVelX:0,deathVelZ:0,
+    radius:ZOMBIE_R*(cfg.quadruped?0.62:cfg.size)*rand(0.95,1.05),
     phase: Math.random()*6.28, dying:false, deathT:0, spawnT:0, spawning:!spawnPoint.window,
     nextAttack:0, attackT:0, flashT:0, growlT: rand(1,5), alive:true,
     crawlPose: !!cfg.crawl, spitT: now0() + rand(2.5, 5), boss: !!cfg.boss,
@@ -3181,7 +3364,9 @@ function spawnZombie(spawnPoint, forcedType){
     z.bossArmor=[plateL,plateR];z.bossCore=core;
     z.mesh.mats.push(armorMat);
   }
-  mesh.root.traverse(o => { if (o.isMesh) o.userData.zref = z; });
+  mesh.root.traverse(o => {
+    if(o.isMesh){o.userData.zref=z;o.castShadow=false;o.receiveShadow=QUALITY==='high';}
+  });
 
   // аура босса и «появление через окно»
   if (z.boss){
@@ -3355,6 +3540,12 @@ function damageZombie(z,dmg,isHead,part){
     else if(!z.armor.left&&!z.armor.right)dmg*=1.25;
     else dmg*=isHead?1.15:0.65;
   }
+  const awayX=z.pos.x-PLAYER.pos.x,awayZ=z.pos.z-PLAYER.pos.z,awayD=Math.hypot(awayX,awayZ);
+  if(awayD>0.01){
+    const push=clamp(Math.sqrt(Math.max(0,dmg))*0.055,0,1.5)*(z.boss?0.3:1);
+    z.impulseX=clamp((z.impulseX||0)+awayX/awayD*push,-3,3);
+    z.impulseZ=clamp((z.impulseZ||0)+awayZ/awayD*push,-3,3);
+  }
   z.hp-=dmg;z.flashT=0.11;
   for(const m of z.mesh.mats)m.emissive.setHex(0x8c1210);
   if(z.boss){
@@ -3367,7 +3558,10 @@ function damageZombie(z,dmg,isHead,part){
       SFX.bossRoar();
     }
   }
-  if(z.hp<=0){z.dying=true;z.deathT=0;z.alive=false;return 'kill';}
+  if(z.hp<=0){
+    z.dying=true;z.deathT=0;z.alive=false;z.deathVelX=z.impulseX||0;z.deathVelZ=z.impulseZ||0;
+    return 'kill';
+  }
   return 'hit';
 }
 
@@ -3386,6 +3580,12 @@ function updateZombieDeath(z, dt){
     if (z.fromWindow === undefined && false) {}                  // (заглушка совместимости)
   }
   z.deathT += dt;
+  if(Math.hypot(z.deathVelX||0,z.deathVelZ||0)>0.015){
+    moveWithCollision(z.pos,z.deathVelX*dt,z.deathVelZ*dt,z.radius,true,z.floorY);
+    z.floorY=z.pos.y;
+    const friction=Math.exp(-4.2*dt);z.deathVelX*=friction;z.deathVelZ*=friction;
+    z.root.position.set(z.pos.x,z.floorY,z.pos.z);
+  }
   const t = Math.min(1, z.deathT / 0.75);
   const e = 1 - Math.pow(1-t, 3);
   z.root.rotation.x = -e * Math.PI/2 * 0.95;         // падает лицом вперёд
@@ -3619,6 +3819,13 @@ function updateZombies(dt, now){
         FX.bloodBurst(target.x,(target.floorY||0)+1.25,target.z,3);
       }
     }
+
+    const impulse=Math.hypot(z.impulseX||0,z.impulseZ||0);
+    if(impulse>0.015){
+      moveWithCollision(z.pos,z.impulseX*dt,z.impulseZ*dt,z.radius,true,z.floorY);
+      z.floorY=z.pos.y;
+      const friction=Math.exp(-6.5*dt);z.impulseX*=friction;z.impulseZ*=friction;
+    }else z.impulseX=z.impulseZ=0;
 
     // --- босс: тяжёлый удар по земле с предупреждающим кольцом и уроном по площади ---
     if(z.boss&&dist<6&&now>=z.slamReady&&z.slamT<=0){z.slamT=0.72;z.slamReady=now+3.2;FX.ring(z.pos.x,z.floorY+0.08,z.pos.z,0xff4725);}
@@ -3988,8 +4195,8 @@ function throwGrenade(){
 
   const dir = new THREE.Vector3(0,0,-1).applyQuaternion(camera.quaternion).normalize();
   grenadeList.push({
-    mesh, vel: new THREE.Vector3().copy(dir).multiplyScalar(13).add(new THREE.Vector3(0, 3.2, 0)),
-    pos: mesh.position.clone(), fuse: 2.4, bounces: 0
+    mesh, vel:new THREE.Vector3().copy(dir).multiplyScalar(13).add(new THREE.Vector3(0,3.2,0)),
+    pos:mesh.position.clone(),floorY:PLAYER.floorY,fuse:2.4,bounces:0
   });
   GAME.grenadesThrown++;
   SFX.throwGrenade();
@@ -4000,16 +4207,26 @@ function updateGrenades(dt){
   for (let i=grenadeList.length-1;i>=0;i--){
     const g = grenadeList[i];
     g.fuse -= dt;
-    g.vel.y -= 19*dt;
-    const nx = g.pos.x + g.vel.x*dt, nz = g.pos.z + g.vel.z*dt;
-    // простые отскоки: от стен (по осям) и от пола
-    if(!blocked(nx,g.pos.z,0.12,false,g.floorY))g.pos.x=nx;else{g.vel.x*=-0.45;g.bounces++;}
-    if(!blocked(g.pos.x,nz,0.12,false,g.floorY))g.pos.z=nz;else{g.vel.z*=-0.45;g.bounces++;}
-    g.pos.y += g.vel.y*dt;
+    g.vel.y -= 9.81*dt;
+    const nx=g.pos.x+g.vel.x*dt,nz=g.pos.z+g.vel.z*dt;
+    if(!blocked(nx,g.pos.z,0.12,false,g.floorY))g.pos.x=nx;
+    else{g.vel.x*=-0.38;g.bounces++;if(Math.abs(g.vel.x)>2)SFX.grenadeBounce();}
+    if(!blocked(g.pos.x,nz,0.12,false,g.floorY))g.pos.z=nz;
+    else{g.vel.z*=-0.38;g.bounces++;if(Math.abs(g.vel.z)>2)SFX.grenadeBounce();}
+    g.pos.y+=g.vel.y*dt;
     const gy=floorHeightAt(g.pos.x,g.pos.z,g.floorY);
-    if(g.pos.y<gy+0.1){g.pos.y=gy+0.1;g.vel.y*=-0.42;g.vel.x*=0.7;g.vel.z*=0.7;g.floorY=gy;}
+    if(g.pos.y<gy+0.11){
+      const impact=Math.abs(g.vel.y);g.pos.y=gy+0.11;g.floorY=gy;
+      const outside=zoneAt(g.pos.x,g.pos.z,g.floorY)==='d4';
+      const snowGround=outside&&(CURRENT_WEATHER==='snow'||MAP_VARIANT==='snow')&&CURRENT_WEATHER!=='rain';
+      if(impact>1.45&&g.bounces<8){g.vel.y=impact*(snowGround?0.2:0.3);SFX.grenadeBounce();}
+      else g.vel.y=0;
+      const drag=snowGround?0.9:(outside&&CURRENT_WEATHER==='rain'?1.25:2.2);
+      const friction=Math.exp(-drag*dt);g.vel.x*=friction;g.vel.z*=friction;
+    }
     g.mesh.position.copy(g.pos);
-    g.mesh.rotation.x += dt*6; g.mesh.rotation.z += dt*4;
+    const roll=Math.hypot(g.vel.x,g.vel.z);
+    g.mesh.rotation.x+=dt*(2+roll*1.5);g.mesh.rotation.z+=dt*(1.5+roll);
 
     if (g.fuse <= 0){
       explodeGrenade(g.pos);
@@ -4708,6 +4925,7 @@ let RESTORE_SNAPSHOT=null;
 function checkpointSnapshot(){
   return {version:1,time:GAME.time,points:GAME.points,earned:GAME.earnedTotal,wave:GAME.wave,kills:GAME.kills,
     doors:MAP.doors.filter(d=>d.open).map(d=>d.def.id),map:MAP_VARIANT,seed:MAP_SEED,mode:GAME.mode,
+    weather:CURRENT_WEATHER,weatherSelect:WEATHER_SELECT,
     pos:[PLAYER.pos.x,PLAYER.pos.y,PLAYER.pos.z],floorY:PLAYER.floorY,elevatorY:ELEVATOR.y,yaw:PLAYER.yaw,pitch:PLAYER.pitch,
     health:PLAYER.health,slots:weaponState.slots,slot:weaponState.slot,owned:weaponState.owned,
     perks:PERKS,grenades:GRENADES.count,records:RECORDS};
@@ -4723,8 +4941,10 @@ function clearCheckpoint(){try{localStorage.removeItem(CHECKPOINT_KEY);}catch(e)
 function resumeCheckpoint(){
   const snap=loadCheckpointData();if(!snap){setToast('Сохранённый забег не найден','warn');return;}
   MAP_VARIANT=snap.map||MAP_VARIANT;MODE_SELECT=snap.mode||'survival';RESTORE_SNAPSHOT=snap;
-  try{localStorage.setItem('zombie3d_map_v1',MAP_VARIANT);}catch(e){}
+  if(['auto','clear','rain','snow','fog'].includes(snap.weatherSelect))WEATHER_SELECT=snap.weatherSelect;
+  try{localStorage.setItem('zombie3d_map_v1',MAP_VARIANT);localStorage.setItem('zombie3d_weather_v1',WEATHER_SELECT);}catch(e){}
   const mp=document.getElementById('mapPick');if(mp)mp.value=MAP_VARIANT;
+  const wp=document.getElementById('weatherPick');if(wp)wp.value=WEATHER_SELECT;
   startGame();RESTORE_SNAPSHOT=null;
   for(const id of snap.doors||[]){
     const d=MAP.doors.find(q=>q.def.id===id);if(!d)continue;
@@ -4988,23 +5208,27 @@ function receiveCoopHit(m){
   if(res==='kill')onZombieKilled(best,best.pos.x,best.floorY+1,best.pos.z);
 }
 function applyRemoteWorld(m){
-  if(m.map==='snow'||m.map==='nacht'){
-    if(m.map!==MAP_VARIANT){
-      const safeToSync=GAME.state==='menu'||(GAME.state==='play'&&GAME.time<2&&!GAME.waveActive&&zombies.length===0);
-      if(safeToSync){
-        MAP_VARIANT=m.map;
-        if(Number.isFinite(m.seed))MAP_SEED=m.seed>>>0;
-        const mapPick=document.getElementById('mapPick');if(mapPick)mapPick.value=MAP_VARIANT;
-        try{localStorage.setItem('zombie3d_map_v1',MAP_VARIANT);}catch(e){}
-        applyMapMood();resetLevel();
-        COOP.mapWarningShown=false;
-        setToast(`Карта комнаты: ${MAP_VARIANT==='snow'?'Зимняя база':'Nacht'}`,'good');
-      }else if(!COOP.mapWarningShown){
-        COOP.mapWarningShown=true;
-        setToast('У хоста другая карта. Начните новый забег, чтобы синхронизировать планировку.','warn');
-      }
-    }else COOP.mapWarningShown=false;
-  }
+  const validMap=m.map==='snow'||m.map==='nacht';
+  const validWeather=['clear','rain','snow','fog'].includes(m.weather);
+  const environmentMismatch=(validMap&&m.map!==MAP_VARIANT)||(validWeather&&m.weather!==CURRENT_WEATHER);
+  if(environmentMismatch){
+    const safeToSync=GAME.state==='menu'||(GAME.state==='play'&&GAME.time<2&&!GAME.waveActive&&zombies.length===0);
+    if(safeToSync){
+      if(validMap)MAP_VARIANT=m.map;
+      if(validWeather)CURRENT_WEATHER=m.weather;
+      if(['auto','clear','rain','snow','fog'].includes(m.weatherSelect))WEATHER_SELECT=m.weatherSelect;
+      if(Number.isFinite(m.seed))MAP_SEED=m.seed>>>0;
+      const mapPick=document.getElementById('mapPick');if(mapPick)mapPick.value=MAP_VARIANT;
+      const weatherPick=document.getElementById('weatherPick');if(weatherPick)weatherPick.value=WEATHER_SELECT;
+      try{localStorage.setItem('zombie3d_map_v1',MAP_VARIANT);localStorage.setItem('zombie3d_weather_v1',WEATHER_SELECT);}catch(e){}
+      applyMapMood();resetLevel();buildWeather(CURRENT_WEATHER);SFX.setAmbience(CURRENT_WEATHER,false);
+      COOP.mapWarningShown=false;
+      setToast(`Планировка и погода комнаты: ${MAP_VARIANT==='snow'?'зимняя база':'Nacht'}, ${CURRENT_WEATHER}`,'good');
+    }else if(!COOP.mapWarningShown){
+      COOP.mapWarningShown=true;
+      setToast('У хоста другая карта или погода. Начните новый забег для синхронизации.','warn');
+    }
+  }else COOP.mapWarningShown=false;
   COOP.receivedWorld=m;GAME.wave=m.wave||GAME.wave;GAME.waveActive=!!m.waveActive;
   GAME.waveTotal=m.waveTotal||GAME.waveTotal;GAME.waveSpawned=m.waveSpawned||0;
   if(m.elevatorY!==undefined){ELEVATOR.y=m.elevatorY;if(ELEVATOR.platform)ELEVATOR.platform.position.y=ELEVATOR.y-0.11;
@@ -5056,7 +5280,7 @@ function updateCoop(dt){
     if(COOP.worldT<=0){
       COOP.worldT=0.15;
       sendNet({type:'world',state:GAME.state,time:GAME.time,mode:GAME.mode,daily:GAME.daily,
-        map:MAP_VARIANT,seed:MAP_SEED,elevatorY:ELEVATOR.y,
+        map:MAP_VARIANT,weather:CURRENT_WEATHER,weatherSelect:WEATHER_SELECT,seed:MAP_SEED,elevatorY:ELEVATOR.y,
         wave:GAME.wave,waveActive:GAME.waveActive,waveTotal:GAME.waveTotal,waveSpawned:GAME.waveSpawned,
         points:GAME.points,kills:GAME.kills,doors:MAP.doors.filter(d=>d.open).map(d=>d.def.id),
         zombies:zombies.filter(z=>z.alive||z.dying).map(z=>({id:z.netId,x:z.pos.x,z:z.pos.z,floorY:z.floorY||0,
@@ -5101,11 +5325,13 @@ function buildPartnerModel(){
 /** Выбор темы карты/режима сохраняется между запусками. */
 function bindMapModeUI(){
   const mapPick=document.getElementById('mapPick'),modePick=document.getElementById('modePick');
-  const qualityPick=document.getElementById('qualityPick');
+  const weatherPick=document.getElementById('weatherPick'),qualityPick=document.getElementById('qualityPick');
   try{
     MAP_VARIANT=localStorage.getItem('zombie3d_map_v1')||MAP_VARIANT;
     MODE_SELECT=localStorage.getItem('zombie3d_mode_v1')||MODE_SELECT;
+    WEATHER_SELECT=localStorage.getItem('zombie3d_weather_v1')||WEATHER_SELECT;
   }catch(e){}
+  if(!['auto','clear','rain','snow','fog'].includes(WEATHER_SELECT))WEATHER_SELECT='auto';
   if(mapPick){mapPick.value=MAP_VARIANT;mapPick.addEventListener('change',()=>{
     MAP_VARIANT=mapPick.value;try{localStorage.setItem('zombie3d_map_v1',MAP_VARIANT);}catch(e){}
     setToast(MAP_VARIANT==='snow'?'Выбрана зимняя база: за двором открыт путь к северному ангару':'Выбрана Nacht der Untoten','good');
@@ -5113,6 +5339,11 @@ function bindMapModeUI(){
   if(modePick){modePick.value=MODE_SELECT;modePick.addEventListener('change',()=>{
     MODE_SELECT=modePick.value;try{localStorage.setItem('zombie3d_mode_v1',MODE_SELECT);}catch(e){}
     setToast(MODE_SELECT==='timed'?'Режим: забег на 3 минуты':(MODE_SELECT==='daily'?'Ежедневное испытание обновляется раз в сутки':'Режим: бесконечное выживание'),'');
+  });}
+  if(weatherPick){weatherPick.value=WEATHER_SELECT;weatherPick.addEventListener('change',()=>{
+    WEATHER_SELECT=weatherPick.value;try{localStorage.setItem('zombie3d_weather_v1',WEATHER_SELECT);}catch(e){}
+    const names={auto:'автоматическая',clear:'ясная',rain:'дождливая',snow:'снежная',fog:'туманная'};
+    setToast(`Погода следующего забега: ${names[WEATHER_SELECT]||'автоматическая'}`,'good');
   });}
   if(qualityPick){qualityPick.value=QUALITY;qualityPick.addEventListener('change',()=>setGraphicsQuality(qualityPick.value));}
   const nameBox=document.getElementById('playerName');
@@ -5128,15 +5359,29 @@ function bindMapModeUI(){
   if(resume)resume.addEventListener('click',e=>{e.stopPropagation();resumeCheckpoint();});
 }
 function setGraphicsQuality(q){
-  QUALITY=q;
-  const pixel=q==='low'?1:(q==='medium'?Math.min(1.35,window.devicePixelRatio||1):Math.min(2,window.devicePixelRatio||1));
+  QUALITY=['low','medium','high'].includes(q)?q:'high';
+  const pixel=QUALITY==='low'?1:(QUALITY==='medium'?Math.min(1.35,window.devicePixelRatio||1):Math.min(2,window.devicePixelRatio||1));
   renderer.setPixelRatio(pixel);
-  if(scene.fog)scene.fog.far=q==='low'?72:(q==='medium'?88:105);
-  if(YARD_VISUALS.grass)YARD_VISUALS.grass.count=q==='low'?80:(q==='medium'?200:YARD_VISUALS.grassMax);
-  if(YARD_VISUALS.rocks)YARD_VISUALS.rocks.visible=q!=='low';
-  if(YARD_VISUALS.snow)YARD_VISUALS.snow.visible=q!=='low';
+  const fogRanges={
+    clear:{low:72,medium:88,high:105},rain:{low:52,medium:66,high:78},
+    snow:{low:58,medium:74,high:88},fog:{low:34,medium:43,high:52}
+  };
+  if(scene.fog)scene.fog.far=fogRanges[CURRENT_WEATHER][QUALITY];
+  const shadows=QUALITY==='high';
+  renderer.shadowMap.enabled=shadows;moonFill.castShadow=shadows;
+  const shadowSize=shadows?1024:512;moonFill.shadow.mapSize.set(shadowSize,shadowSize);
+  for(const obj of levelObjects||[])obj.traverse(mesh=>{
+    if(mesh.isMesh){mesh.castShadow=shadows&&!mesh.userData.noShadow;mesh.receiveShadow=shadows;}
+  });
+  for(const z of zombies||[])z.root.traverse(mesh=>{
+    if(mesh.isMesh){mesh.castShadow=false;mesh.receiveShadow=shadows;}
+  });
+  if(YARD_VISUALS.grass)YARD_VISUALS.grass.count=QUALITY==='low'?80:(QUALITY==='medium'?200:YARD_VISUALS.grassMax);
+  if(YARD_VISUALS.rocks)YARD_VISUALS.rocks.visible=QUALITY!=='low';
+  if(YARD_VISUALS.snow)YARD_VISUALS.snow.visible=QUALITY!=='low';
+  if(WEATHER_SYSTEM.root&&(WEATHER_SYSTEM.mode==='rain'||WEATHER_SYSTEM.mode==='snow'))buildWeather(WEATHER_SYSTEM.mode);
   if(renderer.domElement)renderer.setSize(window.innerWidth,window.innerHeight);
-  try{localStorage.setItem('zombie3d_quality',q);}catch(e){}
+  try{localStorage.setItem('zombie3d_quality',QUALITY);}catch(e){}
 }
 function bindQualityUI(){
   try{QUALITY=localStorage.getItem('zombie3d_quality')||QUALITY;}catch(e){}
@@ -5145,18 +5390,49 @@ function bindQualityUI(){
 function dailySeed(){
   const d=new Date();return d.getFullYear()*10000+(d.getMonth()+1)*100+d.getDate();
 }
-function applyMapMood(){
-  if(MAP_VARIANT==='snow'){
-    scene.background.setHex(0x1d2a39);
-    scene.fog.color.setHex(0x1d2a39);
+function resolveWeather(){
+  if(['clear','rain','snow','fog'].includes(WEATHER_SELECT))return WEATHER_SELECT;
+  if(MAP_VARIANT==='snow')return 'snow';
+  const seed=(MAP_SEED>>>0)||1945;
+  return ['clear','rain','fog'][((seed^(seed>>>11))>>>0)%3];
+}
+function applyWeatherMood(){
+  const winter=MAP_VARIANT==='snow';
+  scene.fog.near=24;
+  if(CURRENT_WEATHER==='rain'){
+    const color=0x202a33;scene.background.setHex(color);scene.fog.color.setHex(color);
+    ambient.color.setHex(0x8f9dad);ambient.intensity=0.14;
+    skyFill.color.setHex(0x65798c);skyFill.intensity=0.26;
+    moonFill.color.setHex(0x8fa6bd);moonFill.intensity=0.28;
+    scene.fog.far=QUALITY==='low'?52:(QUALITY==='medium'?66:78);
+  }else if(CURRENT_WEATHER==='snow'){
+    const color=winter?0x1d2a39:0x27333e;scene.background.setHex(color);scene.fog.color.setHex(color);
+    ambient.color.setHex(0xb9cbe0);ambient.intensity=0.21;
+    skyFill.color.setHex(0x9ab5d2);skyFill.intensity=0.43;
+    moonFill.color.setHex(0xb0c7de);moonFill.intensity=0.38;
+    scene.fog.far=QUALITY==='low'?58:(QUALITY==='medium'?74:88);
+  }else if(CURRENT_WEATHER==='fog'){
+    const color=0x303944;scene.background.setHex(color);scene.fog.color.setHex(color);
+    ambient.color.setHex(0xa3adba);ambient.intensity=0.19;
+    skyFill.color.setHex(0x7d8b9a);skyFill.intensity=0.34;
+    moonFill.color.setHex(0x9aabba);moonFill.intensity=0.25;
+    scene.fog.near=7;scene.fog.far=QUALITY==='low'?34:(QUALITY==='medium'?43:52);
+  }else if(winter){
+    const color=0x1d2a39;scene.background.setHex(color);scene.fog.color.setHex(color);
     ambient.color.setHex(0xb2c7e4);ambient.intensity=0.19;
     skyFill.color.setHex(0x90b0da);skyFill.intensity=0.38;
+    moonFill.color.setHex(0x9aaac4);moonFill.intensity=0.38;
+    scene.fog.far=QUALITY==='low'?68:(QUALITY==='medium'?88:105);
   }else{
-    scene.background.setHex(0x131d29);
-    scene.fog.color.setHex(0x131d29);
+    const color=0x131d29;scene.background.setHex(color);scene.fog.color.setHex(color);
     ambient.color.setHex(0xa8b6cc);ambient.intensity=0.15;
     skyFill.color.setHex(0x7185a1);skyFill.intensity=0.32;
+    moonFill.color.setHex(0x9aaac4);moonFill.intensity=0.38;
+    scene.fog.far=QUALITY==='low'?72:(QUALITY==='medium'?88:105);
   }
+}
+function applyMapMood(){
+  applyWeatherMood();
 }
 
 /* --- Мерцание ламп --- */
@@ -5394,6 +5670,7 @@ function togglePause(){
 }
 function resumeGame(){
   if(GAME.state!=='paused')return;
+  SFX.init();SFX.setAmbience(CURRENT_WEATHER,WEATHER_SYSTEM.outdoor);
   GAME.state='play';hideOverlays();requestLock();
 }
 
@@ -5445,9 +5722,13 @@ function startGame(){
   GAME.daily=GAME.mode==='daily';
   GAME.runTimeLimit=180;GAME.timedVictory=false;
   MAP_SEED=restoring?(restoring.seed||dailySeed()):(GAME.daily?dailySeed():(Date.now()>>>0));
+  if(restoring&&['auto','clear','rain','snow','fog'].includes(restoring.weatherSelect))WEATHER_SELECT=restoring.weatherSelect;
+  CURRENT_WEATHER=restoring&&['clear','rain','snow','fog'].includes(restoring.weather)?restoring.weather:resolveWeather();
+  SFX.init();SFX.setAmbience(CURRENT_WEATHER,false);
   applyMapMood();
   ELEVATOR.y=0;ELEVATOR.target=0;ELEVATOR.rider=false;
   resetLevel();
+  buildWeather(CURRENT_WEATHER);
   // очистить зомби
   for (const z of zombies.slice()) removeZombie(z);
   zombies.length = 0;
@@ -5458,7 +5739,7 @@ function startGame(){
   PLAYER.yaw = 0; PLAYER.pitch = 0;                // смотрим в сторону северной двери
   PLAYER.health = PLAYER.maxHealth;
   PLAYER.lastDamage = -99; PLAYER.slowed = 0;
-  PLAYER.shootKick = 0;
+  PLAYER.shootKick = 0;PLAYER.stepTimer=0;
   GAME.state='play';
   GAME.time=0;
   GAME.points = START_POINTS;
@@ -5496,9 +5777,10 @@ function startGame(){
   equipWeapon('pistol');
   hideOverlays();
   updateHUD(); updateWaveHUD(); updateCrosshair();
-  setToast(MAP_VARIANT==='snow'
+  const weatherName={clear:'ясно',rain:'дождь',snow:'снег',fog:'туман'}[CURRENT_WEATHER]||'ясно';
+  setToast((MAP_VARIANT==='snow'
     ? 'Зимняя база: откройте южные ворота двора, чтобы попасть в ангар.'
-    : 'Nacht: открывайте двери бункера и исследуйте аэродром.', 'good');
+    : 'Nacht: открывайте двери бункера и исследуйте аэродром.')+` Погода: ${weatherName}.`,'good');
   requestLock();
 }
 
@@ -5620,6 +5902,7 @@ function animate(ms){
   }
 
   updateLamps(dt);
+  updateWeather(dt);
   updateLabels();
   renderFrame();
 }
