@@ -316,7 +316,7 @@ kbd{display:inline-block;min-width:26px;padding:2px 8px;border-radius:4px;backgr
       <div class="slider"><span style="width:auto">Карта</span>
         <select id="mapPick" style="background:#151a1f;color:#ffd071;border:1px solid #454c52;padding:5px;border-radius:4px">
           <option value="nacht">Nacht — бункер и аэродром</option>
-          <option value="snow">Снежный аэродром — процедурная погода</option>
+          <option value="snow">Зимняя база — метель и северный ангар</option>
         </select></div>
       <div class="slider"><span style="width:auto">Режим</span>
         <select id="modePick" style="background:#151a1f;color:#ffd071;border:1px solid #454c52;padding:5px;border-radius:4px">
@@ -350,10 +350,11 @@ kbd{display:inline-block;min-width:26px;padding:2px 8px;border-radius:4px;backgr
     <button class="btn" id="btnStart">Начать бой</button>
     <button class="btn" id="btnResume" style="display:none;margin-left:8px;background:linear-gradient(180deg,#526542,#31412a)">Продолжить забег</button>
     <button class="btn" id="btnCoop" style="margin-left:10px;background:linear-gradient(180deg,#1d5f8a,#0e3450)">Сетевой кооп</button>
-    <div class="hint" id="startHint">Клик по экрану захватывает курсор (Pointer Lock).
-      Если браузер не разрешает захват (например, страница открыта во фрейме) — автоматически
-      включится резервный режим обзора мышью и клавишами Q/E. Кооп поддерживает BroadcastChannel
-      в соседней вкладке и онлайн-комнаты через локальный WebSocket-сервер.</div>
+    <div class="hint" id="startHint">Клик по экрану захватывает курсор (Pointer Lock). Если браузер
+      запрещает захват, обзор всё равно работает перемещением мыши по экрану и клавишами Q/E.
+      В снежной версии за южными воротами двора находится дополнительный северный ангар.
+      «Продолжить забег» восстановит сохранённую карту; для новой карты нажмите «Начать бой».
+      Кооп поддерживает BroadcastChannel в соседней вкладке и онлайн-комнаты через WebSocket-сервер.</div>
   </div>
 </div>
 
@@ -1217,6 +1218,24 @@ const ZONE_DEFS = [
     props:[ {t:'crate',x:4.0,z:3.0}, {t:'barrel',x:6.0,z:13.0},
             {t:'crate',x:18.0,z:14.0}, {t:'barrel',x:20.0,z:5.0} ],
     lamp:{ x:12, z:8, color:0xffb86b, intensity:1.1, flicker:0.2 }
+  },
+  /* В зимнем варианте появляется отдельный ангар с обходными проходами */
+  {
+    id:'d5', name:'СЕВЕРНЫЙ АНГАР', ox:28, oz:16, floorY:0, variant:'snow', grid:[
+      '########.#####',
+      '#......#.....#',
+      '#......#.....#',
+      '#............#',
+      '#......#.....#',
+      '#......#.....#',
+      '#............#',
+      '#......#.....#',
+      '#............#',
+      '##############'
+    ],
+    props:[ {t:'crate',x:3.1,z:3.4}, {t:'barrel',x:10.4,z:2.7},
+            {t:'crate',x:11.2,z:6.2}, {t:'barrel',x:2.4,z:7.4} ],
+    lamp:{ x:7, z:4.5, color:0x9ed4ff, intensity:0.85, flicker:0.5 }
   }
 ];
 
@@ -1225,7 +1244,8 @@ const DOOR_DEFS = [
   { id:'d1', zone:'start', cx:13, cz:4, horiz:false, price:1000, to:'d1', in:[-1,0] },
   { id:'d2', zone:'start', cx:6,  cz:7, horiz:true,  price:1000, to:'d2', in:[0,1], stair:true },
   { id:'d3', zone:'d2',    cx:13, cz:4, horiz:false, price:750,  to:'d3', in:[-1,0], floorY:4 },
-  { id:'d4', zone:'d1',    cx:9,  cz:4, horiz:false, price:1000, to:'d4', in:[-1,0] }
+  { id:'d4', zone:'d1',    cx:9,  cz:4, horiz:false, price:1000, to:'d4', in:[-1,0] },
+  { id:'d5', zone:'d4',    cx:12, cz:19, horiz:true,  price:750,  to:'d5', in:[0,-1], variant:'snow' }
 ];
 
 /* Настенные покупки — карабины/дробовики в стилистике 1940-х */
@@ -1243,7 +1263,8 @@ const SPAWN_DEFS = [
   { zone:'d1',    cells:[[1,1],[8,1],[1,8],[8,8]] },
   { zone:'d2',    cells:[[1,1],[12,1],[1,8],[12,8],[8,3]] },
   { zone:'d3',    cells:[[1,1],[8,1],[1,8],[8,8]] },
-  { zone:'d4',    cells:[[2,2],[20,2],[2,17],[21,17],[12,10],[18,9]] }
+  { zone:'d4',    cells:[[2,2],[20,2],[2,17],[21,17],[12,10],[18,9]] },
+  { zone:'d5',    cells:[[1,1],[12,1],[1,8],[12,8],[10,6]], variant:'snow' }
 ];
 
 /* Длинная лестница: подъём на 4 м сквозь шахту во внутреннем дворе */
@@ -1896,6 +1917,7 @@ const MAP = {
 function applyPlacements(zone){
   const cells = zone.def.grid.map(row => row.split(''));
   for (const d of DOOR_DEFS){
+    if (d.variant && d.variant !== MAP_VARIANT) continue;
     if (d.zone !== zone.def.id) continue;
     cells[d.cz][d.cx] = 'D';
   }
@@ -2073,6 +2095,7 @@ function buildLamps(){
 /* ---- 8.5 Двери ---- */
 function buildDoors(){
   for (const def of DOOR_DEFS){
+    if (def.variant && def.variant !== MAP_VARIANT) continue;
     const zone = MAP.zones[def.zone];
     const wx = (def.cx + zone.ox) * TILE, wz = (def.cz + zone.oz) * TILE;
     const tex = makeDoorTexture(def.price);
@@ -2155,7 +2178,9 @@ function buildBuys(){
 /* ---- 8.7 Спавн-точки ---- */
 function buildSpawns(){
   for (const s of SPAWN_DEFS){
+    if (s.variant && s.variant !== MAP_VARIANT) continue;
     const zone = MAP.zones[s.zone];
+    if (!zone) continue;
     for (const [cx,cz] of s.cells){
       let x = (cx + zone.ox)*TILE, z = (cz + zone.oz)*TILE;
       // если точка занята пропсом — сдвигаем её в ближайшее свободное место
@@ -2291,9 +2316,9 @@ function buildYardEnvironment(){
     }
   };
   fenceLine('x',zMin+0.25,xMin,xMax,null);
-  fenceLine('x',zMax-0.25,xMin,xMax,null);
+  fenceLine('x',zMax-0.25,xMin,xMax,(x,z)=>snowTheme&&Math.abs(x-72)<1.2);
   fenceLine('z',xMax-0.25,zMin,zMax,null);
-  // Западная ограда прерывается в воротах, ведущих из комнаты Help.
+  // Западная ограда прерывается у Help; зимой есть ещё ворота к северному ангару.
   fenceLine('z',xMin+0.25,zMin,zMax,(x,z)=>Math.abs(z-8)<1.2);
   if(posts.length){
     const inst=new THREE.InstancedMesh(postGeo,postMat,posts.length),m4=new THREE.Matrix4();
@@ -2387,6 +2412,19 @@ function buildHelpSign(){
   const lamp=new THREE.PointLight(0xff5a3d,0.55,5,2);lamp.position.set(d.pos.x-0.7,d.floorY+2.5,d.pos.z);scene.add(lamp);
 }
 
+/* ---- Вывеска зимнего ангара, видимая из аэродромного двора ---- */
+function buildSnowHangarSign(){
+  const c=makeCanvas(320,112),x=c.getContext('2d');
+  x.fillStyle='#17232b';x.fillRect(0,0,320,112);
+  x.strokeStyle='#b8d7e8';x.lineWidth=7;x.strokeRect(8,8,304,96);
+  x.fillStyle='#e4f3ff';x.textAlign='center';x.font='bold 35px Arial Black,Arial';
+  x.fillText('СЕВЕРНЫЙ АНГАР',160,51);
+  x.font='bold 19px Arial';x.fillText('ДВЕРЬ: 750 ОЧКОВ',160,82);
+  const sign=new THREE.Mesh(new THREE.PlaneGeometry(2.2,0.78),
+    new THREE.MeshBasicMaterial({map:finishTexture(c,1,1),side:THREE.DoubleSide}));
+  sign.position.set(72,2.8,29.45);sign.rotation.y=Math.PI;scene.add(sign);
+}
+
 /* ---- 8.11 Грузовой лифт во дворе: доступ на обзорную площадку ---- */
 function buildElevator(){
   const dev=makeDevice('elevator','d4',20,6,[0,-1],{});
@@ -2466,7 +2504,10 @@ function updateElevator(dt){
 
 /** Построить весь уровень */
 function buildLevel(){
-  for (const def of ZONE_DEFS) MAP.zones[def.id] = { def, ox:def.ox, oz:def.oz, floorY:def.floorY||0 };
+  for (const def of ZONE_DEFS){
+    if (def.variant && def.variant !== MAP_VARIANT) continue;
+    MAP.zones[def.id] = { def, ox:def.ox, oz:def.oz, floorY:def.floorY||0 };
+  }
   for (const id in MAP.zones) applyPlacements(MAP.zones[id]);
   buildWalls();             // заполняет MAP.wallRects
   buildProps();             // ящики и бочки -> MAP.propRects
@@ -2484,6 +2525,7 @@ function buildLevel(){
   buildLamps();            // мерцающие аварийные лампы
   buildDoors();
   buildHelpSign();
+  if(MAP_VARIANT==='snow')buildSnowHangarSign();
   buildBuys();
   buildColliderIndex();    // индекс строится после всех рам/пропсов
   buildSpawns();
@@ -4681,6 +4723,7 @@ function clearCheckpoint(){try{localStorage.removeItem(CHECKPOINT_KEY);}catch(e)
 function resumeCheckpoint(){
   const snap=loadCheckpointData();if(!snap){setToast('Сохранённый забег не найден','warn');return;}
   MAP_VARIANT=snap.map||MAP_VARIANT;MODE_SELECT=snap.mode||'survival';RESTORE_SNAPSHOT=snap;
+  try{localStorage.setItem('zombie3d_map_v1',MAP_VARIANT);}catch(e){}
   const mp=document.getElementById('mapPick');if(mp)mp.value=MAP_VARIANT;
   startGame();RESTORE_SNAPSHOT=null;
   for(const id of snap.doors||[]){
@@ -4702,7 +4745,8 @@ function resumeCheckpoint(){
   if(snap.perks)for(const k in snap.perks)if(k in PERKS)PERKS[k]=snap.perks[k];
   refreshMaxHealth();GRENADES.count=snap.grenades||2;
   GAME.mode=snap.mode||'survival';GAME.daily=GAME.mode==='daily';GAME.checkpointT=GAME.time;
-  clearCheckpoint();updateHUD();updateWaveHUD();setToast('Забег восстановлен','good');
+  clearCheckpoint();updateHUD();updateWaveHUD();
+  setToast(`Забег восстановлен: ${MAP_VARIANT==='snow'?'Зимняя база':'Nacht'}`,'good');
 }
 function maybeSaveCheckpoint(){
   if(GAME.time-GAME.checkpointT<20)return;
@@ -4867,7 +4911,7 @@ function initTouchControls(){
    окнами/вкладками одного браузера (без сервера).
    ============================================================ */
 const COOP={active:false,online:false,isHost:false,chan:null,ws:null,sendT:0,worldT:0,lastRecv:0,
-  partnerState:null,model:null,id:null,room:'NACHT',netSeq:1,receivedWorld:null};
+  partnerState:null,model:null,id:null,room:'NACHT',netSeq:1,receivedWorld:null,mapWarningShown:false};
 function sendNet(msg){
   if(COOP.ws&&COOP.ws.readyState===1){try{COOP.ws.send(JSON.stringify(msg));return true;}catch(e){}}
   return false;
@@ -4944,6 +4988,23 @@ function receiveCoopHit(m){
   if(res==='kill')onZombieKilled(best,best.pos.x,best.floorY+1,best.pos.z);
 }
 function applyRemoteWorld(m){
+  if(m.map==='snow'||m.map==='nacht'){
+    if(m.map!==MAP_VARIANT){
+      const safeToSync=GAME.state==='menu'||(GAME.state==='play'&&GAME.time<2&&!GAME.waveActive&&zombies.length===0);
+      if(safeToSync){
+        MAP_VARIANT=m.map;
+        if(Number.isFinite(m.seed))MAP_SEED=m.seed>>>0;
+        const mapPick=document.getElementById('mapPick');if(mapPick)mapPick.value=MAP_VARIANT;
+        try{localStorage.setItem('zombie3d_map_v1',MAP_VARIANT);}catch(e){}
+        applyMapMood();resetLevel();
+        COOP.mapWarningShown=false;
+        setToast(`Карта комнаты: ${MAP_VARIANT==='snow'?'Зимняя база':'Nacht'}`,'good');
+      }else if(!COOP.mapWarningShown){
+        COOP.mapWarningShown=true;
+        setToast('У хоста другая карта. Начните новый забег, чтобы синхронизировать планировку.','warn');
+      }
+    }else COOP.mapWarningShown=false;
+  }
   COOP.receivedWorld=m;GAME.wave=m.wave||GAME.wave;GAME.waveActive=!!m.waveActive;
   GAME.waveTotal=m.waveTotal||GAME.waveTotal;GAME.waveSpawned=m.waveSpawned||0;
   if(m.elevatorY!==undefined){ELEVATOR.y=m.elevatorY;if(ELEVATOR.platform)ELEVATOR.platform.position.y=ELEVATOR.y-0.11;
@@ -4994,7 +5055,8 @@ function updateCoop(dt){
     COOP.worldT-=dt;
     if(COOP.worldT<=0){
       COOP.worldT=0.15;
-      sendNet({type:'world',state:GAME.state,time:GAME.time,mode:GAME.mode,daily:GAME.daily,elevatorY:ELEVATOR.y,
+      sendNet({type:'world',state:GAME.state,time:GAME.time,mode:GAME.mode,daily:GAME.daily,
+        map:MAP_VARIANT,seed:MAP_SEED,elevatorY:ELEVATOR.y,
         wave:GAME.wave,waveActive:GAME.waveActive,waveTotal:GAME.waveTotal,waveSpawned:GAME.waveSpawned,
         points:GAME.points,kills:GAME.kills,doors:MAP.doors.filter(d=>d.open).map(d=>d.def.id),
         zombies:zombies.filter(z=>z.alive||z.dying).map(z=>({id:z.netId,x:z.pos.x,z:z.pos.z,floorY:z.floorY||0,
@@ -5046,7 +5108,7 @@ function bindMapModeUI(){
   }catch(e){}
   if(mapPick){mapPick.value=MAP_VARIANT;mapPick.addEventListener('change',()=>{
     MAP_VARIANT=mapPick.value;try{localStorage.setItem('zombie3d_map_v1',MAP_VARIANT);}catch(e){}
-    setToast(MAP_VARIANT==='snow'?'Выбрана метельная версия аэродрома':'Выбрана Nacht der Untoten','good');
+    setToast(MAP_VARIANT==='snow'?'Выбрана зимняя база: за двором открыт путь к северному ангару':'Выбрана Nacht der Untoten','good');
   });}
   if(modePick){modePick.value=MODE_SELECT;modePick.addEventListener('change',()=>{
     MODE_SELECT=modePick.value;try{localStorage.setItem('zombie3d_mode_v1',MODE_SELECT);}catch(e){}
@@ -5117,6 +5179,7 @@ const KEYMAP_DEFAULT={forward:'KeyW',backward:'KeyS',left:'KeyA',right:'KeyD',sp
 let KEYMAP=Object.assign({},KEYMAP_DEFAULT);
 const KEY_LABELS={forward:'Вперёд',backward:'Назад',left:'Влево',right:'Вправо',sprint:'Бег',interact:'Действие',
   reload:'Перезарядка',grenade:'Граната',melee:'Нож',secondary:'Alt-огонь',slot1:'Слот 1',slot2:'Слот 2',pause:'Пауза'};
+const MOUSE_SENSITIVITY=0.0025;              // чувствительность обзора: радианы на пиксель
 const Input={w:false,a:false,s:false,d:false,shift:false,firing:false,q:false,e:false};
 const GAMEPAD={id:null,prev:[],lookX:0,lookY:0,moveX:0,moveY:0,aim:false,fire:false};
 const PADMAP_DEFAULT={fire:7,aim:6,interact:0,melee:1,reload:2,swap:3,grenade:4,secondary:11,slot1:12,slot2:13,pause:9};
@@ -5177,6 +5240,7 @@ document.addEventListener('keydown',e=>{
   }
   const action=actionForKey(e.code);
   if(action){if(!e.repeat)activateKeyAction(action);e.preventDefault();}
+  else if(e.code==='Escape'&&GAME.state==='play'){e.preventDefault();togglePause();}
   else if(e.code==='KeyQ')Input.q=true;
   else if(e.code==='KeyE')Input.e=true;
   else if(e.code==='KeyM')setToast(SFX.toggle()?'Звук выключен':'Звук включён','');
@@ -5219,25 +5283,50 @@ function pollGamepad(dt){
 }
 
 /* --- Мышь: обзор + стрельба + прицеливание --- */
+let lastMouseX=null,lastMouseY=null;
+let pointerLockPending=false,pointerLockTimer=0,hadPointerLock=false,mouseFallbackNotified=false;
+function clearPointerLockAttempt(){
+  if(pointerLockTimer){clearTimeout(pointerLockTimer);pointerLockTimer=0;}
+  pointerLockPending=false;
+}
+function enableMouseFallback(){
+  clearPointerLockAttempt();
+  GAME.noLockLook=true;
+  lastMouseX=lastMouseY=null;
+  if(!mouseFallbackNotified&&GAME.state==='play'){
+    mouseFallbackNotified=true;
+    setToast('Захват курсора недоступен — двигайте мышью по экрану или используйте Q/E','warn');
+  }
+}
+function applyMouseLook(dx,dy){
+  if(!Number.isFinite(dx)||!Number.isFinite(dy))return;
+  PLAYER.yaw-=dx*MOUSE_SENSITIVITY;
+  PLAYER.pitch=clamp(PLAYER.pitch-dy*MOUSE_SENSITIVITY,-Math.PI/2+0.05,Math.PI/2-0.05);
+}
 document.addEventListener('mousemove', (e) => {
-  if (GAME.state !== 'play') return;
-  const locked = document.pointerLockElement === renderer.domElement;
-  if (!locked && !GAME.noLockLook) return;              // резервный режим включается только при ошибке захвата
-  PLAYER.yaw   -= e.movementX * SENS;
-  PLAYER.pitch -= e.movementY * SENS;
-  PLAYER.pitch = clamp(PLAYER.pitch, -Math.PI/2 + 0.05, Math.PI/2 - 0.05);
-});
-document.addEventListener('mousedown', (e) => {
-  if (!document.pointerLockElement && !GAME.noLockLook){
-    if (GAME.state === 'play' && !isOverlayOpen()) requestLock();
+  if(GAME.state!=='play')return;
+  const locked=document.pointerLockElement===renderer.domElement;
+  if(locked){
+    lastMouseX=lastMouseY=null;
+    applyMouseLook(e.movementX||0,e.movementY||0);
     return;
   }
-  if (GAME.state !== 'play') return;
-  if (e.button === 0){
-    Input.firing = true;
+  // В незахваченном режиме используем экранные координаты: movementX/Y бывают нулевыми во фреймах.
+  const x=e.clientX,y=e.clientY;
+  if(!Number.isFinite(x)||!Number.isFinite(y))return;
+  if(lastMouseX===null||lastMouseY===null){lastMouseX=x;lastMouseY=y;return;}
+  const dx=x-lastMouseX,dy=y-lastMouseY;
+  lastMouseX=x;lastMouseY=y;
+  applyMouseLook(dx,dy);
+});
+document.addEventListener('mousedown', (e) => {
+  if(GAME.state!=='play')return;
+  if(!document.pointerLockElement&&!GAME.noLockLook)requestLock();
+  if(e.button===0){
+    Input.firing=true;
     fireWeapon();                       // первый выстрел — сразу
-  } else if (e.button === 2){
-    weaponState.mouseAim = true; weaponState.aiming = true;
+  }else if(e.button===2){
+    weaponState.mouseAim=true;weaponState.aiming=true;
   }
 });
 document.addEventListener('mouseup', (e) => {
@@ -5246,30 +5335,42 @@ document.addEventListener('mouseup', (e) => {
 });
 document.addEventListener('contextmenu', e => e.preventDefault());
 
-/* --- Pointer Lock API --- */
+/* --- Захват курсора с надёжным резервным режимом --- */
 function requestLock(){
-  const el = renderer.domElement;
-  const p = el.requestPointerLock ? el.requestPointerLock() : null;
-  if (p && p.catch) p.catch(()=>{});     // Браузер может отклонить захват после нажатия Esc.
+  const el=renderer.domElement;
+  if(document.pointerLockElement===el||pointerLockPending||GAME.noLockLook)return;
+  if(typeof el.requestPointerLock!=='function'){enableMouseFallback();return;}
+  pointerLockPending=true;
+  lastMouseX=lastMouseY=null;
+  let result;
+  try{result=el.requestPointerLock();}
+  catch(e){enableMouseFallback();return;}
+  if(result&&typeof result.then==='function'){
+    result.then(()=>clearPointerLockAttempt(),()=>enableMouseFallback());
+  }
+  pointerLockTimer=setTimeout(()=>{
+    pointerLockTimer=0;pointerLockPending=false;
+    if(document.pointerLockElement!==el)enableMouseFallback();
+  },1200);
 }
 document.addEventListener('pointerlockchange', () => {
-  const locked = document.pointerLockElement === renderer.domElement;
-  if (!locked){
-    Input.firing=false;weaponState.aiming=false;weaponState.mouseAim=false;
-    if(GAME.state==='play'){GAME.state='paused';saveCheckpoint();showOverlay(DOM.overlayPause);}
-  } else {
+  const locked=document.pointerLockElement===renderer.domElement;
+  clearPointerLockAttempt();
+  lastMouseX=lastMouseY=null;
+  if(locked){
+    hadPointerLock=true;GAME.noLockLook=false;mouseFallbackNotified=false;
     hideOverlays();
+  }else if(hadPointerLock){
+    hadPointerLock=false;
+    Input.firing=false;weaponState.aiming=false;weaponState.mouseAim=false;
+    if(GAME.state==='play'&&!GAME.noLockLook)togglePause();
+  }else if(GAME.state==='play'&&!isOverlayOpen()){
+    enableMouseFallback();
   }
 });
-renderer.domElement.addEventListener('click', () => {
-  if (GAME.state === 'play' && !document.pointerLockElement && !GAME.noLockLook && !isOverlayOpen()) requestLock();
-});
 
-// Если браузер или встроенная рамка запрещает захват курсора — включаем запасной обзор.
-document.addEventListener('pointerlockerror', () => {
-  GAME.noLockLook = true;
-  setToast('Захват курсора недоступен — включён резервный режим: обзор мышью/клавишами Q и E', 'warn');
-});
+// Если браузер или встроенная рамка запрещает захват, включаем резервный обзор по координатам.
+document.addEventListener('pointerlockerror', enableMouseFallback);
 
 function isOverlayOpen(){
   return !DOM.overlayStart.classList.contains('hidden')
@@ -5395,7 +5496,9 @@ function startGame(){
   equipWeapon('pistol');
   hideOverlays();
   updateHUD(); updateWaveHUD(); updateCrosshair();
-  setToast('Выживайте. Волны идут одна за другой.', '');
+  setToast(MAP_VARIANT==='snow'
+    ? 'Зимняя база: откройте южные ворота двора, чтобы попасть в ангар.'
+    : 'Nacht: открывайте двери бункера и исследуйте аэродром.', 'good');
   requestLock();
 }
 
