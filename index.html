@@ -134,6 +134,64 @@ kbd{display:inline-block;min-width:26px;padding:2px 8px;border-radius:4px;backgr
   text-align:left;font-size:15px;color:#c3c9cc}
 .stats b{font-family:Consolas,monospace;font-size:17px;color:#ffd071}
 .hint{margin-top:16px;font-size:12.5px;color:#8a7d7d}
+
+/* ---------- перки, бонусы, гранаты, слоты ---------- */
+#perks{position:absolute;left:20px;bottom:104px;display:flex;gap:7px;flex-wrap:wrap;max-width:280px}
+.perkicon{width:30px;height:30px;border-radius:6px;display:flex;align-items:center;justify-content:center;
+  font:700 15px/1 Arial;color:#0b0d0f;border:2px solid rgba(255,255,255,.5);box-shadow:0 3px 10px rgba(0,0,0,.6)}
+#powerRow{position:absolute;left:50%;transform:translateX(-50%);top:60px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.pbadge{padding:5px 12px;border-radius:20px;font:700 13px/1.1 Arial;color:#0b0d0f;
+  background:#fff;box-shadow:0 3px 12px rgba(0,0,0,.55);animation:bannerPop2 .3s ease-out}
+@keyframes bannerPop2{from{transform:scale(.7);opacity:0}to{transform:scale(1);opacity:1}}
+#grenadesTxt{font-size:13px;color:#cfd6da;letter-spacing:.06em}
+#slotsTxt{font-size:11.5px;color:#9aa6ac;letter-spacing:.04em;margin-top:3px}
+#coopInfo{position:absolute;left:50%;transform:translateX(-50%);top:8px;font-size:12px;color:#8fd9ff;
+  background:rgba(6,10,14,.6);padding:3px 12px;border-radius:12px;border:1px solid rgba(90,200,255,.3)}
+#machineHint{position:absolute;right:24px;top:120px;text-align:right;font-size:12.5px;color:#b9c6cc;line-height:1.5}
+
+/* ---------- записи, достижения, баланс ---------- */
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:6px 0 18px;text-align:left}
+@media (max-width:640px){.cols{grid-template-columns:1fr}}
+.card{border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:12px 14px;background:rgba(10,12,14,.5)}
+.card h4{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#9aa6ac;margin-bottom:8px;font-weight:700}
+.rec{display:flex;justify-content:space-between;font-size:13.5px;color:#c6ccd0;padding:2px 0}
+.rec b{color:#ffd071;font-family:Consolas,monospace}
+.ach{display:flex;gap:8px;align-items:center;font-size:12.5px;color:#8d979c;padding:2px 0}
+.ach i{width:16px;height:16px;border-radius:4px;background:#2a2f34;display:inline-block;flex:0 0 auto;
+  border:1px solid rgba(255,255,255,.15)}
+.ach.done{color:#ffe9b0}
+.ach.done i{background:linear-gradient(180deg,#ffd45e,#c68a10);border-color:#ffe9b0}
+.slider{display:flex;align-items:center;gap:10px;font-size:13px;color:#c6ccd0;padding:3px 0}
+.slider input{flex:1;accent-color:#c9241b}
+.slider span{width:62px;text-align:right;font-family:Consolas,monospace;color:#ffd071}
+.diffbtns{display:flex;gap:6px;flex-wrap:wrap}
+.diffbtn{pointer-events:auto;cursor:pointer;font:inherit;font-size:12.5px;padding:5px 12px;border-radius:5px;
+  background:#1b1f23;border:1px solid #3a4147;color:#cfd6da}
+.diffbtn.on{background:linear-gradient(180deg,#c9241b,#7c130c);border-color:#ff6a52;color:#fff}
+
+/* ---------- мобильное управление ---------- */
+#touchUI{position:fixed;inset:0;z-index:30;pointer-events:none;display:none}
+#touchUI.on{display:block}
+#stickZone{position:absolute;left:0;bottom:0;width:45%;height:55%;pointer-events:auto}
+#stickBase{position:absolute;left:60px;bottom:70px;width:130px;height:130px;border-radius:50%;
+  border:2px solid rgba(255,255,255,.22);background:rgba(0,0,0,.25)}
+#stickKnob{position:absolute;left:35px;top:35px;width:60px;height:60px;border-radius:50%;
+  background:rgba(255,255,255,.35);border:2px solid rgba(255,255,255,.5)}
+.tbtn{position:absolute;pointer-events:auto;width:74px;height:74px;border-radius:50%;
+  background:rgba(20,24,28,.6);border:2px solid rgba(255,255,255,.28);color:#fff;
+  font:700 12px/1 Arial;display:flex;align-items:center;justify-content:center;text-align:center}
+.tbtn:active{background:rgba(200,40,30,.6)}
+#tFire{right:26px;bottom:110px;width:96px;height:96px}
+#tReload{right:132px;bottom:170px}
+#tUse{right:26px;bottom:220px}
+#tGren{right:132px;bottom:80px}
+#tSwitch{right:210px;bottom:120px}
+#tAim{right:210px;bottom:210px}
+#tJump{display:none}
+
+/* ---------- экран победы ---------- */
+.winTitle{font-family:"Arial Black",Impact,sans-serif;font-size:clamp(30px,6vw,56px);line-height:1;
+  letter-spacing:.05em;color:#7fe6ff;text-shadow:0 0 30px rgba(90,220,255,.55),0 3px 0 #0d3a4a}
 </style>
 </head>
 <body>
@@ -157,6 +215,8 @@ kbd{display:inline-block;min-width:26px;padding:2px 8px;border-radius:4px;backgr
     <div id="hpRow"><span class="cap">Здоровье</span><span class="val" id="healthVal">100</span></div>
     <div id="hpBar"><i id="hpFill"></i></div>
     <div id="ammoRow"><span id="weaponName">M1911</span><span id="ammoVal">8 / 80</span></div>
+    <div id="grenadesTxt">Гранаты: 2</div>
+    <div id="slotsTxt">1: M1911</div>
   </div>
 
   <div id="waveBox">
@@ -165,10 +225,26 @@ kbd{display:inline-block;min-width:26px;padding:2px 8px;border-radius:4px;backgr
     <div id="waveLeft">осталось: 0</div>
   </div>
 
+  <div id="perks"></div>
+  <div id="powerRow"></div>
+  <div id="coopInfo" style="display:none">КООП: напарник ?</div>
   <div id="labels"></div>
   <div id="prompt"></div>
   <div id="toast"></div>
   <div id="roundBanner">ВОЛНА 1</div>
+</div>
+
+<!-- ================== МОБИЛЬНОЕ УПРАВЛЕНИЕ ================== -->
+<div id="touchUI">
+  <div id="stickZone">
+    <div id="stickBase"><div id="stickKnob"></div></div>
+  </div>
+  <div class="tbtn" id="tFire">ОГОНЬ</div>
+  <div class="tbtn" id="tReload">ПЕРЕ-<br>ЗАРЯД</div>
+  <div class="tbtn" id="tUse">F<br>ДЕЙСТВИЕ</div>
+  <div class="tbtn" id="tGren">G<br>ГРАНАТА</div>
+  <div class="tbtn" id="tSwitch">1/2<br>ОРУЖИЕ</div>
+  <div class="tbtn" id="tAim">ПРИ-<br>ЦЕЛ</div>
 </div>
 
 <div id="vignette"></div>
@@ -180,24 +256,63 @@ kbd{display:inline-block;min-width:26px;padding:2px 8px;border-radius:4px;backgr
   <div class="panel">
     <div class="title">НАЧАЛО КОНЦА</div>
     <div class="subtitle">Режим «Зомби» &middot; выживание по волнам</div>
-    <p class="desc">Вы заперты в блоке «Б». Открывайте двери за очки, покупайте оружие на стенах
-      и держитесь как можно дольше. Каждая волна — быстрее и жирнее.</p>
+    <p class="desc">Вы заперты в блоке «Б». Открывайте двери, покупайте оружие на стенах, перки на автоматах,
+      крутите ящик тайн, улучшайте оружие в Pack-a-Punch, чините окна и держитесь как можно дольше.
+      Волны становятся быстрее и злее: каждые 10 волн приходит босс, между ними — своры собак.
+      Где-то в комплексе спрятана пасхалка: 3 радио и 3 вентиля откроют путь к телепорту.</p>
     <div class="keys">
       <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></span><span>перемещение относительно взгляда</span>
       <span><kbd>Мышь</kbd></span><span>обзор</span>
       <span><kbd>ЛКМ</kbd></span><span>огонь (автомат — зажим)</span>
       <span><kbd>R</kbd></span><span>перезарядка</span>
-      <span><kbd>F</kbd></span><span>открыть дверь / купить оружие</span>
+      <span><kbd>F</kbd></span><span>двери, покупки, перки, ящик, Pack-a-Punch, окна</span>
+      <span><kbd>G</kbd></span><span>граната</span>
+      <span><kbd>1</kbd><kbd>2</kbd></span><span>слоты оружия</span>
       <span><kbd>Shift</kbd></span><span>бег</span>
       <span><kbd>ПКМ</kbd></span><span>прицеливание (меньше разброс)</span>
       <span><kbd>Q</kbd><kbd>E</kbd></span><span>поворот (если курсор не захватывается)</span>
       <span><kbd>Esc</kbd></span><span>пауза</span>
       <span><kbd>M</kbd></span><span>звук вкл/выкл</span>
     </div>
+    <div class="cols">
+      <div class="card">
+        <h4>Рекорды</h4>
+        <div class="rec"><span>Лучшая волна</span><b id="recWave">0</b></div>
+        <div class="rec"><span>Больше всего убийств</span><b id="recKills">0</b></div>
+        <div class="rec"><span>Лучшее время</span><b id="recTime">0:00</b></div>
+        <div class="rec"><span>Всего игр / убийств</span><b id="recGames">0 / 0</b></div>
+        <div class="rec"><span>Кручений ящика</span><b id="recBox">0</b></div>
+      </div>
+      <div class="card">
+        <h4>Достижения</h4>
+        <div id="achList" style="max-height:150px;overflow:auto"></div>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:18px">
+      <h4>Пульт баланса (настройка под себя)</h4>
+      <div class="slider"><span style="width:auto">Здоровье зомби</span>
+        <input type="range" id="twHp" min="30" max="250" value="100"><span id="twHpV">100%</span></div>
+      <div class="slider"><span style="width:auto">Скорость зомби</span>
+        <input type="range" id="twSpeed" min="50" max="200" value="100"><span id="twSpeedV">100%</span></div>
+      <div class="slider"><span style="width:auto">Урон зомби</span>
+        <input type="range" id="twDmg" min="30" max="250" value="100"><span id="twDmgV">100%</span></div>
+      <div class="slider"><span style="width:auto">Плотность спавна</span>
+        <input type="range" id="twSpawn" min="50" max="200" value="100"><span id="twSpawnV">100%</span></div>
+      <div class="slider"><span style="width:auto">Очки за убийство</span>
+        <input type="range" id="twPoints" min="50" max="300" value="100"><span id="twPointsV">100%</span></div>
+      <div class="diffbtns" style="margin-top:6px">
+        <span style="font-size:13px;color:#c6ccd0;margin-right:6px">Сложность:</span>
+        <button class="diffbtn" data-diff="easy">Легко</button>
+        <button class="diffbtn on" data-diff="normal">Обычно</button>
+        <button class="diffbtn" data-diff="hard">Хардкор</button>
+      </div>
+    </div>
     <button class="btn" id="btnStart">Начать бой</button>
+    <button class="btn" id="btnCoop" style="margin-left:10px;background:linear-gradient(180deg,#1d5f8a,#0e3450)">Кооп (2-е окно)</button>
     <div class="hint" id="startHint">Клик по экрану захватывает курсор (Pointer Lock).
       Если браузер не разрешает захват (например, страница открыта во фрейме) — автоматически
-      включится резервный режим обзора мышью и клавишами Q/E.</div>
+      включится резервный режим обзора мышью и клавишами Q/E. Кооп работает между двумя окнами
+      одного браузера (или вкладками) через BroadcastChannel.</div>
   </div>
 </div>
 
@@ -209,6 +324,25 @@ kbd{display:inline-block;min-width:26px;padding:2px 8px;border-radius:4px;backgr
     <p class="desc">Волна <b id="pauseWave">1</b> &middot; очки: <b id="pausePoints">0</b></p>
     <button class="btn" id="btnResume">Продолжить</button>
     <div class="hint">Клик по кнопке снова захватит курсор.</div>
+  </div>
+</div>
+
+<!-- ================== ПОБЕДА (пасхалка) ================== -->
+<div class="overlay hidden" id="overlayWin">
+  <div class="panel">
+    <div class="winTitle">ВЫ ВЫБРАЛИСЬ</div>
+    <div class="subtitle">Телепорт унёс вас из блока «Б»</div>
+    <p class="desc">Вы нашли все три записи, открыли вентили и запустили телепорт.
+      Волны зомби остались позади… но это лишь одна из тайн комплекса.</p>
+    <div class="stats">
+      <span>Волна на момент побега</span><b id="winWave">1</b>
+      <span>Убито зомби</span><b id="winKills">0</b>
+      <span>Заработано очков</span><b id="winPoints">0</b>
+      <span>Кручений ящика тайн</span><b id="winBox">0</b>
+      <span>Использовано перков</span><b id="winPerks">0</b>
+      <span>Время боя</span><b id="winTime">0:00</b>
+    </div>
+    <button class="btn" id="btnWinRestart">Играть снова</button>
   </div>
 </div>
 
@@ -267,8 +401,82 @@ const WEAPONS = {
     id:'shotgun', name:'Trench Gun', title:'Дробовик Trench Gun',
     damage:26, fireDelay:0.85, auto:false, mag:6, reserve:60,
     reload:2.4, pellets:5, spread:0.085, range:26, recoil:2.2, price:1500
+  },
+  /* --- чудо-оружие: выпадает только из ящика тайн --- */
+  raygun: {
+    id:'raygun', name:'Ray Gun', title:'Лучемёт «Ray Gun»',
+    damage:95, fireDelay:0.30, auto:false, mag:12, reserve:60,
+    reload:2.2, pellets:1, spread:0.02, range:70, recoil:1.3, price:0,
+    splash:2.4, splashDamage:70, tracer:0x66ff88
+  },
+  wunder: {
+    id:'wunder', name:'Wunderwaffe', title:'Вундерваффе DG-2',
+    damage:160, fireDelay:0.55, auto:false, mag:6, reserve:30,
+    reload:2.7, pellets:1, spread:0.012, range:80, recoil:2.6, price:0,
+    splash:3.4, splashDamage:130, tracer:0x88ccff, chain:3
   }
 };
+/* Пул ящика тайн (чем больше повторов — тем выше шанс) */
+const MYSTERY_POOL = [
+  'smg','smg','smg','shotgun','shotgun','shotgun','smg','shotgun',
+  'raygun','smg','shotgun','wunder'
+];
+const MYSTERY_PRICE = 950;
+
+/* ---------- слоты оружия и итоговые характеристики ---------- */
+const MAX_SLOTS = 2;
+
+/** Характеристики текущего оружия с учётом улучшения и перков */
+function getWeaponStats(){
+  const b = WEAPONS[weaponState.id];
+  const up = weaponState.upgraded ? 1 : 0;
+  return {
+    id:b.id, name:b.name, auto:b.auto, pellets:b.pellets, range:b.range,
+    title: (up ? 'Улучшенный ' : '') + b.title,
+    damage: b.damage * (up?2:1) * (PERKS.dtap?2:1) * (POWER.insta>0?400:1),
+    fireDelay: b.fireDelay * (up?0.9:1) * (PERKS.dtap?0.72:1) * (PERKS.speed?0.9:1),
+    mag: Math.round(b.mag * (up?2:1)),
+    reserve: Math.round(b.reserve * (up?2:1)),
+    reload: b.reload * (up?0.85:1) * (PERKS.speed?0.5:1),
+    spread: b.spread * (up?0.8:1),
+    recoil: b.recoil,
+    splash: b.splash || 0,
+    splashDamage: (b.splashDamage || 0) * (up?2:1) * (PERKS.dtap?2:1) * (POWER.insta>0?400:1),
+    tracer: b.tracer || 0xffd489,
+    chain: b.chain || 0,
+    glow: up ? 0xffcc44 : 0
+  };
+}
+
+/* ---------- перки (покупаются на автоматах) ---------- */
+const PERK_DEFS = {
+  revive: { name:'Quick Revive',  color:0x3b9fd8, price:500,  desc:'самовоскрешение' },
+  jugg:   { name:'Juggernog',     color:0xd62838, price:2500, desc:'здоровье 250' },
+  dtap:   { name:'Double Tap',    color:0xe08a1e, price:2000, desc:'двойной урон' },
+  stamin: { name:'Stamin-Up',     color:0x8e44d8, price:2000, desc:'+30% скорости' },
+  speed:  { name:'Speed Cola',    color:0x2fbf5a, price:3000, desc:'быстрая перезарядка' }
+};
+const PERKS = { revive:false, jugg:false, dtap:false, stamin:false, speed:false, reviveUsed:false };
+/** Пересчёт максимума здоровья при изменении перков */
+function refreshMaxHealth(){
+  PLAYER.maxHealth = PERKS.jugg ? 250 : 100;
+  if (PLAYER.health > PLAYER.maxHealth) PLAYER.health = PLAYER.maxHealth;
+}
+
+/* ---------- павер-апы (выпадают из убитых зомби) ---------- */
+const POWER = { insta:0, double:0, firesale:0 };      // таймеры, сек
+const POWER_DEFS = {
+  insta:    { name:'Мгновенная смерть', short:'МС', color:0xff2a2a, dur:10 },
+  double:   { name:'Двойные очки',      short:'х2', color:0xffcc33, dur:30 },
+  firesale: { name:'Распродажа',        short:'FS', color:0xff66ff, dur:30 },
+  maxammo:  { name:'Макс. патроны',     short:'MA', color:0xffffff, dur:0 },
+  nuke:     { name:'Ядерный взрыв',     short:'NK', color:0x66ffdd, dur:0 }
+};
+const powerDrops = [];                                 // лежащие на карте бонусы
+
+/* ---------- гранаты ---------- */
+const GRENADES = { count:2, max:3, next:0 };
+const grenadeList = [];
 
 /* ============================================================
    2. УТИЛИТЫ
@@ -449,6 +657,40 @@ function makeDotTexture(inner, outer, soft){
   t.encoding = THREE.sRGBEncoding;
   return t;
 }
+/** Бонус из убитого зомби (окрашивается цветом типа) */
+function makePowerTexture(){
+  const c = makeCanvas(128,128), x = c.getContext('2d');
+  x.clearRect(0,0,128,128);
+  const g = x.createRadialGradient(64,64,6,64,64,62);
+  g.addColorStop(0,'rgba(255,255,255,1)');
+  g.addColorStop(0.45,'rgba(255,255,255,0.85)');
+  g.addColorStop(0.75,'rgba(255,255,255,0.28)');
+  g.addColorStop(1,'rgba(255,255,255,0)');
+  x.fillStyle = g;
+  x.beginPath(); x.arc(64,64,62,0,Math.PI*2); x.fill();
+  x.strokeStyle = 'rgba(255,255,255,0.9)'; x.lineWidth = 6;
+  x.beginPath(); x.arc(64,64,44,0,Math.PI*2); x.stroke();
+  x.fillStyle = 'rgba(255,255,255,1)';
+  x.beginPath(); x.arc(64,64,20,0,Math.PI*2); x.fill();
+  const t = new THREE.CanvasTexture(c);
+  t.encoding = THREE.sRGBEncoding;
+  return t;
+}
+
+/** Кольцо (ударная волна от взрыва) */
+function makeRingTexture(){
+  const c = makeCanvas(128,128), x = c.getContext('2d');
+  const g = x.createRadialGradient(64,64,20,64,64,64);
+  g.addColorStop(0,'rgba(255,255,255,0)');
+  g.addColorStop(0.62,'rgba(255,255,255,0)');
+  g.addColorStop(0.82,'rgba(255,240,200,0.95)');
+  g.addColorStop(1,'rgba(255,140,40,0)');
+  x.fillStyle = g; x.fillRect(0,0,128,128);
+  const t = new THREE.CanvasTexture(c);
+  t.encoding = THREE.sRGBEncoding;
+  return t;
+}
+
 /** Вспышка у дула */
 function makeFlashTexture(){
   const c = makeCanvas(128,128), x = c.getContext('2d');
@@ -521,6 +763,18 @@ const SFX = {
   },
   /* --- конкретные игровые звуки --- */
   shot(kind){
+    if (kind === 'raygun'){
+      this.tone(1500, 0.2, 'square', 0.2, 0, 320);
+      this.noise(0.2, 0.26, 'bandpass', 2400, 2, 0, 800);
+      this.tone(300, 0.16, 'triangle', 0.14, 0.02, 120);
+      return;
+    }
+    if (kind === 'wunder'){
+      this.tone(2200, 0.3, 'sawtooth', 0.18, 0, 240);
+      this.noise(0.38, 0.34, 'highpass', 1100, 1, 0, 300);
+      this.tone(95, 0.3, 'square', 0.26, 0, 48);
+      return;
+    }
     if (kind === 'shotgun'){
       this.noise(0.34, 0.75, 'lowpass', 3400, 1.1, 0, 300);
       this.tone(120, 0.22, 'square', 0.32, 0, 45);
@@ -548,7 +802,55 @@ const SFX = {
   door(){ this.noise(0.75, 0.4, 'lowpass', 700, 1, 0, 120); this.tone(70, 0.7, 'sawtooth', 0.14, 0, 40); },
   wave(){ this.tone(70, 1.6, 'sine', 0.28, 0, 55); this.tone(105, 1.4, 'sine', 0.16, 0.05, 82); this.tone(880, 0.5, 'triangle', 0.1, 0.1, 500); },
   gameover(){ this.tone(220, 1.6, 'sawtooth', 0.22, 0, 60); this.tone(160, 2.0, 'sine', 0.18, 0.15, 45); },
-  spawn(){ this.noise(0.4, 0.2, 'lowpass', 500, 1, 0, 160); }
+  spawn(){ this.noise(0.4, 0.2, 'lowpass', 500, 1, 0, 160); },
+  /* --- новые звуки --- */
+  explosion(){
+    this.noise(0.75, 0.85, 'lowpass', 1400, 1, 0, 90);
+    this.tone(70, 0.5, 'square', 0.4, 0, 32);
+    this.noise(0.3, 0.35, 'highpass', 2200, 1, 0.02);
+  },
+  zap(){
+    this.tone(1800, 0.09, 'sawtooth', 0.2, 0, 300);
+    this.tone(900, 0.16, 'square', 0.14, 0.05, 180);
+    this.noise(0.18, 0.25, 'bandpass', 3200, 3, 0, 900);
+  },
+  throwGrenade(){ this.noise(0.16, 0.2, 'bandpass', 900, 2, 0, 300); this.tone(320, 0.14, 'triangle', 0.1, 0, 160); },
+  spit(){ this.tone(rand(320,420), 0.22, 'sawtooth', 0.14, 0, 140); this.noise(0.22, 0.16, 'bandpass', 800, 2); },
+  perk(){
+    this.tone(523, 0.12, 'square', 0.18);
+    this.tone(784, 0.12, 'square', 0.18, 0.11);
+    this.tone(1046, 0.28, 'square', 0.16, 0.22);
+  },
+  powerup(){ this.tone(660, 0.09, 'triangle', 0.2); this.tone(880, 0.09, 'triangle', 0.2, 0.09); this.tone(1320, 0.3, 'triangle', 0.18, 0.18); },
+  nuke(){
+    this.noise(1.4, 0.9, 'lowpass', 2200, 1, 0, 70);
+    this.tone(90, 1.2, 'square', 0.35, 0, 30);
+  },
+  boxOpen(){ this.tone(420, 0.2, 'triangle', 0.16); this.noise(0.3, 0.2, 'bandpass', 1200, 2); },
+  boxRoll(){ this.noise(0.12, 0.16, 'bandpass', 1600, 3, 0, 900); },
+  radio(){
+    this.tone(1200, 0.14, 'square', 0.1);
+    this.noise(1.6, 0.12, 'bandpass', rand(500,900), 3, 0.1, 400);
+    this.tone(rand(140,200), 1.4, 'sawtooth', 0.06, 0.1, 90);
+  },
+  dog(){ this.tone(rand(200,260), 0.3, 'sawtooth', 0.16, 0, 90); this.noise(0.3, 0.2, 'bandpass', 1100, 2); },
+  bossRoar(){ this.tone(58, 1.5, 'sawtooth', 0.4, 0, 34); this.noise(1.2, 0.35, 'lowpass', 500, 1, 0, 120); },
+  turret(){ this.noise(0.08, 0.3, 'bandpass', 1500, 2, 0, 600); this.tone(160, 0.06, 'square', 0.12, 0, 70); },
+  win(){
+    const seq = [523, 659, 784, 1046];
+    seq.forEach((f,i) => this.tone(f, 0.5, 'triangle', 0.2, i*0.22));
+    this.tone(1318, 1.4, 'triangle', 0.16, 0.9);
+  },
+  achievement(){ this.tone(880, 0.1, 'triangle', 0.16); this.tone(1174, 0.2, 'triangle', 0.14, 0.1); },
+  valve(){ this.tone(180, 0.5, 'square', 0.12, 0, 90); this.noise(0.5, 0.16, 'bandpass', 500, 2, 0, 200); },
+  hammer(){ this.noise(0.09, 0.3, 'bandpass', 1500, 3); this.tone(420, 0.07, 'square', 0.12, 0, 200); },
+  burstPlanks(){ this.noise(0.3, 0.34, 'bandpass', 800, 2, 0, 200); this.tone(140, 0.12, 'square', 0.1, 0, 70); },
+  packAPunch(){
+    this.tone(160, 0.7, 'sawtooth', 0.2, 0, 320);
+    this.tone(880, 0.3, 'triangle', 0.18, 0.35);
+    this.tone(1320, 0.5, 'triangle', 0.16, 0.6);
+    this.noise(0.6, 0.25, 'highpass', 1800, 1, 0.3, 400);
+  }
 };
 
 /* ============================================================
@@ -640,6 +942,35 @@ function buildViewWeapon(id){
     const magRing = cyl(0.028,0.028,0.03, MAT.dark, 10); magRing.rotation.x = Math.PI/2; magRing.position.set(0,0.006,-0.22); g.add(magRing);
     muzzle.set(0,0.008,-0.44);
   }
+  else if (id === 'raygun'){
+    // Лучемёт «Ray Gun»: компактный корпус и светящееся зелёное ядро
+    const body = box(0.072,0.08,0.27, MAT.metal); body.position.set(0,0,-0.1); g.add(body);
+    const coreMat = new THREE.MeshBasicMaterial({ color:0x66ff88 });
+    const core = new THREE.Mesh(new THREE.SphereGeometry(0.05, 10, 8), coreMat);
+    core.position.set(0,0.055,-0.09); g.add(core);
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.055,0.013,6,14), new THREE.MeshBasicMaterial({ color:0xb6ffc8 }));
+    ring.rotation.x = Math.PI/2; ring.position.set(0,0.055,-0.09); g.add(ring);
+    const bblR = cyl(0.032,0.022,0.2, MAT.dark); bblR.rotation.x = Math.PI/2; bblR.position.set(0,0,-0.32); g.add(bblR);
+    const tip = cyl(0.024,0.03,0.05, new THREE.MeshBasicMaterial({ color:0x88ffa0 })); tip.rotation.x = Math.PI/2; tip.position.set(0,0,-0.43); g.add(tip);
+    const gripR = box(0.05,0.135,0.075, MAT.dark); gripR.position.set(0,-0.105,0.028); gripR.rotation.x = -0.22; g.add(gripR);
+    muzzle.set(0,0,-0.46);
+  }
+  else if (id === 'wunder'){
+    // Вундерваффе DG-2: тяжёлая винтовка с катушками и голубым разрядом
+    const recvW = box(0.08,0.1,0.36, MAT.metal); recvW.position.set(0,0,-0.05); g.add(recvW);
+    const coreMat = new THREE.MeshBasicMaterial({ color:0x88ccff });
+    for (let i=0;i<3;i++){
+      const coil = new THREE.Mesh(new THREE.TorusGeometry(0.062,0.016,6,14), coreMat);
+      coil.position.set(0,0.012,-0.02 - i*0.09);
+      g.add(coil);
+    }
+    const rod = cyl(0.014,0.014,0.34, MAT.dark); rod.rotation.x = Math.PI/2; rod.position.set(0,0.012,-0.2); g.add(rod);
+    const tipW = new THREE.Mesh(new THREE.SphereGeometry(0.038,10,8), coreMat); tipW.position.set(0,0.012,-0.38); g.add(tipW);
+    const magW = box(0.045,0.2,0.09, MAT.dark); magW.position.set(0,-0.14,-0.03); g.add(magW);
+    const gripW = box(0.052,0.12,0.07, MAT.dark); gripW.position.set(0,-0.09,0.09); gripW.rotation.x = -0.3; g.add(gripW);
+    const stockW = box(0.04,0.07,0.2, MAT.metal); stockW.position.set(0,-0.01,0.25); g.add(stockW);
+    muzzle.set(0,0.012,-0.42);
+  }
   else { // shotgun
     const bbl   = cyl(0.021,0.021,0.62, MAT.metal); bbl.rotation.x = Math.PI/2; bbl.position.set(0,0.03,-0.22); g.add(bbl);
     const tube  = cyl(0.017,0.017,0.44, MAT.dark);  tube.rotation.x = Math.PI/2; tube.position.set(0,-0.028,-0.14); g.add(tube);
@@ -668,6 +999,9 @@ function createViewModel(id){
   } else if (id === 'smg'){
     hip.p.set(0.22,-0.190,-0.36);  hip.r.set(0.03,-0.09,0.035);
     ads.p.set(0.0,-0.070,-0.36);   ads.r.set(0.0,0.0,0.0);
+  } else if (id === 'raygun' || id === 'wunder'){
+    hip.p.set(0.20,-0.165,-0.34);  hip.r.set(0.02,-0.10,0.03);
+    ads.p.set(0.0,-0.078,-0.34);   ads.r.set(0.0,0.0,0.0);
   } else {
     hip.p.set(0.23,-0.205,-0.44);  hip.r.set(0.03,-0.08,0.04);
     ads.p.set(0.0,-0.080,-0.44);   ads.r.set(0.0,0.0,0.0);
@@ -687,6 +1021,8 @@ function createViewModel(id){
 /* Текстуры-спрайты (создаются один раз) */
 var TX = {
   flash: makeFlashTexture(),
+  ring : makeRingTexture(),
+  power: makePowerTexture(),
   spark: makeDotTexture('rgba(255,255,230,1)','rgba(255,168,60,.75)', 0.4),
   blood: makeDotTexture('rgba(150,10,10,1)','rgba(90,4,4,.7)', 0.42),
   dust : makeDotTexture('rgba(190,190,180,1)','rgba(120,120,110,.5)', 0.45)
@@ -807,6 +1143,569 @@ const SPAWN_DEFS = [
 ];
 
 /* ============================================================
+   7.1 УСТРОЙСТВА МИРА: перки, ящик тайн, Pack-a-Punch, ловушки,
+       турель, окна-баррикады и пасхалка (радио, вентили, телепорт)
+   ============================================================ */
+const PACK_A_PUNCH_PRICE = 5000;
+
+/* --- процедурные текстуры устройств --- */
+const DEV_TEX = {
+  /** Лицевая панель автомата перка */
+  perk: (color) => {
+    const c = makeCanvas(256,256), x = c.getContext('2d');
+    const hex = '#' + new THREE.Color(color).getHexString();
+    x.fillStyle = '#101418'; x.fillRect(0,0,256,256);
+    addNoise(x,256,256,4000,0.03,0.12,1,3);
+    x.fillStyle = hex; x.globalAlpha = 0.9; x.fillRect(16,16,224,62); x.globalAlpha = 1;
+    x.fillStyle = '#0b0e11'; x.fillRect(16,96,224,144);
+    x.strokeStyle = hex; x.lineWidth = 5; x.strokeRect(16,96,224,144);
+    x.fillStyle = '#0b0e11'; x.font = 'bold 30px Arial Black, Arial'; x.textAlign = 'center';
+    x.fillText('PERK', 128, 60);
+    x.fillStyle = hex;
+    x.beginPath(); x.arc(128, 168, 40, 0, Math.PI*2); x.fill();
+    x.fillStyle = 'rgba(255,255,255,.85)';
+    x.beginPath(); x.arc(114, 154, 12, 0, Math.PI*2); x.fill();
+    return finishTexture(c,1,1);
+  },
+  /** Ящик тайн */
+  box: () => {
+    const c = makeCanvas(256,256), x = c.getContext('2d');
+    x.fillStyle = '#4a3520'; x.fillRect(0,0,256,256);
+    addNoise(x,256,256,8000,0.02,0.16,1,3);
+    x.strokeStyle = 'rgba(0,0,0,.5)'; x.lineWidth = 8; x.strokeRect(4,4,248,248);
+    x.fillStyle = '#8f6a35'; x.fillRect(0,120,256,16);
+    x.fillStyle = '#c9a24a'; x.font = 'bold 118px Arial Black, Arial'; x.textAlign = 'center';
+    x.fillText('?', 128, 116);
+    return finishTexture(c,1,1);
+  },
+  /** Панель Pack-a-Punch */
+  pap: () => {
+    const c = makeCanvas(256,256), x = c.getContext('2d');
+    x.fillStyle = '#171b20'; x.fillRect(0,0,256,256);
+    addNoise(x,256,256,5000,0.02,0.14,1,3);
+    x.strokeStyle = 'rgba(90,220,255,.85)'; x.lineWidth = 5; x.strokeRect(10,10,236,236);
+    x.fillStyle = 'rgba(90,220,255,.16)'; x.fillRect(20,20,216,216);
+    x.fillStyle = '#9fe8ff'; x.font = 'bold 34px Arial Black, Arial'; x.textAlign = 'center';
+    x.fillText('PACK', 128, 110);
+    x.fillText('A PUNCH', 128, 152);
+    return finishTexture(c,1,1);
+  },
+  /** Тёмный оконный проём */
+  window: () => {
+    const c = makeCanvas(128,192), x = c.getContext('2d');
+    x.fillStyle = '#05070a'; x.fillRect(0,0,128,192);
+    addStains(x,128,192,10,'40,45,55',10,40,0.25);
+    return finishTexture(c,1,1);
+  }
+};
+
+/** Создать устройство: общие поля + подпись над ним */
+function makeDevice(kind, zone, cx, cz, dir, extra){
+  const z = MAP.zones[zone];
+  const wx = (cx + z.ox)*TILE, wz = (cz + z.oz)*TILE;
+  const dev = Object.assign({
+    kind, zone, cx, cz, dir, wx, wz,
+    pos: new THREE.Vector3(wx + (dir?dir[0]*1.3:0), EYE, wz + (dir?dir[1]*1.3:0)),
+    anchor: new THREE.Vector3(wx + (dir?dir[0]*0.7:0), 2.4, wz + (dir?dir[1]*0.7:0))
+  }, extra || {});
+  const el = document.createElement('div');
+  el.className = 'wlabel machine';
+  document.getElementById('labels').appendChild(el);
+  dev.el = el;
+  MAP.labels.push({ el, pos:dev.anchor, type:'device', ref:dev });
+  MAP.devices.push(dev);
+  return dev;
+}
+
+/** Цена устройства (учитывает распродажу) */
+function devicePrice(d){
+  if (d.kind === 'box') return POWER.firesale > 0 ? 150 : MYSTERY_PRICE;
+  return d.price || 0;
+}
+/** Можно ли сейчас воспользоваться устройством */
+function deviceUsable(d){
+  switch (d.kind){
+    case 'perk':   return !PERKS[d.perk];
+    case 'box':    return GAME.time >= d.cooldownEnd;
+    case 'pap':    return !weaponState.upgraded;
+    case 'trap':   return GAME.time >= d.readyAt;
+    case 'turret': return d.charges > 0;
+    case 'window': return d.boards < d.maxBoards;
+    case 'radio':  return !d.played;
+    case 'valve':  return !d.turned;
+    case 'teleporter': return EASTER.energized;
+  }
+  return false;
+}
+/** Текст подписи/подсказки устройства */
+function deviceText(d){
+  const price = devicePrice(d);
+  switch (d.kind){
+    case 'perk':   return `${PERK_DEFS[d.perk].name}: ${price} очков — F`;
+    case 'box':    return `Ящик тайн: ${price} очков — F`;
+    case 'pap':    return `Pack-a-Punch: ${PACK_A_PUNCH_PRICE} очков — F`;
+    case 'trap':   return `Электроловушка: ${price} очков — F`;
+    case 'turret': return `Турель: ${price} очков (заряды: ${d.charges}) — F`;
+    case 'window': return d.boards >= d.maxBoards
+      ? `Окно заколочено (${d.maxBoards}/${d.maxBoards})` : `Доски: ${d.boards}/${d.maxBoards} — F (+10)`;
+    case 'radio':  return d.played ? 'Радио замолчало' : 'Радио: нажмите F';
+    case 'valve':  return d.turned ? 'Вентиль открыт' : 'Вентиль топлива: F';
+    case 'teleporter': return EASTER.energized ? 'ТЕЛЕПОРТ ЗАРЯЖЕН — F' : 'Телепорт обесточен';
+  }
+  return '';
+}
+/** Взаимодействие с устройством */
+function useDevice(d){
+  switch (d.kind){
+    case 'perk': {
+      const price = devicePrice(d);
+      if (PERKS[d.perk]){ SFX.deny(); setToast('Этот перк уже куплен', 'warn'); return; }
+      if (GAME.points < price){ SFX.deny(); setToast(`Нужно ${price} очков`, 'warn'); return; }
+      GAME.points -= price;
+      PERKS[d.perk] = true;
+      if (d.perk === 'jugg'){ refreshMaxHealth(); PLAYER.health = PLAYER.maxHealth; }
+      SFX.perk();
+      setToast(`${PERK_DEFS[d.perk].name} — ${PERK_DEFS[d.perk].desc}!`, 'good');
+      markPerkMachine(d);
+      checkAchievements();
+      break;
+    }
+    case 'box': useMysteryBox(d); break;
+    case 'pap': packAPunch(); break;
+    case 'trap': activateTrap(d); break;
+    case 'turret': activateTurret(d); break;
+    case 'window': repairWindow(d); break;
+    case 'radio': useRadio(d); break;
+    case 'valve': turnValve(d); break;
+    case 'teleporter': useTeleporter(); break;
+  }
+  updateHUD();
+}
+
+/* ---------- Автоматы перков ---------- */
+function buildPerkMachines(){
+  const defs = [
+    { perk:'revive', zone:'start', cx:0,  cz:5, dir:[1,0] },
+    { perk:'jugg',   zone:'d2',    cx:7,  cz:4, dir:[-1,0] },
+    { perk:'dtap',   zone:'d3',    cx:9,  cz:4, dir:[-1,0] },
+    { perk:'speed',  zone:'d1',    cx:4,  cz:7, dir:[0,-1] },
+    { perk:'stamin', zone:'d4',    cx:0,  cz:4, dir:[1,0] }
+  ];
+  for (const p of defs){
+    const dev = makeDevice('perk', p.zone, p.cx, p.cz, p.dir, { perk:p.perk, price:PERK_DEFS[p.perk].price });
+    const col = PERK_DEFS[p.perk].color;
+    const tex = DEV_TEX.perk(col);
+    const body = new THREE.Mesh(
+      new THREE.BoxGeometry(1.05, 2.05, 0.72),
+      [ new THREE.MeshLambertMaterial({ color:0x22262b }),
+        new THREE.MeshLambertMaterial({ color:0x22262b }),
+        new THREE.MeshLambertMaterial({ color:0x191c20 }),
+        new THREE.MeshLambertMaterial({ color:0x111316 }),
+        new THREE.MeshLambertMaterial({ map:tex }),
+        new THREE.MeshLambertMaterial({ color:0x1a1d21 }) ]
+    );
+    body.position.set(dev.wx + p.dir[0]*0.36, 1.03, dev.wz + p.dir[1]*0.36);
+    body.rotation.y = Math.atan2(p.dir[0], p.dir[1]);
+    scene.add(body);
+    // коллайдер
+    MAP.propRects.push({
+      minX: body.position.x-0.58, maxX: body.position.x+0.58,
+      minZ: body.position.z-0.58, maxZ: body.position.z+0.58
+    });
+    // «бутылка» перка наверху
+    const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.13, 8, 6), new THREE.MeshBasicMaterial({ color:col }));
+    bulb.position.set(body.position.x, 2.16, body.position.z);
+    bulb.userData.noRay = true;
+    scene.add(bulb);
+    dev.mesh = body; dev.bulb = bulb;
+  }
+}
+/** Автомат купленного перка гаснет */
+function markPerkMachine(d){
+  if (d.bulb) d.bulb.material.color.setHex(0x2b2f33);
+  if (d.mesh) d.mesh.children.forEach(m => { if (m.material && m.material.map) m.material.color.setHex(0x606b72); });
+}
+
+/* ---------- Ящик тайн (Mystery Box) ---------- */
+const BOX = { rolling:false, endAt:0, rollSound:0, dev:null };
+function buildMysteryBox(){
+  const dev = makeDevice('box', 'start', 8, 3, null, { cooldownEnd:0 });
+  const base = new THREE.Mesh(new THREE.BoxGeometry(1.35, 0.95, 1.1), new THREE.MeshLambertMaterial({ map:DEV_TEX.box() }));
+  base.position.set(dev.wx, 0.475, dev.wz);
+  scene.add(base);
+  const lid = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.22, 1.15), new THREE.MeshLambertMaterial({ color:0x6b4c25 }));
+  lid.position.set(dev.wx, 1.06, dev.wz);
+  scene.add(lid);
+  const glow = new THREE.Mesh(
+    new THREE.PlaneGeometry(1.3, 1.05),
+    new THREE.MeshBasicMaterial({ map:TX.ring, color:0xffe066, transparent:true, opacity:0.4,
+                                  blending:THREE.AdditiveBlending, depthWrite:false })
+  );
+  glow.rotation.x = -Math.PI/2;
+  glow.position.set(dev.wx, 1.22, dev.wz);
+  scene.add(glow);
+  const light = new THREE.PointLight(0xffd070, 0.85, 7, 2);
+  light.position.set(dev.wx, 1.5, dev.wz);
+  scene.add(light);
+  dev.mesh = base; dev.lid = lid; dev.glow = glow; dev.light = light;
+  MAP.propRects.push({ minX:dev.wx-0.7, maxX:dev.wx+0.7, minZ:dev.wz-0.62, maxZ:dev.wz+0.62 });
+  BOX.dev = dev;
+  return dev;
+}
+function useMysteryBox(d){
+  if (BOX.rolling) return;
+  if (GAME.time < d.cooldownEnd){ SFX.deny(); setToast('Ящик ещё не готов', 'warn'); return; }
+  const price = devicePrice(d);
+  if (GAME.points < price){ SFX.deny(); setToast(`Ящик тайн: нужно ${price} очков`, 'warn'); return; }
+  GAME.points -= price;
+  BOX.rolling = true;
+  BOX.endAt = GAME.time + 2.1;
+  d.cooldownEnd = GAME.time + 4.4;
+  BOX.rollSound = 0;
+  GAME.boxSpins = (GAME.boxSpins || 0) + 1;
+  SFX.boxOpen();
+  checkAchievements();
+}
+/** Анимация ящика и выдача оружия */
+function updateMysteryBox(dt){
+  const d = BOX.dev;
+  if (!d) return;
+  if (BOX.rolling){
+    d.lid.position.y = 1.06 + Math.abs(Math.sin(GAME.time*14))*0.06;
+    d.glow.material.opacity = 0.4 + Math.abs(Math.sin(GAME.time*18))*0.4;
+    d.light.intensity = 0.9 + Math.abs(Math.sin(GAME.time*22))*0.6;
+    BOX.rollSound -= dt;
+    if (BOX.rollSound <= 0){ BOX.rollSound = 0.17; SFX.boxRoll(); }
+    if (GAME.time >= BOX.endAt){
+      BOX.rolling = false;
+      d.lid.position.y = 1.06;
+      giveMysteryWeapon();
+    }
+  } else {
+    d.glow.material.opacity = 0.28 + Math.sin(GAME.time*2)*0.1;
+    d.light.intensity = 0.75;
+  }
+}
+/** Что выпало из ящика */
+function giveMysteryWeapon(){
+  if (Math.random() < 0.10 && GAME.boxSpins > 1){
+    SFX.deny();
+    setToast('Медвежонок! Ящик «ушёл» — попробуйте снова', 'warn');
+    return;
+  }
+  const id = pick(MYSTERY_POOL);
+  // если второй слот пуст, а в руках пистолет — кладём новое оружие во второй слот
+  let slot = weaponState.slot;
+  if (!weaponState.slots[1] && weaponState.id === 'pistol') slot = 1;
+  equipWeapon(id, slot);
+  SFX.buy();
+  setToast(`Из ящика: ${WEAPONS[id].title}!`, 'good');
+  updateHUD();
+}
+
+/* ---------- Pack-a-Punch ---------- */
+function buildPackAPunch(){
+  const dev = makeDevice('pap', 'd2', 3, 5, null, { price:PACK_A_PUNCH_PRICE });
+  const body = new THREE.Mesh(new THREE.BoxGeometry(1.8, 1.5, 1.2), new THREE.MeshLambertMaterial({ color:0x2a3138 }));
+  body.position.set(dev.wx, 0.75, dev.wz);
+  scene.add(body);
+  const mat = new THREE.MeshLambertMaterial({ map:DEV_TEX.pap() });
+  const faceA = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 1.1), mat);
+  faceA.position.set(dev.wx, 1.0, dev.wz - 0.62); faceA.rotation.y = Math.PI;
+  scene.add(faceA);
+  const faceB = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 1.1), mat);
+  faceB.position.set(dev.wx, 1.0, dev.wz + 0.62);
+  scene.add(faceB);
+  const arch = new THREE.Mesh(new THREE.TorusGeometry(0.7, 0.08, 8, 20, Math.PI), new THREE.MeshBasicMaterial({ color:0x7fe6ff }));
+  arch.position.set(dev.wx, 1.5, dev.wz);
+  scene.add(arch);
+  const glow = new THREE.PointLight(0x66d8ff, 1.1, 8, 2);
+  glow.position.set(dev.wx, 1.75, dev.wz);
+  scene.add(glow);
+  dev.mesh = body; dev.glow = glow; dev.arch = arch;
+  MAP.propRects.push({ minX:dev.wx-0.95, maxX:dev.wx+0.95, minZ:dev.wz-0.65, maxZ:dev.wz+0.65 });
+  return dev;
+}
+function packAPunch(){
+  if (weaponState.upgraded){ SFX.deny(); setToast('Это оружие уже улучшено', 'warn'); return; }
+  if (GAME.points < PACK_A_PUNCH_PRICE){ SFX.deny(); setToast(`Pack-a-Punch: нужно ${PACK_A_PUNCH_PRICE} очков`, 'warn'); return; }
+  GAME.points -= PACK_A_PUNCH_PRICE;
+  weaponState.upgraded = true;
+  const st = getWeaponStats();
+  weaponState.ammo = st.mag;
+  weaponState.reserve = st.reserve;
+  saveActiveSlot();
+  tintViewModel(weaponState.model, 0xffcc44);
+  SFX.packAPunch();
+  setToast(`Улучшено: ${st.title}`, 'good');
+  unlockAchievement('pap');
+  checkAchievements();
+  updateHUD();
+}
+
+/* ---------- Электроловушки ---------- */
+function buildTraps(){
+  const defs = [
+    { zone:'start', cx:11, cz:0, dir:[0,1], price:1250 },
+    { zone:'d4',    cx:11, cz:0, dir:[0,1], price:1250 }
+  ];
+  for (const t of defs){
+    const dev = makeDevice('trap', t.zone, t.cx, t.cz, t.dir, { price:t.price, readyAt:0, activeUntil:0, sparkT:0 });
+    const pad = new THREE.Mesh(new THREE.PlaneGeometry(4.6, 4.6),
+      new THREE.MeshBasicMaterial({ color:0x33aaff, transparent:true, opacity:0.1, depthWrite:false }));
+    pad.rotation.x = -Math.PI/2;
+    pad.position.set(dev.wx + t.dir[0]*1.6, 0.03, dev.wz + t.dir[1]*1.6);
+    pad.userData.noRay = true;
+    scene.add(pad);
+    const box = new THREE.Mesh(new THREE.BoxGeometry(0.6, 1.0, 0.5), new THREE.MeshLambertMaterial({ color:0x2c333a }));
+    box.position.set(dev.wx + t.dir[0]*0.38, 0.5, dev.wz + t.dir[1]*0.38);
+    box.rotation.y = Math.atan2(t.dir[0], t.dir[1]);
+    scene.add(box);
+    dev.pad = pad; dev.mesh = box;
+    MAP.propRects.push({ minX:box.position.x-0.4, maxX:box.position.x+0.4, minZ:box.position.z-0.4, maxZ:box.position.z+0.4 });
+  }
+}
+function activateTrap(d){
+  const price = devicePrice(d);
+  if (GAME.time < d.readyAt){ SFX.deny(); setToast('Ловушка перезаряжается', 'warn'); return; }
+  if (GAME.points < price){ SFX.deny(); setToast(`Ловушка: нужно ${price} очков`, 'warn'); return; }
+  GAME.points -= price;
+  d.readyAt = GAME.time + 34;
+  d.activeUntil = GAME.time + 22;
+  SFX.zap();
+  setToast('Ловушка включена на 22 секунды!', 'good');
+}
+function updateTraps(dt){
+  for (const d of MAP.devices){
+    if (d.kind !== 'trap') continue;
+    const on = GAME.time < d.activeUntil;
+    d.pad.material.opacity = on ? 0.2 + Math.abs(Math.sin(GAME.time*9))*0.18 : 0.1;
+    if (!on) continue;
+    d.sparkT -= dt;
+    const zapNow = d.sparkT <= 0;
+    if (zapNow) d.sparkT = 0.25;
+    for (let i=zombies.length-1;i>=0;i--){
+      const z = zombies[i];
+      if (!z.alive) continue;
+      if (Math.hypot(z.pos.x - d.pad.position.x, z.pos.z - d.pad.position.z) > 2.5) continue;
+      if (zapNow){
+        FX.lightning(new THREE.Vector3(z.pos.x, 0.2, z.pos.z), new THREE.Vector3(z.pos.x, 1.6, z.pos.z));
+        SFX.zap();
+        const res = damageZombie(z, 130, false);
+        if (res === 'kill') onZombieKilled(z, z.pos.x, 1.2, z.pos.z);
+      }
+    }
+  }
+}
+
+/* ---------- Турель ---------- */
+function buildTurret(){
+  const dev = makeDevice('turret', 'start', 13, 4, [-1,0], { price:2000, charges:3, nextShot:0, active:false, ammo:0 });
+  const stand = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.22, 1.0, 8), new THREE.MeshLambertMaterial({ color:0x2a3036 }));
+  stand.position.set(dev.wx, 0.5, dev.wz);
+  const head = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.4, 0.7), new THREE.MeshLambertMaterial({ color:0x39424a }));
+  head.position.set(dev.wx, 1.15, dev.wz);
+  const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.75, 8), new THREE.MeshLambertMaterial({ color:0x1c2126 }));
+  barrel.rotation.x = Math.PI/2;
+  barrel.position.set(dev.wx, 1.18, dev.wz - 0.5);
+  scene.add(stand, head, barrel);
+  dev.head = head; dev.barrel = barrel;
+  MAP.propRects.push({ minX:dev.wx-0.3, maxX:dev.wx+0.3, minZ:dev.wz-0.3, maxZ:dev.wz+0.3 });
+  return dev;
+}
+function activateTurret(d){
+  if (d.charges <= 0){ SFX.deny(); setToast('Турель разряжена', 'warn'); return; }
+  if (GAME.points < d.price){ SFX.deny(); setToast(`Турель: нужно ${d.price} очков`, 'warn'); return; }
+  GAME.points -= d.price;
+  d.charges--;
+  d.active = true;
+  d.ammo = 55;
+  SFX.buy();
+  setToast(`Турель заряжена (зарядов осталось: ${d.charges})`, 'good');
+}
+function updateTurrets(dt, now){
+  for (const d of MAP.devices){
+    if (d.kind !== 'turret') continue;
+    if (!d.active){
+      d.head.material.color.setHex(0x39424a);
+      continue;
+    }
+    d.head.material.color.setHex(0x2f7f4a);
+    let best = null, bestD = 17;
+    for (const z of zombies){
+      if (!z.alive) continue;
+      const dd = Math.hypot(z.pos.x - d.wx, z.pos.z - d.wz);
+      if (dd < bestD){ bestD = dd; best = z; }
+    }
+    if (d.ammo <= 0){ d.active = false; setToast('Турель опустошена', 'warn'); continue; }
+    if (!best) continue;
+    const ang = Math.atan2(best.pos.x - d.wx, best.pos.z - d.wz);
+    d.head.rotation.y = ang;
+    d.barrel.position.set(d.wx + Math.sin(ang)*0.5, 1.18, d.wz + Math.cos(ang)*0.5);
+    d.barrel.rotation.set(Math.PI/2, 0, -ang);
+    if (now >= d.nextShot){
+      d.nextShot = now + 0.14;
+      d.ammo--;
+      const from = new THREE.Vector3(d.barrel.position.x, d.barrel.position.y, d.barrel.position.z);
+      const to = new THREE.Vector3(best.pos.x, 1.2, best.pos.z);
+      FX.tracer(from, to, 0xaaffcc);
+      const res = damageZombie(best, 70, false);
+      if (res === 'kill') onZombieKilled(best, to.x, to.y, to.z);
+      else onZombieHit(best, to.x, to.y, to.z, false);
+      SFX.turret();
+    }
+  }
+}
+
+/* ---------- Окна-баррикады ---------- */
+const WINDOW_DEFS = [
+  { zone:'start', cx:5,  cz:6, in:[0,-1] },
+  { zone:'start', cx:11, cz:6, in:[0,-1] },
+  { zone:'d1',    cx:1,  cz:7, in:[0,-1] },
+  { zone:'d4',    cx:4,  cz:7, in:[0,-1] }
+];
+function buildWindows(){
+  const plankGeo = new THREE.BoxGeometry(1.9, 0.16, 0.09);
+  const plankMat = new THREE.MeshLambertMaterial({ color:0x7a5a30 });
+  for (const w of WINDOW_DEFS){
+    const zone = MAP.zones[w.zone];
+    const dev = makeDevice('window', w.zone, w.cx, w.cz, w.in, { boards:6, maxBoards:6, breakT:0 });
+    const hole = new THREE.Mesh(new THREE.PlaneGeometry(1.7, 1.6), new THREE.MeshBasicMaterial({ map:DEV_TEX.window() }));
+    hole.position.set(dev.wx, 1.55, dev.wz);
+    hole.rotation.y = Math.atan2(w.in[0], w.in[1]);
+    hole.userData.noRay = true;
+    scene.add(hole);
+    const planks = [];
+    for (let i=0;i<6;i++){
+      const p = new THREE.Mesh(plankGeo, plankMat);
+      p.position.set(dev.wx + w.in[0]*0.07, 0.95 + i*0.24, dev.wz + w.in[1]*0.07);
+      p.rotation.z = (i % 2 === 0) ? 0.35 : -0.35;
+      scene.add(p);
+      planks.push(p);
+    }
+    dev.planks = planks; dev.hole = hole;
+    // точка, откуда зомби влезает внутрь
+    dev.spawnPos = { x: dev.wx + w.in[0]*TILE*1.15, z: dev.wz + w.in[1]*TILE*1.15, zone:w.zone, window:true };
+  }
+}
+function updateWindows(dt){
+  for (const d of MAP.devices){
+    if (d.kind !== 'window') continue;
+    for (let i=0;i<d.planks.length;i++) d.planks[i].visible = i < d.boards;
+    if (d.boards <= 0) continue;                     // уже всё разобрано — ломать нечего
+    let zombieNear = false;
+    for (const z of zombies){
+      if (!z.alive) continue;
+      if (Math.hypot(z.pos.x - d.wx, z.pos.z - d.wz) < 3.0){ zombieNear = true; break; }
+    }
+    if (!zombieNear) continue;
+    d.breakT -= dt;
+    if (d.breakT <= 0){
+      d.breakT = 1.5;
+      d.boards--;
+      const p = d.planks[Math.max(0, d.boards)];
+      if (p) FX.burst(p.position.x, p.position.y, p.position.z, 0, 0.4, 0, 8, 0.55, 0.38, 0.2, 1.6, 6);
+      SFX.burstPlanks();
+    }
+  }
+}
+function repairWindow(d){
+  if (d.boards >= d.maxBoards){ SFX.deny(); return; }
+  d.boards = Math.min(d.maxBoards, d.boards + 1);
+  addPoints(10);
+  SFX.hammer();
+  updateHUD();
+}
+/** Точки спавна из окон: доступны, когда доски сломаны */
+function windowSpawnPoints(){
+  const list = [];
+  for (const d of MAP.devices){
+    if (d.kind !== 'window') continue;
+    if (d.boards > 0) continue;
+    if (!MAP.zoneOpen[d.zone]) continue;
+    list.push(d.spawnPos);
+  }
+  return list;
+}
+
+/* ---------- Пасхалка: радио, вентили, телепорт ---------- */
+const EASTER = { radios:0, valves:0, energized:false, teleporter:null };
+const RADIO_LINES = [
+  '…блок «Б», карантин не снят. Повторяю: не открывайте двери…',
+  '…они не мертвы. Они голодны. И они помнят наши лица…',
+  '…если слышите это — залейте топливо в три вентиля и уходите через телепорт…'
+];
+function buildEasterEgg(){
+  [['start',2,2], ['d3',2,5], ['d4',5,2]].forEach(([zone,cx,cz], i) => {
+    const dev = makeDevice('radio', zone, cx, cz, null, { played:false, line:i });
+    const body = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.35, 0.3), new THREE.MeshLambertMaterial({ color:0x3a3026 }));
+    body.position.set(dev.wx, 0.2, dev.wz);
+    scene.add(body);
+    const dial = new THREE.Mesh(new THREE.SphereGeometry(0.07, 6, 5), new THREE.MeshBasicMaterial({ color:0xff6a2a }));
+    dial.position.set(dev.wx, 0.42, dev.wz);
+    dial.userData.noRay = true;
+    scene.add(dial);
+    dev.mesh = body; dev.dial = dial;
+  });
+  [['start',5,2], ['d1',8,3], ['d2',2,6]].forEach(([zone,cx,cz]) => {
+    const dev = makeDevice('valve', zone, cx, cz, null, { turned:false });
+    const pipe = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 1.2, 8), new THREE.MeshLambertMaterial({ color:0x4a5158 }));
+    pipe.position.set(dev.wx, 0.6, dev.wz);
+    scene.add(pipe);
+    const wheel = new THREE.Mesh(new THREE.TorusGeometry(0.3, 0.06, 6, 14), new THREE.MeshLambertMaterial({ color:0x8a3a2a }));
+    wheel.position.set(dev.wx, 1.2, dev.wz);
+    scene.add(wheel);
+    dev.wheel = wheel; dev.pipe = pipe;
+  });
+  const dev = makeDevice('teleporter', 'd4', 3, 3, null, {});
+  const pad = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.6, 0.18, 20), new THREE.MeshLambertMaterial({ color:0x232a30 }));
+  pad.position.set(dev.wx, 0.09, dev.wz);
+  scene.add(pad);
+  dev.rings = [];
+  for (let i=0;i<3;i++){
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(1.2 - i*0.15, 0.06, 8, 22), new THREE.MeshBasicMaterial({ color:0x2a4a55 }));
+    ring.rotation.x = Math.PI/2;
+    ring.position.set(dev.wx, 1.2 + i*0.7, dev.wz);
+    scene.add(ring);
+    dev.rings.push(ring);
+  }
+  dev.padModel = pad;
+  EASTER.teleporter = dev;
+}
+function useRadio(d){
+  d.played = true;
+  EASTER.radios++;
+  d.dial.material.color.setHex(0x2b2f33);
+  SFX.radio();
+  setToast(RADIO_LINES[d.line], '');
+  if (EASTER.radios >= 3) setToast('Все три записи найдены! Осталось открыть вентили', 'good');
+  checkAchievements();
+}
+function turnValve(d){
+  d.turned = true;
+  EASTER.valves++;
+  d.wheel.rotation.y += 1.4;
+  SFX.valve();
+  setToast(`Вентиль открыт (${EASTER.valves}/3)`, EASTER.valves >= 3 ? 'good' : '');
+  if (EASTER.valves >= 3){
+    EASTER.energized = true;
+    if (EASTER.teleporter) for (const r of EASTER.teleporter.rings) r.material.color.setHex(0x66e0ff);
+    setToast('ТЕЛЕПОРТ ЗАРЯЖЕН! Он в реакторном зале', 'good');
+  }
+  checkAchievements();
+}
+function useTeleporter(){
+  if (!EASTER.energized){ SFX.deny(); setToast('Телепорт обесточен: нужны 3 вентиля', 'warn'); return; }
+  if (GAME.state !== 'play') return;
+  GAME.state = 'won';
+  if (document.pointerLockElement) document.exitPointerLock();
+  SFX.win();
+  unlockAchievement('ee');
+  saveRecords();
+  showWinScreen();
+}
+
+/* ============================================================
    8. ПОСТРОЕНИЕ УРОВНЯ
    ============================================================ */
 const worldCells = new Map();          // "X,Z" (мировые клетки) -> { ch, zone }
@@ -823,7 +1722,8 @@ const MAP = {
   colliderGrid: new Map(),   // быстрый поиск коллайдеров рядом с точкой
   zoneOpen: { start:true },
   zoneDoor: {},              // зона -> дверь, ведущая в неё
-  parentOf: {}               // зона -> родительская зона
+  parentOf: {},              // зона -> родительская зона
+  devices: []                // перки, ящик, PaP, ловушки, турель, окна, пасхалка
 };
 
 /** Применить список объектов (двери/постеры) к сетке зоны */
@@ -1097,10 +1997,18 @@ function nearbyColliders(x, z, out){
 function buildLevel(){
   for (const def of ZONE_DEFS) MAP.zones[def.id] = { def, ox:def.ox, oz:def.oz };
   for (const id in MAP.zones) applyPlacements(MAP.zones[id]);
-  buildWalls();          // заполняет MAP.wallRects
-  buildProps();          // заполняет MAP.propRects
-  buildColliderIndex();  // единый пространственный индекс коллайдеров
+  buildWalls();             // заполняет MAP.wallRects
+  buildProps();             // ящики и бочки -> MAP.propRects
+  buildPerkMachines();     // 5 автоматов перков
+  buildMysteryBox();       // ящик тайн
+  buildPackAPunch();       // улучшение оружия
+  buildTraps();            // электроловушки
+  buildTurret();           // стационарная турель
+  buildWindows();          // окна-баррикады
+  buildEasterEgg();        // радио, вентили, телепорт
+  buildColliderIndex();    // единый пространственный индекс коллайдеров
   buildFloors();
+  buildLamps();            // мерцающие аварийные лампы
   buildDoors();
   buildBuys();
   buildSpawns();
@@ -1124,15 +2032,95 @@ const FX = {
       this.tracers.push({ mesh:m, life:0, max:0.075 });
     }
   },
-  tracer(from, to){
+  tracer(from, to, color){
+    if (color === undefined) color = 0xffd489;
     const t = this.tracers[this.tracerIdx = (this.tracerIdx+1) % this.tracers.length];
     const len = from.distanceTo(to);
     t.mesh.position.copy(from);
     t.mesh.lookAt(to);
     t.mesh.scale.set(1, 1, len);
     t.mesh.visible = true;
+    t.mesh.material.color.setHex(color);
     t.mesh.material.opacity = 0.85;
     t.life = t.max;
+  },
+
+  /* --- электрические дуги (Вундерваффе) --- */
+  initLightning(){
+    this.arcs = [];
+    for (let i=0;i<10;i++){
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(7*3), 3));
+      const mat = new THREE.LineBasicMaterial({ color:0x9fdcff, transparent:true, opacity:0,
+                                                blending:THREE.AdditiveBlending, depthWrite:false });
+      const line = new THREE.Line(geo, mat);
+      line.visible = false; line.frustumCulled = false;
+      scene.add(line);
+      this.arcs.push({ line, life:0, max:0.17 });
+    }
+    this.arcIdx = 0;
+  },
+  lightning(a, b){
+    if (!this.arcs) return;
+    const arc = this.arcs[this.arcIdx = (this.arcIdx+1) % this.arcs.length];
+    const pos = arc.line.geometry.attributes.position.array;
+    for (let i=0;i<7;i++){
+      const t = i/6;
+      const jx = (i===0 || i===6) ? 0 : rand(-0.35,0.35);
+      const jy = (i===0 || i===6) ? 0 : rand(-0.3,0.3);
+      const jz = (i===0 || i===6) ? 0 : rand(-0.35,0.35);
+      pos[i*3]   = lerp(a.x, b.x, t) + jx;
+      pos[i*3+1] = lerp(a.y, b.y, t) + jy + Math.sin(t*Math.PI)*0.25;
+      pos[i*3+2] = lerp(a.z, b.z, t) + jz;
+    }
+    arc.line.geometry.attributes.position.needsUpdate = true;
+    arc.line.visible = true;
+    arc.line.material.opacity = 1;
+    arc.life = arc.max;
+  },
+  updateLightning(dt){
+    if (!this.arcs) return;
+    for (const a of this.arcs){
+      if (!a.line.visible) continue;
+      a.life -= dt;
+      if (a.life <= 0){ a.line.visible = false; continue; }
+      a.line.material.opacity = a.life/a.max;
+    }
+  },
+
+  /* --- кольца ударной волны --- */
+  initRings(){
+    this.rings = [];
+    for (let i=0;i<8;i++){
+      const mat = new THREE.SpriteMaterial({ map:TX.ring, transparent:true, opacity:0,
+                                             blending:THREE.AdditiveBlending, depthWrite:false });
+      const spr = new THREE.Sprite(mat);
+      spr.visible = false;
+      scene.add(spr);
+      this.rings.push({ spr, life:0, max:0.38 });
+    }
+    this.ringIdx = 0;
+  },
+  ring(x, y, z, color){
+    if (!this.rings) return;
+    const r = this.rings[this.ringIdx = (this.ringIdx+1) % this.rings.length];
+    r.spr.position.set(x, y, z);
+    r.spr.material.color.setHex(color || 0xffaa44);
+    r.spr.visible = true;
+    r.spr.material.opacity = 1;
+    r.life = r.max;
+  },
+  updateRings(dt){
+    if (!this.rings) return;
+    for (const r of this.rings){
+      if (!r.spr.visible) continue;
+      r.life -= dt;
+      if (r.life <= 0){ r.spr.visible = false; continue; }
+      const k = 1 - r.life/r.max;
+      const s = 0.6 + k*6.5;
+      r.spr.scale.set(s, s, s);
+      r.spr.material.opacity = 1 - k;
+    }
   },
   updateTracers(dt){
     for (const t of this.tracers){
@@ -1263,8 +2251,14 @@ const FX = {
     }
   },
 
-  initAll(){ this.initTracers(); this.initParticles(); this.initBlood(); this.initDecals(); },
-  update(dt){ this.updateTracers(dt); this.updateParticles(dt); this.updateBlood(dt); this.updateDecals(dt); }
+  initAll(){
+    this.initTracers(); this.initParticles(); this.initBlood(); this.initDecals();
+    this.initLightning(); this.initRings();
+  },
+  update(dt){
+    this.updateTracers(dt); this.updateParticles(dt); this.updateBlood(dt);
+    this.updateDecals(dt); this.updateLightning(dt); this.updateRings(dt);
+  }
 };
 
 /* ============================================================
@@ -1326,6 +2320,8 @@ function updatePlayer(dt, now){
   if (Input.s) fz += 1;
   if (Input.a) fx -= 1;
   if (Input.d) fx += 1;
+  // мобильный джойстик
+  if (TOUCH.active){ fx += TOUCH.moveX; fz += TOUCH.moveY; }
   // резервный поворот (если мышь без захвата курсора)
   if (Input.q) PLAYER.yaw += 1.9*dt;
   if (Input.e) PLAYER.yaw -= 1.9*dt;
@@ -1386,6 +2382,22 @@ function damagePlayer(amount){
   DOM.damageFlash.style.opacity = '1';
   setTimeout(()=>{ DOM.damageFlash.style.opacity = '0'; }, 90);
   if (PLAYER.health <= 0){
+    // Quick Revive поднимает игрока один раз за игру
+    if (PERKS.revive && !PERKS.reviveUsed){
+      PERKS.reviveUsed = true;
+      PLAYER.health = Math.max(60, PLAYER.maxHealth*0.5);
+      PLAYER.lastDamage = GAME.time;
+      setToast('Quick Revive: вы снова на ногах!', 'good');
+      SFX.perk();
+      for (const z of zombies){
+        if (!z.alive) continue;
+        const dx = z.pos.x - PLAYER.pos.x, dz = z.pos.z - PLAYER.pos.z;
+        const d = Math.hypot(dx, dz) || 1;
+        if (d < 4.5){ z.pos.x += dx/d*2.2; z.pos.z += dz/d*2.2; }
+      }
+      updateHUD();
+      return;
+    }
     PLAYER.health = 0;
     gameOver();
   }
@@ -1410,6 +2422,27 @@ const ZG = {
   eye   : new THREE.SphereGeometry(0.03, 6, 5),
   spine : new THREE.BoxGeometry(0.2, 0.3, 0.2)
 };
+
+/* ---------- типы зомби: множители характеристик и особенности ---------- */
+const ZOMBIE_TYPES = {
+  normal : { hp:1.00, sp:1.00, dmg:1.00, size:1.00 },
+  runner : { hp:0.75, sp:1.75, dmg:0.85, size:0.94, skin:0x7fa05a, cloth:0x6b1f1f },
+  tank   : { hp:2.40, sp:0.72, dmg:1.60, size:1.16, skin:0x46543a },
+  crawler: { hp:0.50, sp:1.45, dmg:0.80, size:0.62, skin:0x6d7a4a, crawl:true },
+  spitter: { hp:0.90, sp:0.95, dmg:0.70, size:1.00, skin:0x5c8a4a, cloth:0x2f4a2f, spit:true },
+  dog    : { hp:0.45, sp:2.05, dmg:0.90, size:1.00, quadruped:true },
+  boss   : { hp:14.0, sp:0.85, dmg:2.40, size:1.75, skin:0x3f5a33, cloth:0x5a1010, boss:true }
+};
+/** Случайный тип для текущей волны (жуть нарастает постепенно) */
+function pickZombieType(wave){
+  if (GAME.dogRound) return 'dog';
+  const r = Math.random();
+  if (wave >= 6 && r < 0.20) return 'runner';
+  if (wave >= 5 && r >= 0.82 && r < 0.92) return 'tank';
+  if (wave >= 7 && r >= 0.92 && r < 0.965) return 'crawler';
+  if (wave >= 9 && r >= 0.965) return 'spitter';
+  return 'normal';
+}
 
 /* Разные «породы» зомби: цвет кожи/одежды */
 const ZOMBIE_SKINS = [
@@ -1487,43 +2520,101 @@ function createZombieMesh(skinIdx, scale){
   return { root, body, head, arms, legs, mats, mSkin, mCloth, mPants, mDark, mEye };
 }
 
+/** Модель зомби-собаки: четвероногое, вытянутое тело */
+function createDogMesh(skinIdx, scale){
+  const mSkin  = new THREE.MeshLambertMaterial({ color:0x6a4a3a });
+  const mCloth = new THREE.MeshLambertMaterial({ color:0x3a2a22 });
+  const mPants = new THREE.MeshLambertMaterial({ color:0x241a14 });
+  const mDark  = new THREE.MeshLambertMaterial({ color:0x141414 });
+  const mEye   = new THREE.MeshBasicMaterial({ color:0xff5522 });
+  const mats = [mSkin, mCloth, mPants, mDark];
+
+  const root = new THREE.Group();
+  const body = new THREE.Group();
+  root.add(body);
+
+  const torso = new THREE.Mesh(ZG.torso, mSkin);
+  torso.rotation.x = Math.PI/2 * 0.98;
+  torso.position.set(0, 0.6, 0.02);
+  torso.scale.set(0.75, 1.15, 0.8);
+  body.add(torso);
+  const chest = new THREE.Mesh(ZG.chest, mCloth);
+  chest.rotation.x = Math.PI/2 * 0.98;
+  chest.position.set(0, 0.62, -0.32);
+  chest.scale.set(0.7, 1.0, 0.6);
+  body.add(chest);
+
+  const head = new THREE.Group();
+  head.position.set(0, 0.72, -0.62);
+  body.add(head);
+  const skull = new THREE.Mesh(ZG.head, mSkin);
+  skull.scale.set(0.85, 0.85, 1.25);
+  head.add(skull);
+  const jaw = new THREE.Mesh(ZG.jaw, mSkin);
+  jaw.position.set(0, -0.08, -0.12);
+  jaw.rotation.x = -0.35;
+  head.add(jaw);
+  const earL = new THREE.Mesh(ZG.jaw, mDark), earR = new THREE.Mesh(ZG.jaw, mDark);
+  earL.scale.set(0.35,1.4,0.35); earL.position.set(-0.09, 0.14, 0.02);
+  earR.scale.set(0.35,1.4,0.35); earR.position.set( 0.09, 0.14, 0.02);
+  head.add(earL, earR);
+  const eyeL = new THREE.Mesh(ZG.eye, mEye), eyeR = new THREE.Mesh(ZG.eye, mEye);
+  eyeL.position.set(-0.06, 0.03, -0.16);
+  eyeR.position.set( 0.06, 0.03, -0.16);
+  head.add(eyeL, eyeR);
+  const tail = new THREE.Mesh(ZG.arm, mSkin);
+  tail.scale.set(0.5,0.5,0.55); tail.position.set(0, 0.62, 0.42); tail.rotation.x = -0.5;
+  body.add(tail);
+
+  const legs = [];
+  const legPositions = [[-0.16,-0.34],[0.16,-0.34],[-0.16,0.30],[0.16,0.30]];
+  for (const [lx,lz] of legPositions){
+    const leg = new THREE.Group();
+    leg.position.set(lx, 0.52, lz);
+    const lm = new THREE.Mesh(ZG.leg, mPants);
+    lm.scale.set(0.62, 0.6, 0.7);
+    leg.add(lm);
+    body.add(leg); legs.push(leg);
+  }
+
+  const tag = (mesh, part, mult) => { mesh.userData.part = part; mesh.userData.mult = mult; };
+  tag(skull,'head',2.6); tag(jaw,'head',2.6);
+  tag(torso,'body',1); tag(chest,'body',1); tag(tail,'limb',0.6);
+  for (const leg of legs) leg.children.forEach(m => tag(m,'limb',0.7));
+
+  root.scale.setScalar(scale * 0.95);
+  return { root, body, head, arms:[], legs, mats, mSkin, mCloth, mPants, mDark, mEye, tail };
+}
 /** Создать зомби (вызывается системой волн) */
-function spawnZombie(spawnPoint){
+function spawnZombie(spawnPoint, forcedType){
   const wave = GAME.wave;
+  const type = forcedType || pickZombieType(wave);
+  const cfg = ZOMBIE_TYPES[type] || ZOMBIE_TYPES.normal;
   const skinIdx = randInt(0, ZOMBIE_SKINS.length-1);
   const scale  = rand(0.92, 1.08);
-  const mesh = createZombieMesh(skinIdx, scale);
+  const mesh = cfg.quadruped ? createDogMesh(skinIdx, scale) : createZombieMesh(skinIdx, scale);
 
-  // Типы: обычный, «бегун» (с 6-й волны), «танк» (каждая 5-я волна)
-  let type = 'normal';
-  const roll = Math.random();
-  if (wave >= 6 && roll < 0.22) type = 'runner';
-  else if (wave >= 5 && roll > 0.88) type = 'tank';
+  const hp = (100 + 52*(wave-1)) * cfg.hp * (wave > 10 ? Math.pow(1.06, wave-10) : 1) * TWEAKS.hp;
+  const speed = Math.min(3.1, 1.28 + 0.085*(wave-1)) * cfg.sp * TWEAKS.speed;
+  const dmg = Math.min(38, ZOMBIE_DMG_BASE + 1.15*wave) * cfg.dmg * TWEAKS.dmg;
 
-  const hpMul   = type === 'tank' ? 2.4 : (type === 'runner' ? 0.75 : 1);
-  const spMul   = type === 'runner' ? 1.75 : (type === 'tank' ? 0.72 : 1);
-  const dmgMul  = type === 'tank' ? 1.6 : (type === 'runner' ? 0.85 : 1);
-  const sizeMul = type === 'tank' ? 1.16 : (type === 'runner' ? 0.94 : 1);
-
-  const hp = (100 + 52*(wave-1)) * hpMul * (wave > 10 ? Math.pow(1.06, wave-10) : 1);
-  const speed = Math.min(2.95, 1.28 + 0.085*(wave-1)) * spMul;
-  const dmg = Math.min(34, ZOMBIE_DMG_BASE + 1.15*wave) * dmgMul;
-
-  const finalScale = scale * sizeMul;
-  if (type === 'runner'){ mesh.mCloth.color.setHex(0x6b1f1f); mesh.mSkin.color.setHex(0x7fa05a); }
-  if (type === 'tank'){ mesh.root.scale.setScalar(finalScale); mesh.mSkin.color.setHex(0x46543a); }
+  const finalScale = scale * cfg.size;
+  if (cfg.skin)  mesh.mSkin.color.setHex(cfg.skin);
+  if (cfg.cloth) mesh.mCloth.color.setHex(cfg.cloth);
+  if (cfg.size !== 1) mesh.root.scale.setScalar(finalScale);
 
   mesh.root.position.set(spawnPoint.x, -1.75, spawnPoint.z);
   mesh.root.rotation.y = Math.atan2(spawnPoint.x - PLAYER.pos.x, spawnPoint.z - PLAYER.pos.z);
-  mesh.root.traverse(o => { if (o.isMesh) o.userData.zref = null; });
 
   zombiesRoot.add(mesh.root);
 
   const z = {
     mesh, root: mesh.root, pos: new THREE.Vector3(spawnPoint.x, 0, spawnPoint.z),
-    hp, hpMax:hp, speed, dmg, type, scale:finalScale, radius: ZOMBIE_R*sizeMul,
-    phase: Math.random()*6.28, dying:false, deathT:0, spawnT:0, spawning:true,
+    hp, hpMax:hp, speed, dmg, type, cfg, scale:finalScale,
+    radius: ZOMBIE_R * (cfg.quadruped ? 0.62 : cfg.size) * rand(0.95,1.05),
+    phase: Math.random()*6.28, dying:false, deathT:0, spawnT:0, spawning:!spawnPoint.window,
     nextAttack:0, attackT:0, flashT:0, growlT: rand(1,5), alive:true,
+    crawlPose: !!cfg.crawl, spitT: now0() + rand(2.5, 5), boss: !!cfg.boss,
     detourT:0, detourDir:1, movedAcc:0, moveT:0,       // обход препятствий
     stuckTime:0,                                       // сколько секунд подряд не может пройти
     progT:0, progRef:999, noProg:0,                    // контроль «топтания на месте»
@@ -1531,9 +2622,154 @@ function spawnZombie(spawnPoint){
     navDoorId:null, navSide:'out'
   };
   mesh.root.traverse(o => { if (o.isMesh) o.userData.zref = z; });
+
+  // аура босса и «появление через окно»
+  if (z.boss){
+    const light = new THREE.PointLight(0x66ff88, 1.2, 8, 2);
+    light.position.set(0, 1.7, 0);
+    mesh.root.add(light);
+  }
+  if (spawnPoint.window){
+    z.root.position.y = 0;
+    z.spawning = false;
+    z.windowClimb = 0.9;                    // «перелезает» через подоконник
+  }
   zombies.push(z);
-  SFX.spawn();
+  if (z.boss) SFX.bossRoar();
+  else if (type === 'dog') SFX.dog();
+  else SFX.spawn();
   return z;
+}
+/** игровое время (для инициализации таймеров зомби) */
+function now0(){ return GAME.time; }
+
+/** Сплёвывание кислоты (зомби-плевуны) */
+const spitList = [];
+function spitProjectile(z){
+  const from = new THREE.Vector3(z.pos.x, 1.45 * z.scale, z.pos.z);
+  const to = new THREE.Vector3(PLAYER.pos.x, EYE - 0.1, PLAYER.pos.z);
+  const dir = to.sub(from).normalize();
+  dir.y += 0.06;
+  const mesh = new THREE.Mesh(
+    new THREE.SphereGeometry(0.12, 8, 6),
+    new THREE.MeshBasicMaterial({ color:0x9ef03a })
+  );
+  const spr = new THREE.Sprite(new THREE.SpriteMaterial({ map:TX.blood, color:0x9ef03a, transparent:true, opacity:0.6, depthWrite:false }));
+  spr.scale.set(0.5,0.5,0.5);
+  mesh.add(spr);
+  mesh.position.copy(from);
+  scene.add(mesh);
+  spitList.push({ mesh, vel: dir.multiplyScalar(13), life: 2.6 });
+  SFX.spit();
+}
+/** Обновление кислотных плевков */
+function updateSpits(dt){
+  for (let i=spitList.length-1;i>=0;i--){
+    const p = spitList[i];
+    p.life -= dt;
+    p.vel.y -= 2.2*dt;
+    p.mesh.position.addScaledVector(p.vel, dt);
+    const hitPlayer = p.mesh.position.distanceTo(camera.position) < 0.55;
+    const hitWall = blocked(p.mesh.position.x, p.mesh.position.z, 0.1, false) || p.mesh.position.y < 0.05;
+    if (hitPlayer){
+      damagePlayer(9);
+      DOM.damageFlash.style.background = 'radial-gradient(ellipse at center, rgba(90,180,0,.15) 25%, rgba(120,220,20,.7) 100%)';
+      setTimeout(()=>{ DOM.damageFlash.style.background = ''; }, 120);
+    }
+    if (hitPlayer || hitWall || p.life <= 0){
+      FX.burst(p.mesh.position.x, p.mesh.position.y, p.mesh.position.z, 0,1,0, 8, 0.62,0.94,0.23, 2.0, 8);
+      scene.remove(p.mesh);
+      p.mesh.geometry.dispose(); p.mesh.material.dispose();
+      spitList.splice(i,1);
+    }
+  }
+}
+
+/* ============================================================
+   11.1 ПАВЕР-АПЫ: выпадают из убитых зомби
+   ============================================================ */
+const POWER_KEYS = ['insta','double','maxammo','nuke','firesale'];
+
+function maybeDropPowerup(x, z){
+  let chance = 0.045 + (GAME.wave >= 5 ? 0.012 : 0);
+  if (Math.random() < chance) spawnPowerup(x, z);
+}
+/** Принудительно выдать павер-ап (гарантированные награды: собаки, босс) */
+function spawnPowerup(x, z, key){
+  key = key || pick(POWER_KEYS);
+  const d = POWER_DEFS[key];
+  const mat = new THREE.SpriteMaterial({ map:TX.power, color:d.color, transparent:true,
+                                         blending:THREE.AdditiveBlending, depthWrite:false });
+  const spr = new THREE.Sprite(mat);
+  spr.position.set(x, 0.9, z);
+  spr.scale.set(0.55, 0.55, 0.55);
+  scene.add(spr);
+  powerDrops.push({ key, spr, life: 24, phase: Math.random()*6.28 });
+}
+/** Подбор и действие бонусов */
+function updatePowerups(dt, now){
+  // таймеры активных бонусов
+  let hudDirty = false;
+  for (const k in POWER){
+    if (POWER[k] > 0){ POWER[k] -= dt; if (POWER[k] <= 0){ POWER[k] = 0; hudDirty = true; } }
+  }
+  if (hudDirty) updatePowerHUD();
+
+  for (let i=powerDrops.length-1;i>=0;i--){
+    const p = powerDrops[i];
+    p.life -= dt;
+    p.spr.position.y = 0.9 + Math.sin(now*2.4 + p.phase)*0.12;
+    p.spr.material.rotation += dt*0.8;
+    const d = Math.hypot(p.spr.position.x - PLAYER.pos.x, p.spr.position.z - PLAYER.pos.z);
+    if (d < 1.15){
+      applyPowerup(p.key);
+      scene.remove(p.spr);
+      p.spr.material.dispose();
+      powerDrops.splice(i,1);
+      continue;
+    }
+    if (p.life <= 0){
+      scene.remove(p.spr);
+      p.spr.material.dispose();
+      powerDrops.splice(i,1);
+    }
+  }
+}
+/** Применить бонус */
+function applyPowerup(key){
+  const d = POWER_DEFS[key];
+  SFX.powerup();
+  GAME.powerupsTaken++;
+  GAME.powerupsSeen[key] = true;
+  if (key === 'maxammo'){
+    for (const s of weaponState.slots){
+      if (!s) continue;
+      s.ammo = Math.round(WEAPONS[s.id].mag * (s.upgraded?2:1));
+      s.reserve = Math.round(WEAPONS[s.id].reserve * (s.upgraded?2:1));
+    }
+    const act = weaponState.slots[weaponState.slot];
+    weaponState.ammo = act.ammo; weaponState.reserve = act.reserve;
+    GRENADES.count = GRENADES.max;
+    setToast('МАКС. ПАТРОНЫ: боезапас пополнен', 'good');
+  } else if (key === 'nuke'){
+    SFX.nuke();
+    unlockAchievement('nuke');
+    setToast('ЯДЕРНЫЙ ВЗРЫВ! +400 очков', 'good');
+    for (const z of zombies.slice()){
+      if (z.alive && !z.dying){
+        damageZombie(z, 1e9, false);
+        onZombieKilled(z, z.pos.x, 1.2, z.pos.z, true);
+      }
+    }
+    addPoints(400);
+    FX.ring(PLAYER.pos.x, 0.4, PLAYER.pos.z, 0x66ffdd);
+    FX.ring(PLAYER.pos.x, 0.9, PLAYER.pos.z, 0xffffff);
+  } else {
+    POWER[key] = Math.max(POWER[key], d.dur);
+    setToast(d.name.toUpperCase() + '!', 'good');
+  }
+  updatePowerHUD();
+  updateHUD();
 }
 
 /** Применить урон зомби. Возвращает 'kill' | 'hit' */
@@ -1559,6 +2795,10 @@ function updateZombieFlash(z, dt){
 
 /** Смерть: падение, затем удаление */
 function updateZombieDeath(z, dt){
+  if (z.deathT === 0){
+    if (z.boss) spawnPowerup(z.pos.x, z.pos.z, 'maxammo');       // с босса — гарантированный бонус
+    if (z.fromWindow === undefined && false) {}                  // (заглушка совместимости)
+  }
   z.deathT += dt;
   const t = Math.min(1, z.deathT / 0.75);
   const e = 1 - Math.pow(1-t, 3);
@@ -1663,7 +2903,7 @@ function steerZombie(z, dx, dz, dt){
  */
 function relocateZombie(z){
   const active = MAP.spawns.filter(s => MAP.zoneOpen[s.zone]);
-  if (!active.length) return;
+  if (!active.length || !z.alive) return;
   const dist = s => Math.hypot(s.x - PLAYER.pos.x, s.z - PLAYER.pos.z);
   const near = active.filter(s => dist(s) > 5 && dist(s) < 16);
   const p = near.length ? pick(near) : active[0];
@@ -1778,39 +3018,76 @@ function updateZombies(dt, now){
     } else {
       // --- атака вплотную ---
       if (now >= z.nextAttack){
-        z.nextAttack = now + rand(1.0, 1.25);
+        z.nextAttack = now + (z.type === 'dog' ? rand(0.55, 0.8) : (z.boss ? rand(1.35, 1.6) : rand(1.0, 1.25)));
         z.attackT = 0.32;
         damagePlayer(z.dmg);
         FX.bloodBurst(PLAYER.pos.x, 1.25, PLAYER.pos.z, 3);
       }
     }
+
+    // --- плевуны: кислотный плевок с дистанции ---
+    if (z.type === 'spitter' && now >= z.spitT && dist > 3.2 && dist < 19){
+      z.spitT = now + rand(2.6, 4.4);
+      z.attackT = 0.4;
+      spitProjectile(z);
+    }
+
+    // --- «перелезание» через подоконник (спавн из окна) ---
+    if (z.windowClimb > 0){
+      z.windowClimb -= dt;
+      const wx = PLAYER.pos.x - z.pos.x, wz = PLAYER.pos.z - z.pos.z;
+      const wd = Math.hypot(wx, wz) || 1;
+      moveWithCollision(z.pos, wx/wd*3.0*dt, wz/wd*3.0*dt, z.radius, true);
+    }
     if (z.attackT > 0) z.attackT -= dt;
 
-    // --- анимация ходьбы ---
+    // --- анимация ходьбы (с учётом типа: двуногие, четвероногие, ползуны) ---
     const moving = dist > atkRange*0.92;
     const spd2 = z.speed;
+    const legs = z.mesh.legs, arms = z.mesh.arms;
     z.phase += dt * (moving ? spd2*3.4 : 1.6);
     const sw = Math.sin(z.phase), sw2 = Math.cos(z.phase);
     const amp = moving ? 0.5 : 0.12;
-    z.mesh.legs[0].rotation.x = sw*amp;
-    z.mesh.legs[1].rotation.x = -sw*amp;
-    const reach = z.type === 'runner' ? -0.55 : -0.18;
     const attackSwing = z.attackT > 0 ? (z.attackT/0.32)*0.9 : 0;
-    z.mesh.arms[0].rotation.x = reach + sw*0.16 - attackSwing;
-    z.mesh.arms[1].rotation.x = reach - sw*0.16 - attackSwing;
-    z.mesh.arms[0].rotation.z = -0.14 + sw2*0.06;
-    z.mesh.arms[1].rotation.z =  0.14 - sw2*0.06;
-    z.mesh.body.rotation.x = 0.1 + (moving ? 0.13 : 0) + attackSwing*0.25;
+
+    if (legs.length >= 2){
+      if (legs.length >= 4){
+        // собака: попарно
+        legs[0].rotation.x = sw*amp;
+        legs[1].rotation.x = -sw*amp;
+        legs[2].rotation.x = -sw*amp;
+        legs[3].rotation.x = sw*amp;
+      } else {
+        legs[0].rotation.x = sw*amp;
+        legs[1].rotation.x = -sw*amp;
+      }
+    }
+    if (arms.length >= 2){
+      const reach = z.type === 'runner' ? -0.55 : (z.boss ? -0.35 : -0.18);
+      arms[0].rotation.x = reach + sw*0.16 - attackSwing;
+      arms[1].rotation.x = reach - sw*0.16 - attackSwing;
+      arms[0].rotation.z = -0.14 + sw2*0.06;
+      arms[1].rotation.z =  0.14 - sw2*0.06;
+    } else if (z.mesh.tail){
+      z.mesh.tail.rotation.z = sw*0.5;
+      z.mesh.tail.rotation.x = -0.5 + sw2*0.2;
+    }
+    const basePitch = z.crawlPose ? 1.15 : 0.1;
+    z.mesh.body.rotation.x = basePitch + (moving ? 0.13 : 0) + attackSwing*0.25;
     z.mesh.body.position.y = Math.abs(sw)*0.05;
     z.mesh.head.rotation.z = sw*0.09;
     z.mesh.head.rotation.y = Math.sin(z.phase*0.5)*0.18;
     z.root.position.y = 0;
 
-    // --- рычание ---
+    // --- звуки зомби ---
     z.growlT -= dt;
     if (z.growlT <= 0){
       z.growlT = rand(3.5, 9);
-      if (dist < 16) SFX.growl(clamp(0.28 - dist*0.012, 0.03, 0.28));
+      if (z.type === 'dog'){
+        if (dist < 18) SFX.dog();
+      } else if (dist < 16){
+        SFX.growl(clamp(0.28 - dist*0.012, 0.03, 0.28) * (z.boss ? 1.6 : 1));
+      }
     }
   }
 
@@ -1854,16 +3131,44 @@ const _muzzleWorld = new THREE.Vector3();
 const _endPoint = new THREE.Vector3();
 
 const weaponState = {
-  id:'pistol', ammo:WEAPONS.pistol.mag, reserve:WEAPONS.pistol.reserve,
+  id:'pistol', ammo:WEAPONS.pistol.mag, reserve:WEAPONS.pistol.reserve, upgraded:false,
   nextShot:0, reloading:false, reloadEnd:0, reloadT:0,
   aiming:false, aimT:0, recoil:0, raiseT:0, model:null,
-  owned:{ pistol:true }
+  owned:{ pistol:true },
+  slot:0,
+  /* два слота: у каждого своё оружие, патроны и улучшение */
+  slots:[ { id:'pistol', ammo:WEAPONS.pistol.mag, reserve:WEAPONS.pistol.reserve, upgraded:false }, null ]
 };
 
-/** Смена оружия (при покупке или старте) */
-function equipWeapon(id){
+/** Сохранить состояние активного слота */
+function saveActiveSlot(){
+  const s = weaponState.slots[weaponState.slot];
+  if (s){ s.id = weaponState.id; s.ammo = weaponState.ammo; s.reserve = weaponState.reserve; s.upgraded = weaponState.upgraded; }
+}
+/** Переключение слота оружия (клавиши 1/2) */
+function switchSlot(n){
+  if (n === weaponState.slot || !weaponState.slots[n]) return;
+  saveActiveSlot();
+  weaponState.slot = n;
+  const s = weaponState.slots[n];
+  weaponState.id = s.id; weaponState.ammo = s.ammo; weaponState.reserve = s.reserve; weaponState.upgraded = !!s.upgraded;
+  weaponState.reloading = false;
+  weaponState.nextShot = GAME.time + 0.4;
+  weaponState.raiseT = 0.35;
+  if (weaponState.model) weaponScene.remove(weaponState.model.holder);
+  weaponState.model = createViewModel(weaponState.id);
+  if (weaponState.upgraded) tintViewModel(weaponState.model, 0xffcc44);
+  SFX.reload();
+  updateHUD();
+}
+
+/** Смена оружия (при покупке, из ящика, при старте) */
+function equipWeapon(id, slotIdx){
   const w = WEAPONS[id];
+  const slot = (slotIdx === undefined) ? weaponState.slot : slotIdx;
+  weaponState.slot = slot;
   weaponState.id = id;
+  weaponState.upgraded = false;
   weaponState.ammo = w.mag;
   weaponState.reserve = w.reserve;
   weaponState.reloading = false;
@@ -1872,11 +3177,87 @@ function equipWeapon(id){
   if (weaponState.model) weaponScene.remove(weaponState.model.holder);
   weaponState.model = createViewModel(id);
   weaponState.owned[id] = true;
+  weaponState.slots[slot] = { id, ammo:weaponState.ammo, reserve:weaponState.reserve, upgraded:false };
+}
+
+/** Подсветить улучшенное оружие золотым оттенком */
+function tintViewModel(vm, color){
+  vm.model.traverse(o => {
+    if (o.isMesh && o.material && o.material.color && !o.material.userData.__tinted){
+      o.material = o.material.clone();
+      o.material.color.lerp(new THREE.Color(color), 0.45);
+      o.material.emissive = new THREE.Color(color).multiplyScalar(0.12);
+      o.material.userData.__tinted = true;
+    }
+  });
+}
+
+/** Урон по площади (Ray Gun, Вундерваффе, гранаты) */
+function splashDamage(x, y, z, radius, dmg, ignore){
+  let kills = 0;
+  for (let i=zombies.length-1;i>=0;i--){
+    const zb = zombies[i];                       // вариант-жертва (не путать с координатой z)
+    if (!zb.alive || zb === ignore) continue;
+    const d = Math.hypot(zb.pos.x - x, zb.pos.z - z);
+    if (d > radius) continue;
+    const falloff = clamp(1 - d/radius, 0.35, 1);
+    const res = damageZombie(zb, dmg*falloff, false);
+    if (res === 'kill'){ kills++; onZombieKilled(zb, zb.pos.x, y, zb.pos.z); }
+    else onZombieHit(zb, zb.pos.x, y, zb.pos.z, false);
+  }
+  return kills;
+}
+
+/** Электрическая цепь Вундерваффе: бьёт до N соседних зомби */
+function chainLightning(from, count){
+  let current = from;
+  let hitCount = 0;
+  const used = new Set([from]);
+  while (hitCount < count){
+    let best = null, bestD = 6;
+    for (const z of zombies){
+      if (!z.alive || used.has(z)) continue;
+      const d = Math.hypot(z.pos.x - current.pos.x, z.pos.z - current.pos.z);
+      if (d < bestD){ bestD = d; best = z; }
+    }
+    if (!best) break;
+    used.add(best);
+    hitCount++;
+    // визуальная дуга между зомби
+    const a = new THREE.Vector3(current.pos.x, 1.3, current.pos.z);
+    const b = new THREE.Vector3(best.pos.x, 1.3, best.pos.z);
+    FX.lightning(a, b);
+    const res = damageZombie(best, getWeaponStats().damage*0.6, false);
+    if (res === 'kill') onZombieKilled(best, b.x, b.y, b.z);
+    else onZombieHit(best, b.x, b.y, b.z, false);
+    current = best;
+  }
+}
+
+/** Общая реакция на попадание по зомби (звук, кровь, метка) */
+function onZombieHit(z, x, y, zz, isHead){
+  FX.bloodBurst(x, y, zz, isHead ? 6 : 3);
+  FX.decal(x, zz, rand(0.5, 0.9));
+  if (isHead) SFX.headshot(); else SFX.hit();
+  showHitmarker(false);
+}
+/** Общая реакция на убийство зомби (очки, эффекты, бонусы) */
+function onZombieKilled(z, x, y, zz, noPoints){
+  if (!noPoints) addPoints(60 * TWEAKS.points);      // +60 за убийство (с учётом настройки)
+  GAME.kills++;
+  GAME.noKillT = 0;
+  SFX.kill();
+  FX.bloodBurst(x, y, zz, 8);
+  FX.decal(x, zz, rand(1.2, 1.9));
+  FX.burst(x, y, zz, 0,1,0, 10, 0.55,0.05,0.05, 2.2, 8);
+  showHitmarker(true);
+  maybeDropPowerup(z.pos.x, z.pos.z);
+  checkAchievements();
 }
 
 /** Начать перезарядку */
 function startReload(){
-  const w = WEAPONS[weaponState.id];
+  const w = getWeaponStats();
   if (weaponState.reloading || weaponState.ammo >= w.mag || weaponState.reserve <= 0) return;
   weaponState.reloading = true;
   weaponState.reloadEnd = GAME.time + w.reload;
@@ -1886,7 +3267,7 @@ function startReload(){
 
 /** Выстрел (одно нажатие/один тик автоогня) */
 function fireWeapon(){
-  const w = WEAPONS[weaponState.id];
+  const w = getWeaponStats();
   const now = GAME.time;
   if (GAME.state !== 'play' || weaponState.reloading || now < weaponState.nextShot) return;
   if (weaponState.ammo <= 0){ SFX.empty(); startReload(); return; }
@@ -1939,7 +3320,7 @@ function fireWeapon(){
     }
 
     _endPoint.copy(_rayOrigin).addScaledVector(_rayDir, Math.min(hitDist, w.range));
-    FX.tracer(_muzzleWorld, _endPoint);
+    FX.tracer(_muzzleWorld, _endPoint, w.tracer);
 
     if (hitZombie){
       const mult = (hitPart === 'head') ? 2.6 : (hitPart === 'limb' ? 0.75 : 1);
@@ -1947,18 +3328,18 @@ function fireWeapon(){
       GAME.hits++;
       const res = damageZombie(hitZombie, w.damage * mult, isHead);
       addPoints(10);                                     // +10 за попадание
-      FX.bloodBurst(_endPoint.x, _endPoint.y, _endPoint.z, isHead ? 6 : 3);
-      FX.decal(_endPoint.x, _endPoint.z, rand(0.5, 0.9));
-      if (isHead) SFX.headshot(); else SFX.hit();
-      showHitmarker(res === 'kill');
+      onZombieHit(hitZombie, _endPoint.x, _endPoint.y, _endPoint.z, isHead);
       if (res === 'kill'){
-        addPoints(60);                                   // +60 за убийство
-        GAME.kills++;
-        GAME.noKillT = 0;
-        SFX.kill();
-        FX.bloodBurst(_endPoint.x, _endPoint.y, _endPoint.z, 8);
-        FX.decal(_endPoint.x, _endPoint.z, rand(1.2, 1.9));
-        FX.burst(_endPoint.x, _endPoint.y, _endPoint.z, 0,1,0, 10, 0.55,0.05,0.05, 2.2, 8);
+        if (isHead) GAME.headshotKills++;
+        onZombieKilled(hitZombie, _endPoint.x, _endPoint.y, _endPoint.z);
+      }
+      // урон по площади (чудо-оружие)
+      if (w.splash > 0){
+        FX.ring(_endPoint.x, _endPoint.y, _endPoint.z, w.tracer);
+        FX.burst(_endPoint.x, _endPoint.y, _endPoint.z, 0,1,0, 18, 0.5,1.0,0.6, 3.4, 2);
+        SFX.zap();
+        splashDamage(_endPoint.x, _endPoint.y, _endPoint.z, w.splash, w.splashDamage, hitZombie);
+        if (w.chain) chainLightning(hitZombie, w.chain);
       }
     } else {
       // --- попадание в стену/пропс: искры и пыль ---
@@ -1980,6 +3361,70 @@ function fireWeapon(){
   updateHUD();
 }
 
+/* ============================================================
+   12.1 ГРАНАТЫ
+   ============================================================ */
+const GRENADE_R = 4.2, GRENADE_DMG = 400;
+
+/** Бросить гранату (клавиша G) */
+function throwGrenade(){
+  if (GAME.state !== 'play') return;
+  if (GRENADES.count <= 0 || GAME.time < GRENADES.next) return;
+  GRENADES.count--;
+  GRENADES.next = GAME.time + 0.6;
+  updateHUD();
+
+  const geo = new THREE.SphereGeometry(0.11, 10, 8);
+  const mat = new THREE.MeshLambertMaterial({ color:0x2f3a2f });
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.position.copy(camera.position);
+  scene.add(mesh);
+
+  const dir = new THREE.Vector3(0,0,-1).applyQuaternion(camera.quaternion).normalize();
+  grenadeList.push({
+    mesh, vel: new THREE.Vector3().copy(dir).multiplyScalar(13).add(new THREE.Vector3(0, 3.2, 0)),
+    pos: mesh.position.clone(), fuse: 2.4, bounces: 0
+  });
+  GAME.grenadesThrown++;
+  SFX.throwGrenade();
+}
+
+/** Физика и взрыв гранат */
+function updateGrenades(dt){
+  for (let i=grenadeList.length-1;i>=0;i--){
+    const g = grenadeList[i];
+    g.fuse -= dt;
+    g.vel.y -= 19*dt;
+    const nx = g.pos.x + g.vel.x*dt, nz = g.pos.z + g.vel.z*dt;
+    // простые отскоки: от стен (по осям) и от пола
+    if (!blocked(nx, g.pos.z, 0.12, false)) g.pos.x = nx; else { g.vel.x *= -0.45; g.bounces++; }
+    if (!blocked(g.pos.x, nz, 0.12, false)) g.pos.z = nz; else { g.vel.z *= -0.45; g.bounces++; }
+    g.pos.y += g.vel.y*dt;
+    if (g.pos.y < 0.1){ g.pos.y = 0.1; g.vel.y *= -0.42; g.vel.x *= 0.7; g.vel.z *= 0.7; }
+    g.mesh.position.copy(g.pos);
+    g.mesh.rotation.x += dt*6; g.mesh.rotation.z += dt*4;
+
+    if (g.fuse <= 0){
+      explodeGrenade(g.pos);
+      scene.remove(g.mesh);
+      g.mesh.geometry.dispose(); g.mesh.material.dispose();
+      grenadeList.splice(i,1);
+    }
+  }
+}
+
+/** Взрыв гранаты: урон по площади + эффекты */
+function explodeGrenade(pos){
+  SFX.explosion();
+  FX.ring(pos.x, 0.2, pos.z, 0xffaa44);
+  FX.burst(pos.x, pos.y, pos.z, 0,1,0, 34, 1.0,0.7,0.3, 6.5, 4);
+  for (let r=0;r<5;r++) FX.decal(pos.x + rand(-2,2), pos.z + rand(-2,2), rand(0.9,1.7));
+  splashDamage(pos.x, pos.y, pos.z, GRENADE_R, GRENADE_DMG, null);
+  // оглушение и урон игроку при близком взрыве (небольшой)
+  const d = Math.hypot(pos.x - PLAYER.pos.x, pos.z - PLAYER.pos.z);
+  if (d < GRENADE_R*0.7) damagePlayer(20);
+}
+
 /* мелкие «следы» попаданий (отдельно от FX — короткоживущие) */
 const impactMarks = [];
 function updateImpactMarks(dt){
@@ -1997,10 +3442,13 @@ function updateImpactMarks(dt){
   }
 }
 
-/** Начисление очков */
+/** Начисление очков (учитывает бонус «двойные очки») */
 function addPoints(n){
-  GAME.points += n;
-  GAME.earnedTotal += n;
+  const mult = POWER.double > 0 ? 2 : 1;
+  const add = Math.round(n * mult);
+  GAME.points += add;
+  GAME.earnedTotal += add;
+  if (GAME.points >= 100000) unlockAchievement('rich');
   updateHUD();
 }
 
@@ -2052,18 +3500,11 @@ function buyDoor(door){
 /** Взаимодействие по клавише F: дверь или покупка (что ближе) */
 function tryInteract(){
   if (GAME.state !== 'play') return;
-  let best = null, bestDist = 2.6;
-  for (const d of MAP.doors){
-    if (d.open) continue;
-    const dist = PLAYER.pos.distanceTo(d.trigger);
-    if (dist < bestDist){ bestDist = dist; best = { kind:'door', obj:d }; }
-  }
-  for (const b of MAP.buys){
-    const dist = PLAYER.pos.distanceTo(b.pos);
-    if (dist < bestDist){ bestDist = dist; best = { kind:'buy', obj:b }; }
-  }
-  if (!best) return;
-  if (best.kind === 'door') buyDoor(best.obj); else buyWallBuy(best.obj);
+  const it = findInteractable();
+  if (!it) return;
+  if (it.kind === 'door') buyDoor(it.obj);
+  else if (it.kind === 'buy') buyWallBuy(it.obj);
+  else useDevice(it.obj);
 }
 
 /** Обновление модели оружия в руках (покачивание, прицел, отдача) */
@@ -2130,6 +3571,8 @@ const GAME = {
   shots:0, hits:0,
   waveActive:false,
   noLockLook:false,       // резервный режим обзора (если Pointer Lock недоступен)
+  headshotKills:0, powerupsTaken:0, powerupsSeen:{}, boxSpins:0,
+  dogRound:false, bossPending:0, touchMode:false, coopPartner:false,
   aliveCount:0,
   intermission:0,
   noKillT:0,              // время без убийств (страховка от «затянувшейся» волны)
@@ -2141,15 +3584,17 @@ const GAME = {
 /** Параметры волны */
 function waveConfig(n){
   return {
-    total: 5 + Math.round(n*2.35),
-    maxAlive: Math.min(9 + n*2, 30),
-    interval: Math.max(0.32, 1.55 - n*0.075)
+    total: Math.round((5 + n*2.35) * (GAME.dogRound ? 0.75 : 1)),
+    maxAlive: Math.min(9 + n*2, GAME.dogRound ? 20 : 30),
+    interval: Math.max(0.28, 1.55 - n*0.075) / TWEAKS.spawn
   };
 }
 
 /** Начать волну */
 function startWave(n){
   GAME.wave = n;
+  GAME.dogRound = (n >= 5 && n % 3 === 2);          // «собачьи» волны
+  GAME.bossPending = (n % 10 === 0) ? 1 : 0;        // каждые 10 волн — босс
   GAME.waveActive = true;
   GAME.intermission = 0;
   GAME.waveSpawned = 0;
@@ -2160,12 +3605,18 @@ function startWave(n){
   GAME.noKillT = 0;
   SFX.wave();
   showBanner(`ВОЛНА ${n}`);
-  setToast(`Волна ${n}: ${cfg.total} зомби`, '');
+  if (GAME.dogRound) setToast(`Волна ${n}: СВОРА СОБАК! Их ${cfg.total}`, 'warn');
+  else if (GAME.bossPending) setToast(`Волна ${n}: ${cfg.total} зомби и БОСС`, 'warn');
+  else setToast(`Волна ${n}: ${cfg.total} зомби`, '');
+  checkAchievements();
   updateHUD();
 }
 
 /** Выбрать точку спавна: из активных зон, подальше от игрока */
 function pickSpawn(){
+  // часть зомби влезает через окна (если доски сломаны)
+  const wp = windowSpawnPoints();
+  if (wp.length && Math.random() < 0.4) return pick(wp);
   const active = MAP.spawns.filter(s => MAP.zoneOpen[s.zone]);
   if (!active.length) return MAP.spawns[0];
   // сортируем по удалённости и берём случайную из 3 самых дальних
@@ -2188,6 +3639,15 @@ function updateDirector(dt){
     GAME.intermission -= dt;
     if (GAME.intermission <= 0) startWave(GAME.wave + 1);
     return;
+  }
+
+  // босс волны
+  if (GAME.bossPending && GAME.waveSpawned >= 2 && !zombies.some(z => z.boss && z.alive)){
+    GAME.bossPending = 0;
+    const boss = spawnZombie(pickSpawn(), 'boss');
+    boss.hp *= 1; // характеристики уже заданы типом
+    setToast('БОСС: Разрушитель идёт за вами!', 'warn');
+    showBanner('БОСС');
   }
 
   const cfg = waveConfig(GAME.wave);
@@ -2246,13 +3706,21 @@ const DOM = {
   damageFlash:document.getElementById('damageFlash'),
   overlayStart:document.getElementById('overlayStart'),
   overlayPause:document.getElementById('overlayPause'),
-  overlayOver: document.getElementById('overlayGameOver')
+  overlayOver: document.getElementById('overlayGameOver'),
+  overlayWin:  document.getElementById('overlayWin'),
+  perks:    document.getElementById('perks'),
+  powerRow: document.getElementById('powerRow'),
+  grenades: document.getElementById('grenadesTxt'),
+  slots:    document.getElementById('slotsTxt'),
+  coop:     document.getElementById('coopInfo')
 };
-const hudCache = { points:-1, health:-1, ammo:'', wave:-1, left:-1 };
+const hudCache = { points:-1, health:-1, ammo:'', wave:-1, left:-1, perks:'', power:'' };
 let toastTimer = 0;
 
 function updateHUD(){
   if (hudCache.points !== GAME.points){ DOM.points.textContent = GAME.points; hudCache.points = GAME.points; }
+  updatePerkHUD();
+  updateAmmoHUD();
   const hp = Math.ceil(PLAYER.health);
   if (hudCache.health !== hp){
     DOM.health.textContent = hp;
@@ -2263,14 +3731,65 @@ function updateHUD(){
     DOM.lowHealth.style.opacity = hp < 35 ? String(clamp((35-hp)/35*0.9, 0, 0.9)) : '0';
     hudCache.health = hp;
   }
-  const w = WEAPONS[weaponState.id];
+}
+
+/** Патроны, название оружия, гранаты, второй слот */
+function updateAmmoHUD(){
+  if (!DOM.ammo) return;
+  const w = getWeaponStats();
   const ammoStr = `${weaponState.reloading ? '···' : weaponState.ammo} / ${weaponState.reserve}`;
   if (hudCache.ammo !== ammoStr){
     DOM.ammo.textContent = ammoStr;
     DOM.ammo.classList.toggle('low', weaponState.ammo <= Math.max(1, w.mag*0.25) && !weaponState.reloading);
     hudCache.ammo = ammoStr;
   }
-  if (DOM.weapon.textContent !== w.name) DOM.weapon.textContent = w.name;
+  const nameStr = (weaponState.upgraded ? '★ ' : '') + w.name;
+  if (DOM.weapon.textContent !== nameStr){ DOM.weapon.textContent = nameStr; DOM.weapon.style.color = weaponState.upgraded ? '#ffd45e' : ''; }
+  if (DOM.grenades) DOM.grenades.textContent = 'Гранаты: ' + GRENADES.count;
+  if (DOM.slots){
+    const s2 = weaponState.slots[1];
+    DOM.slots.textContent = s2 ? `1: ${WEAPONS[weaponState.slots[0].id].name} · 2: ${WEAPONS[s2.id].name}` : '1: ' + WEAPONS[weaponState.slots[0].id].name;
+    DOM.slots.style.color = s2 ? '' : '#6f7a80';
+  }
+}
+
+/** Панель активных бонусов (павер-апы) */
+function updatePowerHUD(){
+  if (!DOM.powerRow) return;
+  const list = [];
+  for (const k in POWER) if (POWER[k] > 0) list.push(k);
+  const sig = list.map(k => k + Math.ceil(POWER[k])).join(',');
+  if (hudCache.power === sig) return;
+  hudCache.power = sig;
+  DOM.powerRow.innerHTML = '';
+  for (const k of list){
+    const d = POWER_DEFS[k];
+    const el = document.createElement('div');
+    el.className = 'pbadge';
+    el.style.background = '#' + new THREE.Color(d.color).getHexString();
+    el.textContent = `${d.name} ${Math.ceil(POWER[k])}с`;
+    DOM.powerRow.appendChild(el);
+  }
+}
+
+/** Иконки перков в HUD */
+function updatePerkHUD(){
+  if (!DOM.perks) return;
+  const list = [];
+  for (const id in PERK_DEFS) if (PERKS[id]) list.push(id);
+  const sig = list.join(',');
+  if (hudCache.perks === sig) return;
+  hudCache.perks = sig;
+  DOM.perks.innerHTML = '';
+  for (const id of list){
+    const d = PERK_DEFS[id];
+    const el = document.createElement('span');
+    el.className = 'perkicon';
+    el.style.background = '#' + new THREE.Color(d.color).getHexString();
+    el.title = d.name + ' — ' + d.desc;
+    el.textContent = d.name[0];
+    DOM.perks.appendChild(el);
+  }
 }
 
 function updateWaveHUD(){
@@ -2307,7 +3826,7 @@ function showHitmarker(kill){
 }
 /** Прицел «разъезжается» от разброса и движения */
 function updateCrosshair(){
-  const w = WEAPONS[weaponState.id];
+  const w = getWeaponStats();
   const move = Math.hypot(PLAYER.vel.x, PLAYER.vel.z) / PLAYER.speedRun;
   const gap = clamp((w.spread*230)*(weaponState.aiming?0.35:1) + move*10 + weaponState.recoil*6, 0, 42);
   DOM.crosshair.style.setProperty('--gap', gap.toFixed(1) + 'px');
@@ -2325,15 +3844,40 @@ function findInteractable(){
     const dist = PLAYER.pos.distanceTo(b.pos);
     if (dist < bestDist){ bestDist = dist; best = { kind:'buy', obj:b, dist }; }
   }
+  for (const d of MAP.devices){
+    if (d.kind === 'window' && d.boards >= d.maxBoards) continue;
+    const dist = PLAYER.pos.distanceTo(d.pos);
+    if (dist < bestDist){ bestDist = dist; best = { kind:'device', obj:d, dist }; }
+  }
   return best;
 }
 function updatePrompt(){
   const it = findInteractable();
   if (!it){ DOM.prompt.className = ''; return; }
-  const price = it.kind === 'door' ? it.obj.price : it.obj.price;
-  const name = it.kind === 'door' ? `Дверь: ${price}` : `${WEAPONS[it.obj.weapon].name}: ${price}`;
-  const can = GAME.points >= price;
-  DOM.prompt.textContent = `${name} очков — нажмите F` + (can ? '' : ' (не хватает очков)');
+  let text, can;
+  if (it.kind === 'door'){
+    const price = it.obj.price;
+    can = GAME.points >= price;
+    text = `Дверь: ${price} очков — нажмите F` + (can ? '' : ' (не хватает очков)');
+  } else if (it.kind === 'buy'){
+    const price = it.obj.price;
+    can = GAME.points >= price;
+    text = `${WEAPONS[it.obj.weapon].name}: ${price} очков — нажмите F` + (can ? '' : ' (не хватает очков)');
+  } else {
+    const d = it.obj;
+    text = deviceText(d);
+    const price = devicePrice(d);
+    if (price > 0){
+      can = GAME.points >= price;
+      if (!can) text += ' (не хватает очков)';
+    } else {
+      can = deviceUsable(d);
+      if (!deviceUsable(d)) text += ' (недоступно)';
+    }
+    if (d.kind === 'trap' && GAME.time < d.readyAt) text = 'Ловушка перезаряжается';
+    if (d.kind === 'box' && BOX.rolling) text = 'Ящик крутится…';
+  }
+  DOM.prompt.textContent = text;
   DOM.prompt.className = 'show';
   DOM.prompt.style.color = can ? '#ffe0a0' : '#ff9c8c';
 }
@@ -2373,6 +3917,313 @@ function updateLabels(){
       const cls = weaponState.owned[L.ref.weapon] && weaponState.id === L.ref.weapon ? 'wlabel buy owned'
                 : (GAME.points < w.price ? 'wlabel buy poor' : 'wlabel buy');
       if (L.el.className !== cls) L.el.className = cls;
+    } else if (L.type === 'device'){
+      const d = L.ref;
+      const price = devicePrice(d);
+      const usable = deviceUsable(d);
+      const cls = !usable ? 'wlabel machine owned'
+                : (price > 0 && GAME.points < price ? 'wlabel machine poor' : 'wlabel machine');
+      if (L.el.className !== cls) L.el.className = cls;
+      const txt = deviceText(d);
+      if (L.el.textContent !== txt) L.el.textContent = txt;
+    }
+  }
+}
+
+
+/* ============================================================
+   14.1 ДОСТИЖЕНИЯ И РЕКОРДЫ (localStorage)
+   ============================================================ */
+const SAVE_KEY = 'zombie3d_save_v2';
+const ACHIEVEMENTS = {
+  firstBlood: { name:'Первая кровь',        desc:'убить первого зомби' },
+  headhunter: { name:'Снайпер',             desc:'10 убийств в голову' },
+  wave10:     { name:'Десятая волна',       desc:'дожить до 10-й волны' },
+  wave20:     { name:'Ветеран блока «Б»',   desc:'дожить до 20-й волны' },
+  perkMaster: { name:'Перко-мастер',        desc:'собрать все 5 перков' },
+  rich:       { name:'Богач',               desc:'накопить 100 000 очков' },
+  pap:        { name:'Кузнец',              desc:'улучшить оружие в Pack-a-Punch' },
+  nuke:       { name:'Ядерный',             desc:'подобрать «ядерный взрыв»' },
+  box5:       { name:'Азартный',            desc:'крутить ящик тайн 5 раз' },
+  ee:         { name:'Тайна блока «Б»',     desc:'пройти пасхалку с телепортом' }
+};
+const RECORDS = { bestWave:0, bestKills:0, bestTime:0, games:0, totalKills:0, bestBox:0, achievements:{} };
+
+function loadRecords(){
+  try {
+    const raw = window.localStorage ? window.localStorage.getItem(SAVE_KEY) : null;
+    if (raw){
+      const data = JSON.parse(raw);
+      Object.assign(RECORDS, data.records || {});
+      RECORDS.achievements = (data.records && data.records.achievements) || {};
+      TWEAKS = Object.assign(TWEAKS_DEFAULT, data.tweaks || {});
+    }
+  } catch (e){ /* приватный режим — просто играем без сохранения */ }
+  renderRecords();
+  renderAchievements();
+  applyTweaksUI();
+}
+function saveRecords(){
+  try {
+    if (window.localStorage) window.localStorage.setItem(SAVE_KEY, JSON.stringify({ records: RECORDS, tweaks: TWEAKS }));
+  } catch (e){ /* игнорируем */ }
+}
+function unlockAchievement(id){
+  const a = ACHIEVEMENTS[id];
+  if (!a || RECORDS.achievements[id]) return;
+  RECORDS.achievements[id] = 1;
+  setToast('★ Достижение: ' + a.name, 'good');
+  SFX.achievement();
+  renderAchievements();
+  saveRecords();
+}
+/** Периодическая проверка достижений по состоянию игры */
+function checkAchievements(){
+  if (GAME.kills >= 1) unlockAchievement('firstBlood');
+  if (GAME.headshotKills >= 10) unlockAchievement('headhunter');
+  if (GAME.wave >= 10) unlockAchievement('wave10');
+  if (GAME.wave >= 20) unlockAchievement('wave20');
+  let perks = 0;
+  for (const k in PERK_DEFS) if (PERKS[k]) perks++;
+  if (perks >= 5) unlockAchievement('perkMaster');
+  if ((GAME.boxSpins || 0) >= 5) unlockAchievement('box5');
+  if (GAME.points >= 100000) unlockAchievement('rich');
+}
+/** Показать рекорды на стартовом экране */
+function renderRecords(){
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  const mm = Math.floor(RECORDS.bestTime/60), ss = Math.floor(RECORDS.bestTime%60);
+  set('recWave', RECORDS.bestWave);
+  set('recKills', RECORDS.bestKills);
+  set('recTime', `${mm}:${String(ss).padStart(2,'0')}`);
+  set('recGames', `${RECORDS.games} / ${RECORDS.totalKills}`);
+  set('recBox', RECORDS.bestBox || 0);
+}
+/** Список достижений */
+function renderAchievements(){
+  const box = document.getElementById('achList');
+  if (!box) return;
+  box.innerHTML = '';
+  for (const id in ACHIEVEMENTS){
+    const a = ACHIEVEMENTS[id];
+    const done = !!RECORDS.achievements[id];
+    const el = document.createElement('div');
+    el.className = 'ach' + (done ? ' done' : '');
+    el.innerHTML = `<i></i><span><b style="color:inherit">${a.name}</b> — ${a.desc}</span>`;
+    box.appendChild(el);
+  }
+}
+
+/* ============================================================
+   14.2 ПУЛЬТ БАЛАНСА (тонкая настройка сложности игроком)
+   ============================================================ */
+const TWEAKS_DEFAULT = { hp:1, speed:1, dmg:1, spawn:1, points:1, difficulty:'normal' };
+let TWEAKS = Object.assign({}, TWEAKS_DEFAULT);
+const DIFFICULTY_PRESETS = {
+  easy:   { hp:0.8,  speed:0.9,  dmg:0.7,  spawn:0.9,  points:1.25 },
+  normal: { hp:1,    speed:1,    dmg:1,    spawn:1,    points:1 },
+  hard:   { hp:1.35, speed:1.12, dmg:1.35, spawn:1.15, points:0.9 }
+};
+function setDifficulty(name){
+  if (!DIFFICULTY_PRESETS[name]) return;
+  TWEAKS = Object.assign({}, DIFFICULTY_PRESETS[name], { difficulty:name });
+  applyTweaksUI();
+  saveRecords();
+}
+function applyTweaksUI(){
+  const map = { twHp:'hp', twSpeed:'speed', twDmg:'dmg', twSpawn:'spawn', twPoints:'points' };
+  for (const id in map){
+    const el = document.getElementById(id);
+    if (!el) continue;
+    el.value = Math.round(TWEAKS[map[id]] * 100);
+    const out = document.getElementById(id + 'V');
+    if (out) out.textContent = el.value + '%';
+  }
+  document.querySelectorAll('.diffbtn').forEach(b => b.classList.toggle('on', b.dataset.diff === TWEAKS.difficulty));
+}
+function bindTweaksUI(){
+  const map = { twHp:'hp', twSpeed:'speed', twDmg:'dmg', twSpawn:'spawn', twPoints:'points' };
+  for (const id in map){
+    const el = document.getElementById(id);
+    if (!el) continue;
+    el.addEventListener('input', () => {
+      TWEAKS[map[id]] = Number(el.value) / 100;
+      const out = document.getElementById(id + 'V');
+      if (out) out.textContent = el.value + '%';
+      applyTweaksUI();
+      saveRecords();
+    });
+  }
+  document.querySelectorAll('.diffbtn').forEach(b => {
+    b.addEventListener('click', (e) => { e.stopPropagation(); setDifficulty(b.dataset.diff); });
+  });
+}
+
+
+/* ============================================================
+   15.1 МОБИЛЬНОЕ УПРАВЛЕНИЕ (виртуальный джойстик + кнопки)
+   ============================================================ */
+const TOUCH = { active:false, moveX:0, moveY:0, stickId:null, lookId:null, lastLX:0, lastLY:0, cx:0, cy:0 };
+
+function initTouchControls(){
+  const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+  if (!isTouch) return;                       // на ПК-мыши интерфейс не нужен
+  const ui = document.getElementById('touchUI');
+  if (!ui) return;
+  TOUCH.active = true;
+  GAME.touchMode = true;
+  ui.classList.add('on');
+
+  const zone  = document.getElementById('stickZone');
+  const base  = document.getElementById('stickBase');
+  const knob  = document.getElementById('stickKnob');
+  const R = 62;
+
+  zone.addEventListener('touchstart', (e) => {
+    const t = e.changedTouches[0];
+    TOUCH.stickId = t.identifier;
+    const rect = zone.getBoundingClientRect();
+    base.style.left = Math.max(10, t.clientX - rect.left - 65) + 'px';
+    base.style.bottom = Math.max(10, rect.bottom - t.clientY - 65) + 'px';
+    knob.style.left = '35px'; knob.style.top = '35px';
+    TOUCH.cx = t.clientX; TOUCH.cy = t.clientY;
+    e.preventDefault();
+  }, { passive:false });
+
+  window.addEventListener('touchmove', (e) => {
+    for (const t of e.changedTouches){
+      if (t.identifier === TOUCH.stickId){
+        let dx = t.clientX - TOUCH.cx, dy = t.clientY - TOUCH.cy;
+        const d = Math.hypot(dx, dy);
+        if (d > R){ dx = dx/d*R; dy = dy/d*R; }
+        knob.style.left = (35 + dx) + 'px';
+        knob.style.top  = (35 + dy) + 'px';
+        TOUCH.moveX = dx / R;
+        TOUCH.moveY = dy / R;
+      } else if (t.identifier === TOUCH.lookId){
+        const dx = t.clientX - TOUCH.lastLX, dy = t.clientY - TOUCH.lastLY;
+        TOUCH.lastLX = t.clientX; TOUCH.lastLY = t.clientY;
+        if (GAME.state === 'play'){
+          PLAYER.yaw -= dx * 0.005;
+          PLAYER.pitch = clamp(PLAYER.pitch - dy * 0.005, -Math.PI/2 + 0.05, Math.PI/2 - 0.05);
+        }
+      }
+    }
+    if (e.cancelable) e.preventDefault();
+  }, { passive:false });
+
+  const endTouch = (e) => {
+    for (const t of e.changedTouches){
+      if (t.identifier === TOUCH.stickId){
+        TOUCH.stickId = null; TOUCH.moveX = 0; TOUCH.moveY = 0;
+        knob.style.left = '35px'; knob.style.top = '35px';
+      }
+      if (t.identifier === TOUCH.lookId) TOUCH.lookId = null;
+    }
+  };
+  window.addEventListener('touchend', endTouch);
+  window.addEventListener('touchcancel', endTouch);
+
+  // обзор — перетаскиванием по экрану
+  renderer.domElement.addEventListener('touchstart', (e) => {
+    const t = e.changedTouches[0];
+    if (TOUCH.lookId === null){ TOUCH.lookId = t.identifier; TOUCH.lastLX = t.clientX; TOUCH.lastLY = t.clientY; }
+  }, { passive:true });
+
+  // кнопки
+  const hold = (id, on, off) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('touchstart', (e) => { on(); e.preventDefault(); }, { passive:false });
+    el.addEventListener('touchend',   (e) => { if (off) off(); e.preventDefault(); }, { passive:false });
+  };
+  hold('tFire',  () => { Input.firing = true; fireWeapon(); }, () => { Input.firing = false; });
+  hold('tAim',   () => { weaponState.aiming = true; }, () => { weaponState.aiming = false; });
+  hold('tReload',() => startReload());
+  hold('tUse',   () => tryInteract());
+  hold('tGren',  () => throwGrenade());
+  hold('tSwitch',() => switchSlot(weaponState.slot === 0 ? 1 : 0));
+  const hint = document.getElementById('startHint');
+  if (hint) hint.textContent = 'Мобильное управление: джойстик слева — движение, свайп по экрану — обзор, кнопки справа — действия.';
+}
+
+/* ============================================================
+   15.2 КООП-РЕЖИМ (синхронизация двух игроков в браузере)
+   ------------------------------------------------------------
+   Используется BroadcastChannel: игра синхронизируется между двумя
+   окнами/вкладками одного браузера (без сервера).
+   ============================================================ */
+const COOP = { active:false, chan:null, sendT:0, lastRecv:0, partnerState:null, model:null };
+
+function startCoop(){
+  if (COOP.active){ setToast('Кооп-режим уже включён', ''); return; }
+  if (typeof BroadcastChannel === 'undefined'){
+    setToast('Браузер не поддерживает кооп-канал (BroadcastChannel)', 'warn');
+    return;
+  }
+  try { COOP.chan = new BroadcastChannel('zombie3d_coop'); }
+  catch (e){ setToast('Не удалось открыть кооп-канал', 'warn'); return; }
+  COOP.active = true;
+  COOP.chan.onmessage = (e) => {
+    const m = e.data;
+    if (!m || m.type !== 'state') return;
+    COOP.partnerState = m;
+    COOP.lastRecv = (window.performance ? performance.now() : Date.now());
+    GAME.coopPartner = true;
+  };
+  COOP.chan.postMessage({ type:'hello' });
+  buildPartnerModel();
+  if (DOM.coop) DOM.coop.style.display = '';
+  setToast('Кооп включён: откройте игру во втором окне и нажмите «Кооп»', 'good');
+}
+
+/** Модель напарника (простой солдат из примитивов) */
+function buildPartnerModel(){
+  if (COOP.model) return;
+  const g = new THREE.Group();
+  const mCloth = new THREE.MeshLambertMaterial({ color:0x4a5a3a });
+  const mSkin  = new THREE.MeshLambertMaterial({ color:0xc79a76 });
+  const mDark  = new THREE.MeshLambertMaterial({ color:0x22262a });
+  const torso = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.72, 0.3), mCloth);
+  torso.position.y = 1.2; g.add(torso);
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.16, 10, 8), mSkin);
+  head.position.y = 1.7; g.add(head);
+  const helmet = new THREE.Mesh(new THREE.SphereGeometry(0.18, 10, 6, 0, Math.PI*2, 0, Math.PI/2), mDark);
+  helmet.position.y = 1.73; g.add(helmet);
+  for (const s of [-1, 1]){
+    const leg = new THREE.Mesh(new THREE.BoxGeometry(0.17, 0.82, 0.19), mDark);
+    leg.position.set(s*0.13, 0.42, 0); g.add(leg);
+    const arm = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.6, 0.16), mCloth);
+    arm.position.set(s*0.32, 1.2, -0.05); g.add(arm);
+  }
+  const gun = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.1, 0.6), mDark);
+  gun.position.set(0.25, 1.15, -0.35); g.add(gun);
+  const tag = new THREE.Sprite(new THREE.SpriteMaterial({ map:TX.ring, color:0x8fd9ff, transparent:true, opacity:0.7, depthWrite:false }));
+  tag.scale.set(0.8,0.8,0.8); tag.position.y = 2.1; g.add(tag);
+  g.visible = false;
+  scene.add(g);
+  COOP.model = g;
+}
+
+/** Обмен состоянием с напарником */
+function updateCoop(dt){
+  if (!COOP.active) return;
+  COOP.sendT -= dt;
+  if (COOP.sendT <= 0){
+    COOP.sendT = 0.1;
+    COOP.chan.postMessage({ type:'state', x:PLAYER.pos.x, z:PLAYER.pos.z, yaw:PLAYER.yaw,
+      hp:PLAYER.health, wave:GAME.wave, points:GAME.points, kills:GAME.kills });
+  }
+  const p = COOP.partnerState;
+  if (p && COOP.model){
+    COOP.model.visible = true;
+    COOP.model.position.set(p.x, 0, p.z);
+    COOP.model.rotation.y = p.yaw + Math.PI;
+    if (DOM.coop){
+      const online = ((window.performance ? performance.now() : Date.now()) - COOP.lastRecv) < 2500;
+      DOM.coop.textContent = online
+        ? `КООП: напарник — волна ${p.wave}, ${Math.ceil(p.hp)} HP, ${p.points} очков`
+        : 'КООП: напарник не в сети';
     }
   }
 }
@@ -2403,6 +4254,9 @@ document.addEventListener('keydown', (e) => {
     case 'ShiftLeft': case 'ShiftRight': Input.shift = true; break;
     case 'KeyQ': Input.q = true; break;                     // поворот влево (резерв)
     case 'KeyE': Input.e = true; break;                     // поворот вправо (резерв)
+    case 'Digit1': switchSlot(0); break;                    // первый слот оружия
+    case 'Digit2': switchSlot(1); break;                    // второй слот оружия
+    case 'KeyG': throwGrenade(); break;                     // граната
     case 'KeyR': startReload(); break;
     case 'KeyF': tryInteract(); break;
     case 'KeyM': setToast(SFX.toggle() ? 'Звук выключен' : 'Звук включён',''); break;
@@ -2480,13 +4334,15 @@ document.addEventListener('pointerlockerror', () => {
 function isOverlayOpen(){
   return !DOM.overlayStart.classList.contains('hidden')
       || !DOM.overlayPause.classList.contains('hidden')
-      || !DOM.overlayOver.classList.contains('hidden');
+      || !DOM.overlayOver.classList.contains('hidden')
+      || !DOM.overlayWin.classList.contains('hidden');
 }
 function showOverlay(el){ hideOverlays(); el.classList.remove('hidden'); }
 function hideOverlays(){
   DOM.overlayStart.classList.add('hidden');
   DOM.overlayPause.classList.add('hidden');
   DOM.overlayOver.classList.add('hidden');
+  DOM.overlayWin.classList.add('hidden');
 }
 
 /* ============================================================
@@ -2510,6 +4366,7 @@ function resetLevel(){
   worldCells.clear();
   MAP.zones = {}; MAP.wallRects.length = 0; MAP.propRects.length = 0;
   MAP.doors.length = 0; MAP.buys.length = 0; MAP.spawns.length = 0; MAP.labels.length = 0;
+  MAP.devices.length = 0;
   MAP.colliderGrid.clear(); MAP.zoneOpen = { start:true };
   MAP.zoneDoor = {}; MAP.parentOf = {};
   zoneLamps.length = 0; worldRayTargets.length = 0;
@@ -2550,6 +4407,27 @@ function startGame(){
   GAME.waveActive = false;
   GAME.intermission = 3.0;
   GAME.noKillT = 0;
+  GAME.headshotKills = 0; GAME.powerupsTaken = 0; GAME.powerupsSeen = {};
+  GAME.boxSpins = 0; GAME.dogRound = false; GAME.bossPending = 0;
+
+  // перки, бонусы, гранаты, пасхалка, ящик
+  for (const k in PERKS) PERKS[k] = false;
+  refreshMaxHealth();
+  PLAYER.health = PLAYER.maxHealth;
+  POWER.insta = POWER.double = POWER.firesale = 0;
+  GRENADES.count = 2; GRENADES.max = 3; GRENADES.next = 0;
+  grenadeList.length = 0; spitList.length = 0;
+  for (const p of powerDrops) scene.remove(p.spr);
+  powerDrops.length = 0;
+  EASTER.radios = 0; EASTER.valves = 0; EASTER.energized = false;
+  BOX.rolling = false;
+  weaponState.slot = 0;
+  weaponState.slots[0] = { id:'pistol', ammo:WEAPONS.pistol.mag, reserve:WEAPONS.pistol.reserve, upgraded:false };
+  weaponState.slots[1] = null;
+  weaponState.upgraded = false;
+  hudCache.perks = 'нет'; hudCache.power = 'нет';
+  RECORDS.games++;
+  saveRecords();
   GAME.waveTotal = 0; GAME.waveSpawned = 0;
   hudCache.points = -1; hudCache.health = -1; hudCache.ammo = ''; hudCache.wave = -1; hudCache.left = -1;
   weaponState.owned = { pistol:true };
@@ -2573,22 +4451,54 @@ function gameOver(){
   document.getElementById('goAcc').textContent = GAME.shots ? Math.round(GAME.hits/GAME.shots*100) + '%' : '0%';
   const mins = Math.floor(GAME.time/60), secs = Math.floor(GAME.time%60);
   document.getElementById('goTime').textContent = `${mins}:${String(secs).padStart(2,'0')}`;
+  saveRunRecords();
   showOverlay(DOM.overlayOver);
+}
+
+/** Обновить рекорды по итогам забега */
+function saveRunRecords(){
+  RECORDS.bestWave = Math.max(RECORDS.bestWave, GAME.wave);
+  RECORDS.bestKills = Math.max(RECORDS.bestKills, GAME.kills);
+  RECORDS.bestTime = Math.max(RECORDS.bestTime, GAME.time);
+  RECORDS.bestBox = Math.max(RECORDS.bestBox || 0, GAME.boxSpins || 0);
+  RECORDS.totalKills += GAME.kills;
+  saveRecords();
+  renderRecords();
+}
+
+/** Экран победы (пасхалка пройдена) */
+function showWinScreen(){
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  set('winWave', GAME.wave);
+  set('winKills', GAME.kills);
+  set('winPoints', GAME.earnedTotal);
+  set('winBox', GAME.boxSpins || 0);
+  let perks = 0; for (const k in PERK_DEFS) if (PERKS[k]) perks++;
+  set('winPerks', perks + ' / 5');
+  const mins = Math.floor(GAME.time/60), secs = Math.floor(GAME.time%60);
+  set('winTime', `${mins}:${String(secs).padStart(2,'0')}`);
+  saveRunRecords();
+  showOverlay(DOM.overlayWin);
 }
 
 DOM.overlayStart.addEventListener('click', () => { startGame(); });
 DOM.overlayStart.querySelector('#btnStart').addEventListener('click', (e) => { e.stopPropagation(); startGame(); });
 DOM.overlayPause.querySelector('#btnResume').addEventListener('click', (e) => { e.stopPropagation(); requestLock(); });
 DOM.overlayOver.querySelector('#btnRestart').addEventListener('click', (e) => { e.stopPropagation(); startGame(); });
+DOM.overlayWin.querySelector('#btnWinRestart').addEventListener('click', (e) => { e.stopPropagation(); startGame(); });
+DOM.overlayWin.addEventListener('click', () => startGame());
+const coopBtn = document.getElementById('btnCoop');
+if (coopBtn) coopBtn.addEventListener('click', (e) => { e.stopPropagation(); startCoop(); });
 
 /** Пополнение магазина после перезарядки */
 function finishReload(){
-  const w = WEAPONS[weaponState.id];
+  const w = getWeaponStats();
   const need = w.mag - weaponState.ammo;
   const take = Math.min(need, weaponState.reserve);
   weaponState.ammo += take;
   weaponState.reserve -= take;
   weaponState.reloading = false;
+  saveActiveSlot();
   updateHUD();
 }
 
@@ -2615,9 +4525,17 @@ function animate(ms){
 
     updatePlayer(dt, GAME.time);
     updateZombies(dt, GAME.time);
+    updateSpits(dt);
+    updateGrenades(dt);
+    updatePowerups(dt, GAME.time);
+    updateWindows(dt);
+    updateTraps(dt);
+    updateTurrets(dt, GAME.time);
+    updateMysteryBox(dt);
+    updateCoop(dt);
 
-    // автоогонь (автомат — зажим ЛКМ)
-    if (Input.firing && WEAPONS[weaponState.id].auto) fireWeapon();
+    // автоогонь (автомат — зажим ЛКМ или кнопка на мобильном)
+    if (Input.firing && getWeaponStats().auto) fireWeapon();
     if (weaponState.reloading && GAME.time >= weaponState.reloadEnd) finishReload();
 
     updateDirector(dt);
@@ -2664,6 +4582,9 @@ function init(){
     renderer.setSize(window.innerWidth, window.innerHeight);
   });
 
+  loadRecords();
+  bindTweaksUI();
+  initTouchControls();
   requestAnimationFrame(animate);
 }
 
