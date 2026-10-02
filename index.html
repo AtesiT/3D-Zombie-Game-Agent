@@ -34,6 +34,10 @@ body{
   background:radial-gradient(ellipse at center,rgba(120,0,0,0) 30%,rgba(150,0,0,.62) 100%)}
 #damageFlash{position:fixed;inset:0;z-index:17;pointer-events:none;opacity:0;transition:opacity .3s;
   background:radial-gradient(ellipse at center,rgba(190,0,0,.12) 25%,rgba(200,0,0,.7) 100%)}
+#damageSource{position:absolute;left:50%;top:58%;transform:translate(-50%,8px);opacity:0;transition:opacity .15s,transform .15s;
+  padding:5px 12px;border-radius:5px;background:rgba(58,8,8,.75);border:1px solid rgba(255,90,70,.44);
+  color:#ffd2ca;font-size:12px;letter-spacing:.12em;font-weight:700;white-space:nowrap}
+#damageSource.show{opacity:1;transform:translate(-50%,0)}
 
 /* ---------- HUD ---------- */
 #hud{position:fixed;inset:0;z-index:20;pointer-events:none;overflow:hidden;
@@ -146,7 +150,19 @@ kbd{display:inline-block;min-width:26px;padding:2px 8px;border-radius:4px;backgr
   background:#fff;box-shadow:0 3px 12px rgba(0,0,0,.55);animation:bannerPop2 .3s ease-out}
 @keyframes bannerPop2{from{transform:scale(.7);opacity:0}to{transform:scale(1);opacity:1}}
 #grenadesTxt{font-size:13px;color:#cfd6da;letter-spacing:.06em}
+#materialsTxt{font-size:11px;color:#b9c6bc;letter-spacing:.035em;margin-top:4px}
 #slotsTxt{font-size:11.5px;color:#9aa6ac;letter-spacing:.04em;margin-top:3px}
+#craftPanel{position:absolute;left:50%;bottom:24%;transform:translateX(-50%);display:none;pointer-events:auto;
+  width:min(390px,92vw);padding:10px;border-radius:8px;background:rgba(7,11,12,.88);
+  border:1px solid rgba(190,170,115,.45);box-shadow:0 8px 26px rgba(0,0,0,.48);text-align:left}
+#craftPanel.show{display:block}
+#craftPanel strong{display:block;margin:0 0 7px;color:#e8d5a5;font-size:11px;letter-spacing:.18em}
+#craftOptions{display:grid;grid-template-columns:1fr;gap:5px}
+.craftChoice{pointer-events:auto;cursor:pointer;border:1px solid rgba(255,255,255,.15);border-radius:5px;padding:7px 9px;
+  background:rgba(255,255,255,.055);color:#d9e2dc;text-align:left;font:12px/1.3 "Segoe UI",Arial,sans-serif}
+.craftChoice:hover:not(:disabled){background:rgba(180,155,92,.2);border-color:rgba(230,200,120,.5)}
+.craftChoice:disabled{opacity:.42;cursor:default}
+.craftChoice b{color:#ffd071;margin-right:5px}
 #coopInfo{position:absolute;left:50%;transform:translateX(-50%);top:8px;font-size:12px;color:#8fd9ff;
   background:rgba(6,10,14,.6);padding:3px 12px;border-radius:12px;border:1px solid rgba(90,200,255,.3)}
 #machineHint{position:absolute;right:24px;top:120px;text-align:right;font-size:12.5px;color:#b9c6cc;line-height:1.5}
@@ -223,6 +239,7 @@ kbd{display:inline-block;min-width:26px;padding:2px 8px;border-radius:4px;backgr
     <div id="hpRow"><span class="cap">Здоровье</span><span class="val" id="healthVal">100</span></div>
     <div id="hpBar"><i id="hpFill"></i></div>
     <div id="ammoRow"><span id="weaponName">M1911</span><span id="ammoVal">8 / 80</span></div>
+    <div id="materialsTxt">Детали 0 · ткань 0 · порох 0</div>
     <div id="grenadesTxt">Гранаты: 2</div>
     <div id="slotsTxt">1: M1911</div>
   </div>
@@ -239,6 +256,15 @@ kbd{display:inline-block;min-width:26px;padding:2px 8px;border-radius:4px;backgr
   <div id="coopInfo" style="display:none">КООП: напарник ?</div>
   <div id="labels"></div>
   <div id="prompt"></div>
+  <div id="damageSource" role="status" aria-live="polite"></div>
+  <div id="craftPanel" aria-label="Рецепты верстака">
+    <strong>ВЕРСТАК · РЕСУРСЫ И ПРЕДМЕТЫ</strong>
+    <div id="craftOptions">
+      <button class="craftChoice" type="button" data-craft="medkit"><b>F</b>Аптечка</button>
+      <button class="craftChoice" type="button" data-craft="ammo"><b>3</b>Патроны</button>
+      <button class="craftChoice" type="button" data-craft="grenade"><b>4</b>Граната</button>
+    </div>
+  </div>
   <div id="toast"></div>
   <div id="roundBanner">ВОЛНА 1</div>
 </div>
@@ -270,14 +296,16 @@ kbd{display:inline-block;min-width:26px;padding:2px 8px;border-radius:4px;backgr
     <p class="desc">Вы заперты в блоке «Б». Открывайте двери, покупайте оружие на стенах, перки на автоматах,
       крутите ящик тайн, улучшайте оружие в Pack-a-Punch, чините окна и держитесь как можно дольше.
       Волны становятся быстрее и злее: каждые 10 волн приходит босс, между ними — своры собак.
+      Собирайте детали, ткань и порох с поверженных врагов, а у верстака создавайте аптечки, патроны и гранаты.
       Где-то в комплексе спрятана пасхалка: 3 радио и 3 вентиля откроют путь к телепорту.</p>
     <div class="keys">
       <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></span><span>перемещение относительно взгляда</span>
       <span><kbd>Мышь</kbd></span><span>обзор</span>
       <span><kbd>ЛКМ</kbd></span><span>огонь (автомат — зажим)</span>
       <span><kbd>R</kbd></span><span>перезарядка</span>
-      <span><kbd>F</kbd></span><span>двери, покупки, перки, ящик, Pack-a-Punch, окна</span>
+      <span><kbd>F</kbd></span><span>двери, покупки, перки, ящик, Pack-a-Punch, окна; у верстака — аптечка</span>
       <span><kbd>G</kbd></span><span>граната</span>
+      <span><kbd>3</kbd><kbd>4</kbd></span><span>патроны / граната у верстака</span>
       <span><kbd>V</kbd></span><span>удар ножом</span>
       <span><kbd>B</kbd></span><span>альтернативный огонь</span>
       <span><kbd>1</kbd><kbd>2</kbd></span><span>слоты оружия</span>
@@ -362,6 +390,7 @@ kbd{display:inline-block;min-width:26px;padding:2px 8px;border-radius:4px;backgr
       запрещает захват, обзор всё равно работает перемещением мыши по экрану и клавишами Q/E.
       В снежной версии за южными воротами двора находится дополнительный северный ангар.
       Погоду можно выбрать в настройках: дождь, снег и туман меняют двор и звуковой фон.
+      Материалы выпадают из зомби; у верстака: F — аптечка, 3 — патроны, 4 — граната.
       «Продолжить забег» восстановит сохранённую карту; для новой карты нажмите «Начать бой».
       Кооп поддерживает BroadcastChannel в соседней вкладке и онлайн-комнаты через WebSocket-сервер.</div>
   </div>
@@ -460,6 +489,11 @@ const WEAPONS = {
     damage:26, fireDelay:0.85, auto:false, mag:6, reserve:60,
     reload:2.4, pellets:5, spread:0.085, range:26, recoil:2.2, price:1500
   },
+  garand: {
+    id:'garand', name:'M1 Garand', title:'Самозарядная винтовка M1 Garand',
+    damage:58, fireDelay:0.36, auto:false, mag:8, reserve:120,
+    reload:1.65, pellets:1, spread:0.009, range:85, recoil:1.25, price:1600
+  },
   /* --- чудо-оружие: выпадает только из ящика тайн --- */
   raygun: {
     id:'raygun', name:'Ray Gun', title:'Лучемёт «Ray Gun»',
@@ -477,9 +511,27 @@ const WEAPONS = {
 /* Пул ящика тайн (чем больше повторов — тем выше шанс) */
 const MYSTERY_POOL = [
   'smg','smg','smg','shotgun','shotgun','shotgun','smg','shotgun',
-  'raygun','smg','shotgun','wunder'
+  'garand','garand','raygun','smg','shotgun','wunder'
 ];
 const MYSTERY_PRICE = 950;
+const MATERIALS = { scrap:0, cloth:0, powder:0 };
+const MATERIAL_LABELS = { scrap:'детали', cloth:'ткань', powder:'порох' };
+const CRAFT_RECIPES = [
+  { id:'medkit', title:'Аптечка', key:'F', cost:{scrap:1,cloth:2} },
+  { id:'ammo', title:'Патроны', key:'3', cost:{scrap:2,powder:1} },
+  { id:'grenade', title:'Граната', key:'4', cost:{scrap:2,powder:2} }
+];
+const MATERIAL_DROP_GEO = {
+  scrap:new THREE.BoxGeometry(0.28,0.2,0.28),
+  cloth:new THREE.BoxGeometry(0.3,0.11,0.25),
+  powder:new THREE.OctahedronGeometry(0.17,0)
+};
+const MATERIAL_DROP_MAT = {
+  scrap:new THREE.MeshStandardMaterial({color:0xaeb8bb,metalness:0.64,roughness:0.38,emissive:0x171b1d}),
+  cloth:new THREE.MeshStandardMaterial({color:0xb88d55,metalness:0.02,roughness:0.96}),
+  powder:new THREE.MeshStandardMaterial({color:0xb5ba55,metalness:0.08,roughness:0.7,emissive:0x20220a})
+};
+const materialDrops = [];
 
 /* ---------- слоты оружия и итоговые характеристики ---------- */
 const MAX_SLOTS = 2;
@@ -906,7 +958,10 @@ const SFX = {
       this.tone(95, 0.3, 'square', 0.26, 0, 48);
       return;
     }
-    if (kind === 'shotgun'){
+    if (kind === 'garand'){
+      this.noise(0.22, 0.62, 'lowpass', 3300, 0.9, 0, 260);
+      this.tone(195, 0.12, 'square', 0.25, 0, 72);
+    } else if (kind === 'shotgun'){
       this.noise(0.34, 0.75, 'lowpass', 3400, 1.1, 0, 300);
       this.tone(120, 0.22, 'square', 0.32, 0, 45);
     } else if (kind === 'smg'){
@@ -932,6 +987,12 @@ const SFX = {
   deny(){ this.tone(200, 0.16, 'square', 0.18); this.tone(150, 0.22, 'square', 0.16, 0.13); },
   door(){ this.noise(0.75, 0.4, 'lowpass', 700, 1, 0, 120); this.tone(70, 0.7, 'sawtooth', 0.14, 0, 40); },
   wave(){ this.tone(70, 1.6, 'sine', 0.28, 0, 55); this.tone(105, 1.4, 'sine', 0.16, 0.05, 82); this.tone(880, 0.5, 'triangle', 0.1, 0.1, 500); },
+  waveComplete(){
+    this.tone(660,0.13,'triangle',0.16,0);
+    this.tone(880,0.17,'triangle',0.18,0.12);
+    this.tone(1174,0.3,'triangle',0.2,0.27);
+    this.tone(1568,0.48,'sine',0.15,0.48);
+  },
   gameover(){ this.tone(220, 1.6, 'sawtooth', 0.22, 0, 60); this.tone(160, 2.0, 'sine', 0.18, 0.15, 45); },
   spawn(){ this.noise(0.4, 0.2, 'lowpass', 500, 1, 0, 160); },
   /* --- новые звуки --- */
@@ -1167,6 +1228,17 @@ function buildViewWeapon(id){
     const magRing = cyl(0.028,0.028,0.03, MAT.dark, 10); magRing.rotation.x = Math.PI/2; magRing.position.set(0,0.006,-0.22); g.add(magRing);
     muzzle.set(0,0.008,-0.44);
   }
+  else if (id === 'garand'){
+    const stock = box(0.075,0.12,0.34, MAT.wood); stock.position.set(0,-0.035,0.22); stock.rotation.x=0.03; g.add(stock);
+    const receiver = box(0.07,0.09,0.3, MAT.metal); receiver.position.set(0,0.005,-0.015); g.add(receiver);
+    const barrel = cyl(0.014,0.014,0.48, MAT.dark); barrel.rotation.x=Math.PI/2; barrel.position.set(0,0.018,-0.37); g.add(barrel);
+    const handguard = box(0.085,0.075,0.32, MAT.wood); handguard.position.set(0,0.018,-0.31); g.add(handguard);
+    const clip = box(0.055,0.14,0.07, MAT.brass); clip.position.set(0,0.115,-0.02); g.add(clip);
+    const grip = box(0.065,0.16,0.1, MAT.wood); grip.position.set(0,-0.13,0.055); grip.rotation.x=-0.18; g.add(grip);
+    const frontSight = box(0.012,0.05,0.018, MAT.dark); frontSight.position.set(0,0.08,-0.56); g.add(frontSight);
+    const rearSight = box(0.045,0.04,0.025, MAT.dark); rearSight.position.set(0,0.075,-0.12); g.add(rearSight);
+    muzzle.set(0,0.018,-0.62);
+  }
   else if (id === 'raygun'){
     // Лучемёт «Ray Gun»: компактный корпус и светящееся зелёное ядро
     const body = box(0.072,0.08,0.27, MAT.metal); body.position.set(0,0,-0.1); g.add(body);
@@ -1224,6 +1296,9 @@ function createViewModel(id){
   } else if (id === 'smg'){
     hip.p.set(0.22,-0.190,-0.36);  hip.r.set(0.03,-0.09,0.035);
     ads.p.set(0.0,-0.070,-0.36);   ads.r.set(0.0,0.0,0.0);
+  } else if (id === 'garand'){
+    hip.p.set(0.23,-0.185,-0.43);  hip.r.set(0.025,-0.08,0.035);
+    ads.p.set(0.0,-0.075,-0.43);   ads.r.set(0.0,0.0,0.0);
   } else if (id === 'raygun' || id === 'wunder'){
     hip.p.set(0.20,-0.165,-0.34);  hip.r.set(0.02,-0.10,0.03);
     ads.p.set(0.0,-0.078,-0.34);   ads.r.set(0.0,0.0,0.0);
@@ -1403,6 +1478,7 @@ const DOOR_DEFS = [
 const BUY_DEFS = [
   { zone:'start', cx:2, cz:9, dir:[0,-1], weapon:'pistol', cost:500 },
   { zone:'start', cx:0, cz:3, dir:[1,0],  weapon:'smg' },
+  { zone:'start', cx:13,cz:7, dir:[-1,0], weapon:'garand' },
   { zone:'d1',    cx:8, cz:9, dir:[0,-1], weapon:'shotgun' },
   { zone:'d2',    cx:0, cz:2, dir:[1,0], weapon:'shotgun' },
   { zone:'d3',    cx:9, cz:7, dir:[-1,0], weapon:'smg' }
@@ -1418,8 +1494,10 @@ const SPAWN_DEFS = [
   { zone:'d5',    cells:[[1,1],[12,1],[1,8],[12,8],[10,6]], variant:'snow' }
 ];
 
-/* Длинная лестница: подъём на 4 м сквозь шахту во внутреннем дворе */
-const STAIR={minX:11.0,maxX:13.0,lowZ:14,highZ:1,lowY:0,highY:4};
+/* Лестница соединяет первый этаж со свободной площадкой верхнего помещения */
+const STAIR={minX:11.0,maxX:13.0,lowZ:14,highZ:3,lowY:0,highY:4};
+const STAIR_EXIT_DEPTH=2.4;
+const STAIR_LANDING={minX:STAIR.minX,maxX:STAIR.maxX,minZ:1.0,maxZ:STAIR.highZ};
 /** Поверхность лифтовой площадки во дворе */
 const YARD_DECK={minX:82,maxX:94,minZ:0,maxZ:16,y:4};
 const ELEVATOR={x:88,z:8,y:0,target:0,speed:2.2,rider:false,platform:null,dev:null,deck:null};
@@ -1519,6 +1597,7 @@ function deviceUsable(d){
     case 'valve':  return !d.turned;
     case 'teleporter': return EASTER.energized;
     case 'elevator': return !ELEVATOR.rider;
+    case 'workbench': return true;
   }
   return false;
 }
@@ -1537,6 +1616,7 @@ function deviceText(d){
     case 'valve':  return d.turned ? 'Вентиль открыт' : 'Вентиль топлива: F';
     case 'teleporter': return EASTER.energized ? 'ТЕЛЕПОРТ ЗАРЯЖЕН — F' : 'Телепорт обесточен';
     case 'elevator': return ELEVATOR.y<2 ? 'Лифт на наблюдательную площадку — F' : 'Лифт: спуститься во двор — F';
+    case 'workbench': return 'Верстак — F: аптечка · 3: патроны · 4: граната';
   }
   return '';
 }
@@ -1565,6 +1645,7 @@ function useDevice(d){
     case 'valve': turnValve(d); break;
     case 'teleporter': useTeleporter(); break;
     case 'elevator': callElevator(d); break;
+    case 'workbench': craftItem('medkit'); break;
   }
   updateHUD();
 }
@@ -2031,10 +2112,10 @@ function floorHeightAt(x,z,preferredY){
   const g = worldCells.get(key), u = upperCells.get(key);
   if (g && g.ch !== '#') candidates.push(g.floorY || 0);
   if (u && u.ch !== '#' && !(u.zone === 'd2' && isStairHoleCell(X,Z))) candidates.push(u.floorY || 0);
-  // плавный подъём по лестнице: нижняя площадка у z=14, верхняя у z=2
+  // Площадка и наклонный марш становятся проходимыми после открытия завала.
   const stairOpen=MAP.zoneDoor.d2&&MAP.zoneDoor.d2.open;
+  if(stairOpen&&x>=STAIR_LANDING.minX&&x<=STAIR_LANDING.maxX&&z>=STAIR_LANDING.minZ&&z<=STAIR_LANDING.maxZ) return STAIR.highY;
   if(stairOpen&&x>=STAIR.minX&&x<=STAIR.maxX&&z<=STAIR.lowZ&&z>=STAIR.highZ){
-    // Эта полоса — лестница и проём в перекрытии: здесь нет нижнего/верхнего пола.
     return STAIR.lowY+(STAIR.lowZ-z)/(STAIR.lowZ-STAIR.highZ)*(STAIR.highY-STAIR.lowY);
   }
   // площадка на верхушке наблюдательной вышки во дворе
@@ -2223,6 +2304,102 @@ function buildProps(){
   }
 }
 
+/* ---- Верстак и ресурсы для изготовления предметов ---- */
+function buildWorkbench(){
+  const dev=makeDevice('workbench','start',8,1,[0,1],{price:0});
+  const wood=new THREE.MeshStandardMaterial({color:0x5a4129,roughness:0.88,metalness:0.02});
+  const dark=new THREE.MeshStandardMaterial({color:0x272d31,roughness:0.7,metalness:0.34});
+  const brass=new THREE.MeshStandardMaterial({color:0x9c793e,roughness:0.48,metalness:0.58});
+  const x=dev.wx,z=dev.wz+0.35;
+  const top=new THREE.Mesh(new THREE.BoxGeometry(1.7,0.14,0.82),wood);
+  top.position.set(x,1.0,z);scene.add(top);
+  for(const dx of [-0.68,0.68])for(const dz of [-0.28,0.28]){
+    const leg=new THREE.Mesh(new THREE.BoxGeometry(0.12,0.9,0.12),dark);
+    leg.position.set(x+dx,0.48,z+dz);scene.add(leg);
+  }
+  const drawer=new THREE.Mesh(new THREE.BoxGeometry(1.34,0.27,0.62),dark);
+  drawer.position.set(x,0.73,z);scene.add(drawer);
+  const toolbox=new THREE.Mesh(new THREE.BoxGeometry(0.42,0.31,0.33),dark);
+  toolbox.position.set(x-0.48,1.22,z+0.05);scene.add(toolbox);
+  const latch=new THREE.Mesh(new THREE.BoxGeometry(0.14,0.045,0.035),brass);
+  latch.position.set(x-0.48,1.2,z-0.12);scene.add(latch);
+  const vise=new THREE.Mesh(new THREE.BoxGeometry(0.28,0.13,0.18),brass);
+  vise.position.set(x+0.48,1.12,z-0.08);scene.add(vise);
+  dev.mesh=top;
+  dev.el.textContent='ВЕРСТАК · F';
+  MAP.propRects.push({minX:x-0.88,maxX:x+0.88,minZ:z-0.46,maxZ:z+0.46,floorY:dev.floorY});
+  return dev;
+}
+
+/* ---- Растительность в помещениях и паутина в углах ---- */
+function buildIndoorAtmosphere(){
+  const plantSpots=[
+    ['start',1.4,5.7],['start',11.8,3.3],
+    ['d1',5.3,2.2],['d1',5.3,7.4],
+    ['d2',1.3,5.7],['d2',11.8,2.4],
+    ['d3',2.2,7.2],['d3',8.1,2.5]
+  ];
+  const plants=[];
+  for(const [id,lx,lz] of plantSpots){
+    const zone=MAP.zones[id];if(!zone)continue;
+    const wx=(lx+zone.ox)*TILE,wz=(lz+zone.oz)*TILE,floorY=zone.floorY||0;
+    if(MAP.propRects.some(r=>r.floorY===floorY&&circleRect(wx,wz,0.34,r)))continue;
+    if(MAP.spawns.some(q=>Math.abs((q.floorY||0)-floorY)<0.2&&Math.hypot(q.x-wx,q.z-wz)<1.35))continue;
+    plants.push({x:wx,z:wz,y:floorY});
+  }
+  if(plants.length){
+    const potGeo=new THREE.CylinderGeometry(0.18,0.23,0.3,7);
+    const leafGeo=new THREE.ConeGeometry(0.085,0.48,5);
+    const potMat=new THREE.MeshStandardMaterial({color:0x40372d,roughness:0.95});
+    const leafMat=new THREE.MeshStandardMaterial({color:0x536245,roughness:0.92});
+    const pots=new THREE.InstancedMesh(potGeo,potMat,plants.length);
+    const leaves=new THREE.InstancedMesh(leafGeo,leafMat,plants.length*3);
+    const tmp=new THREE.Object3D();let leafIndex=0;
+    for(let i=0;i<plants.length;i++){
+      const plant=plants[i];
+      tmp.position.set(plant.x,plant.y+0.16,plant.z);tmp.rotation.set(0,0,0);tmp.scale.setScalar(1);tmp.updateMatrix();pots.setMatrixAt(i,tmp.matrix);
+      for(let j=0;j<3;j++){
+        const angle=j*Math.PI*2/3;
+        tmp.position.set(plant.x+Math.cos(angle)*0.12,plant.y+0.43,plant.z+Math.sin(angle)*0.12);
+        tmp.rotation.set(Math.cos(angle)*0.28,angle,-Math.sin(angle)*0.28);
+        tmp.scale.set(1,0.9+0.08*j,1);tmp.updateMatrix();leaves.setMatrixAt(leafIndex++,tmp.matrix);
+      }
+    }
+    pots.instanceMatrix.needsUpdate=true;pots.userData.noRay=true;
+    leaves.instanceMatrix.needsUpdate=true;leaves.userData.noRay=true;
+    scene.add(pots,leaves);
+  }
+
+  const strands=[];
+  const addPoint=(a,b)=>strands.push(a[0],a[1],a[2],b[0],b[1],b[2]);
+  const addWeb=(x,y,z,sx,sz)=>{
+    const c=[x,y,z],u=[sx*0.95,0,0],v=[0,-0.82,sz*0.95];
+    for(let i=0;i<=6;i++){
+      const t=i/6,end=[c[0]+u[0]*(1-t)+v[0]*t,c[1]+u[1]*(1-t)+v[1]*t,c[2]+u[2]*(1-t)+v[2]*t];
+      addPoint(c,end);
+    }
+    for(const r of [0.2,0.4,0.6,0.8,1]){
+      let prev=[c[0]+u[0]*r,c[1]+u[1]*r,c[2]+u[2]*r];
+      for(let j=1;j<=4;j++){
+        const t=j/4,next=[c[0]+u[0]*r*(1-t)+v[0]*r*t,c[1]+u[1]*r*(1-t)+v[1]*r*t,c[2]+u[2]*r*(1-t)+v[2]*r*t];
+        addPoint(prev,next);prev=next;
+      }
+    }
+  };
+  for(const id of ['start','d1','d2','d3']){
+    const zone=MAP.zones[id];if(!zone)continue;
+    const width=zone.def.grid[0].length,height=zone.def.grid.length,y=(zone.floorY||0)+WALL_H-0.12;
+    const left=(zone.ox+0.5)*TILE,right=(zone.ox+width-1)*TILE-1;
+    const front=(zone.oz+0.5)*TILE,back=(zone.oz+height-1)*TILE-1;
+    addWeb(left+0.05,y,front+0.05,1,1);
+    addWeb(right-0.05,y,back-0.05,-1,-1);
+  }
+  const geo=new THREE.BufferGeometry();
+  geo.setAttribute('position',new THREE.Float32BufferAttribute(strands,3));
+  const web=new THREE.LineSegments(geo,new THREE.LineBasicMaterial({color:0x9aa2a1,transparent:true,opacity:0.32,depthWrite:false}));
+  web.userData.noRay=true;scene.add(web);
+}
+
 /* ---- 8.4 Освещение зон (аварийные лампы) ---- */
 const zoneLamps = [];
 function buildLamps(){
@@ -2392,35 +2569,56 @@ function buildStaircase(){
     const step=new THREE.Mesh(new THREE.BoxGeometry(width,stepH,stepD+0.04),i%2?concrete:edge);
     step.position.set(xMid,STAIR.lowY+(i+0.5)*stepH,z);
     scene.add(step);
-    // светлая узкая кромка у ступени
     const lip=new THREE.Mesh(new THREE.BoxGeometry(width,0.045,0.08),lipMat);
     lip.position.set(xMid,yTop-0.015,z-stepD/2+0.06);
     scene.add(lip);
   }
-  // Перила с наклонным поручнем; простые объёмы остаются дешёвыми для рендера.
+
+  // Верхняя площадка выходит в комнату, а не упирается в наружную стену.
+  const landingDepth=STAIR_LANDING.maxZ-STAIR_LANDING.minZ;
+  const landing=new THREE.Mesh(new THREE.BoxGeometry(STAIR.maxX-STAIR.minX,0.18,landingDepth),concrete);
+  landing.position.set(xMid,STAIR.highY-0.09,(STAIR_LANDING.minZ+STAIR_LANDING.maxZ)/2);
+  scene.add(landing);
+
+  // У верхнего края оставлен боковой проход на пол второго этажа.
+  const railStartZ=STAIR.highZ+STAIR_EXIT_DEPTH;
+  const rampYAt=z=>STAIR.lowY+(STAIR.lowZ-z)/(STAIR.lowZ-STAIR.highZ)*(STAIR.highY-STAIR.lowY);
   for(const side of [-1,1]){
     const x=xMid+side*(width/2+0.18);
     for(let i=0;i<=count;i+=2){
       const z=STAIR.lowZ-i*stepD;
-      const h=STAIR.lowY+i*stepH;
+      if(z<railStartZ)continue;
+      const h=rampYAt(z);
       const post=new THREE.Mesh(new THREE.BoxGeometry(0.11,1.1,0.11),edge);
       post.position.set(x,h+0.55,z);
       scene.add(post);
     }
-    const rail=new THREE.Mesh(new THREE.BoxGeometry(0.13,0.13,span+0.45),edge);
-    rail.position.set(x,(STAIR.lowY+STAIR.highY)/2+1.0,(STAIR.lowZ+STAIR.highZ)/2);
-    rail.rotation.x=Math.atan2(STAIR.highY-STAIR.lowY,STAIR.lowZ-STAIR.highZ);
-    scene.add(rail);
-    MAP.propRects.push({minX:x-0.08,maxX:x+0.08,minZ:STAIR.highZ-0.2,maxZ:STAIR.lowZ+0.2,
-      stairRail:true});
+    if(railStartZ<STAIR.lowZ){
+      const railSpan=STAIR.lowZ-railStartZ,midZ=(STAIR.lowZ+railStartZ)/2;
+      const rail=new THREE.Mesh(new THREE.BoxGeometry(0.13,0.13,railSpan+0.3),edge);
+      rail.position.set(x,rampYAt(midZ)+1.0,midZ);
+      rail.rotation.x=Math.atan2(STAIR.highY-STAIR.lowY,STAIR.lowZ-STAIR.highZ);
+      scene.add(rail);
+      for(let z0=railStartZ;z0<STAIR.lowZ;z0+=1.8){
+        const z1=Math.min(STAIR.lowZ,z0+1.8),lo=Math.min(rampYAt(z0),rampYAt(z1));
+        const hi=Math.max(rampYAt(z0),rampYAt(z1));
+        MAP.propRects.push({minX:x-0.08,maxX:x+0.08,minZ:z0-0.08,maxZ:z1+0.08,
+          bottomY:lo+0.9,topY:hi+1.1,stairRail:true});
+      }
+    }
   }
-  // Над лестницей — открытая шахта с ограждением по краям верхнего проёма.
-  for(const x of [STAIR.minX-0.3,STAIR.maxX+0.3]){
-    const guard=new THREE.Mesh(new THREE.BoxGeometry(0.12,0.9,13.2),edge);
-    guard.position.set(x,4.45,8);
-    scene.add(guard);
+
+  // На втором этаже ограждение прерывается напротив верхней площадки.
+  const guardStartZ=railStartZ,guardEndZ=STAIR.lowZ+0.6,guardDepth=guardEndZ-guardStartZ;
+  if(guardDepth>0){
+    for(const x of [STAIR.minX-0.3,STAIR.maxX+0.3]){
+      const guard=new THREE.Mesh(new THREE.BoxGeometry(0.12,0.9,guardDepth),edge);
+      guard.position.set(x,STAIR.highY+0.45,(guardStartZ+guardEndZ)/2);
+      scene.add(guard);
+      MAP.propRects.push({minX:x-0.08,maxX:x+0.08,minZ:guardStartZ,maxZ:guardEndZ,
+        floorY:STAIR.highY,bottomY:STAIR.highY,topY:STAIR.highY+0.9,stairRail:true});
+    }
   }
-  // Убрана неплотно закреплённая серая табличка возле комнаты появления.
 }
 
 /* ---- 8.10 Двор аэродрома: ограждение, поле, обломки и дальний горизонт ---- */
@@ -2536,13 +2734,18 @@ function buildYardEnvironment(){
 
   // Холодные тёмные холмы обрамляют дальний горизонт, не перекрывая прогулочную площадку.
   const rockGeo=new THREE.IcosahedronGeometry(1,1),rockMat=new THREE.MeshStandardMaterial({color:0x2e3940,roughness:0.96});
-  const rocks=new THREE.InstancedMesh(rockGeo,rockMat,32);
+  const rocks=new THREE.InstancedMesh(rockGeo,rockMat,29);
+  let rockIndex=0;
   for(let i=0;i<32;i++){
     const a=i/32*Math.PI*2,r=54+rnd()*12;
-    tmp.position.set(70+Math.cos(a)*r,1.5+rnd()*3,10+Math.sin(a)*r);
-    tmp.scale.set(5+rnd()*8,3+rnd()*5,5+rnd()*8);tmp.rotation.set(rnd(),rnd()*3,rnd());tmp.updateMatrix();rocks.setMatrixAt(i,tmp.matrix);
+    const x=70+Math.cos(a)*r,y=1.5+rnd()*3,z=10+Math.sin(a)*r;
+    const sx=5+rnd()*8,sy=3+rnd()*5,sz=5+rnd()*8;
+    const rx=rnd(),ry=rnd()*3,rz=rnd();
+    // Эти три точки кольца заводили большие серые глыбы прямо в комнату появления.
+    if(i>=15&&i<=17)continue;
+    tmp.position.set(x,y,z);tmp.scale.set(sx,sy,sz);tmp.rotation.set(rx,ry,rz);tmp.updateMatrix();rocks.setMatrixAt(rockIndex++,tmp.matrix);
   }
-  rocks.instanceMatrix.needsUpdate=true;rocks.userData.noRay=true;rocks.userData.noShadow=true;scene.add(rocks);YARD_VISUALS.rocks=rocks;
+  rocks.count=rockIndex;rocks.instanceMatrix.needsUpdate=true;rocks.userData.noRay=true;rocks.userData.noShadow=true;scene.add(rocks);YARD_VISUALS.rocks=rocks;
   if(snowTheme){
     const snowGeo=new THREE.CircleGeometry(1,7),snowMat=new THREE.MeshStandardMaterial({color:0xd7e0e5,roughness:0.96,transparent:true,opacity:0.7,depthWrite:false});
     const snow=new THREE.InstancedMesh(snowGeo,snowMat,120);
@@ -2670,6 +2873,7 @@ function buildLevel(){
   for (const id in MAP.zones) applyPlacements(MAP.zones[id]);
   buildWalls();             // заполняет MAP.wallRects
   buildProps();             // ящики и бочки -> MAP.propRects
+  buildWorkbench();         // изготовление аптечки, патронов и гранат
   buildPerkMachines();     // 5 автоматов перков
   buildMysteryBox();       // ящик тайн
   buildPackAPunch();       // улучшение оружия
@@ -2688,6 +2892,7 @@ function buildLevel(){
   buildBuys();
   buildColliderIndex();    // индекс строится после всех рам/пропсов
   buildSpawns();
+  buildIndoorAtmosphere();
 }
 
 /* ============================================================
@@ -2968,7 +3173,10 @@ function blocked(x, z, r, zombie, levelY){
   const list = nearbyColliders(x, z, _tmpCols);
   for (let i=0;i<list.length;i++){
     const c=list[i];
-    if (c.floorY !== undefined && Math.abs(c.floorY-floorY)>1.55) continue;
+    if (c.bottomY !== undefined || c.topY !== undefined){
+      const bottom=c.bottomY===undefined?-Infinity:c.bottomY,top=c.topY===undefined?Infinity:c.topY;
+      if(top<floorY+0.08||bottom>floorY+EYE+0.25)continue;
+    }else if (c.floorY !== undefined && Math.abs(c.floorY-floorY)>1.55) continue;
     if (circleRect(x,z,r,c)) return true;
   }
   for (let i=0;i<MAP.doors.length;i++){
@@ -3054,7 +3262,7 @@ function updatePlayer(dt,now){
   moveWithCollision(PLAYER.pos,PLAYER.vel.x*dt,PLAYER.vel.z*dt,PLAYER.radius,false,oldFloor,true);
   if(oldFloor-PLAYER.floorY>2.0&&GAME.state==='play'&&!ELEVATOR.rider){
     const fall=oldFloor-PLAYER.floorY;
-    if(fall>2.6)damagePlayer(Math.min(45,(fall-1.8)*14));
+    if(fall>2.6)damagePlayer(Math.min(45,(fall-1.8)*14),'ПАДЕНИЕ');
   }
 
   // покачивание камеры при ходьбе
@@ -3100,9 +3308,27 @@ function updatePlayer(dt,now){
   muzzleLight.position.set(PLAYER.pos.x, PLAYER.floorY+EYE+0.25, PLAYER.pos.z);
 }
 
-/** Урон игроку */
-function damagePlayer(amount){
+let damageSourceTimer=0;
+function showDamageSource(amount,source,x,z){
+  if(!DOM.damageSource)return;
+  let direction='';
+  if(Number.isFinite(x)&&Number.isFinite(z)){
+    const dx=x-PLAYER.pos.x,dz=z-PLAYER.pos.z;
+    const side=dx*Math.cos(PLAYER.yaw)-dz*Math.sin(PLAYER.yaw);
+    const ahead=-dx*Math.sin(PLAYER.yaw)-dz*Math.cos(PLAYER.yaw);
+    direction=Math.abs(side)>Math.abs(ahead)*0.65?(side<0?'СЛЕВА':'СПРАВА'):(ahead<0?'СЗАДИ':'СПЕРЕДИ');
+  }
+  DOM.damageSource.textContent=`−${Math.max(1,Math.ceil(amount))} HP · ${source||'НЕИЗВЕСТНЫЙ УРОН'}${direction?' · '+direction:''}`;
+  DOM.damageSource.classList.add('show');
+  clearTimeout(damageSourceTimer);
+  damageSourceTimer=setTimeout(()=>DOM.damageSource.classList.remove('show'),1650);
+}
+/** Урон игроку с подписью источника и направления */
+function damagePlayer(amount,source,sourceX,sourceZ){
   if (GAME.state !== 'play') return;
+  amount=Math.max(0,Number(amount)||0);
+  if(amount<=0)return;
+  showDamageSource(amount,source,sourceX,sourceZ);
   PLAYER.health -= amount;
   PLAYER.lastDamage = GAME.time;
   PLAYER.slowed = 0.35;
@@ -3406,7 +3632,8 @@ function spitProjectile(z,target){
   mesh.add(spr);
   mesh.position.copy(from);
   scene.add(mesh);
-  spitList.push({mesh,vel:dir.multiplyScalar(13),life:2.6,targetRemote:!!target.remote,targetId:target.id,floorY:z.floorY||0});
+  spitList.push({mesh,vel:dir.multiplyScalar(13),life:2.6,targetRemote:!!target.remote,targetId:target.id,
+    floorY:z.floorY||0,sourceX:z.pos.x,sourceZ:z.pos.z});
   SFX.spit();
 }
 /** Обновление кислотных плевков */
@@ -3414,18 +3641,21 @@ function updateSpits(dt){
   for (let i=spitList.length-1;i>=0;i--){
     const p = spitList[i];
     p.life -= dt;
+    const oldX=p.mesh.position.x,oldY=p.mesh.position.y,oldZ=p.mesh.position.z;
     p.vel.y -= 2.2*dt;
     p.mesh.position.addScaledVector(p.vel, dt);
     const remote=p.targetRemote&&COOP.partnerState;
     const tx=remote?remote.x:PLAYER.pos.x,tz=remote?remote.z:PLAYER.pos.z;
     const ty=remote?(remote.floorY||0)+EYE:PLAYER.floorY+EYE;
-    const hitPlayer=p.mesh.position.distanceTo(new THREE.Vector3(tx,ty,tz))<0.62;
     const groundY=floorHeightAt(p.mesh.position.x,p.mesh.position.z,p.floorY);
-    const hitWall=blocked(p.mesh.position.x,p.mesh.position.z,0.1,false,p.floorY)||p.mesh.position.y<groundY+0.05;
+    const hitWall=blocked(p.mesh.position.x,p.mesh.position.z,0.1,false,p.floorY)||p.mesh.position.y<groundY+0.05||
+      !hasLineOfSight(_combatFrom.set(oldX,oldY,oldZ),_combatTo.copy(p.mesh.position));
+    const hitPlayer=!hitWall&&p.mesh.position.distanceTo(_combatTo.set(tx,ty,tz))<0.62&&
+      hasLineOfSight(p.mesh.position,_combatTo.set(tx,ty,tz));
     if(hitPlayer){
-      if(remote)sendNet({type:'damage',to:remote.id,amount:9});
+      if(remote)sendNet({type:'damage',to:remote.id,amount:9,source:'КИСЛОТА',sx:p.sourceX,sz:p.sourceZ});
       else{
-        damagePlayer(9);
+        damagePlayer(9,'КИСЛОТА',p.sourceX,p.sourceZ);
         DOM.damageFlash.style.background='radial-gradient(ellipse at center, rgba(90,180,0,.15) 25%, rgba(120,220,20,.7) 100%)';
         setTimeout(()=>{DOM.damageFlash.style.background='';},120);
       }
@@ -3771,7 +4001,10 @@ function updateZombies(dt, now){
       }
     } else { z.progT = 0; z.noProg = 0; z.progRef = dist; }
 
-    if (dist > atkRange*0.92 && mdist > 0.3){
+    const attackVisible=dist<=atkRange*0.92&&verticalGap<1.45&&
+      hasLineOfSight(_combatFrom.set(z.pos.x,(z.floorY||0)+1.12,z.pos.z),
+        _combatTo.set(target.x,(target.floorY||0)+0.95,target.z));
+    if (!attackVisible && mdist > 0.3){
       // --- движение к цели (игрок или дверь) с обходом препятствий ---
       let dx = toX/mdist, dz = toZ/mdist;
       const steered = steerZombie(z, dx, dz, dt);
@@ -3809,13 +4042,13 @@ function updateZombies(dt, now){
       // если зомби не может добраться слишком долго — «выползает» в другой точке
       if (z.stuckTime > 8) relocateZombie(z);
       z.mesh.body.rotation.z = Math.sin(z.phase)*0.07;
-    } else {
-      // --- атака вплотную ---
-      if (verticalGap < 1.45 && now >= z.nextAttack){
+    } else if(attackVisible){
+      // --- атака вплотную только при прямой видимости ---
+      if (now >= z.nextAttack){
         z.nextAttack = now + (z.type === 'dog' ? rand(0.55, 0.8) : (z.boss ? rand(1.35, 1.6) : rand(1.0, 1.25)));
         z.attackT = 0.32;
-        if(target.remote)sendNet({type:'damage',to:target.id,amount:z.dmg});
-        else damagePlayer(z.dmg);
+        if(target.remote)sendNet({type:'damage',to:target.id,amount:z.dmg,source:z.boss?'БОСС':'ЗОМБИ',sx:z.pos.x,sz:z.pos.z});
+        else damagePlayer(z.dmg,z.boss?'БОСС':'ЗОМБИ',z.pos.x,z.pos.z);
         FX.bloodBurst(target.x,(target.floorY||0)+1.25,target.z,3);
       }
     }
@@ -3831,8 +4064,11 @@ function updateZombies(dt, now){
     if(z.boss&&dist<6&&now>=z.slamReady&&z.slamT<=0){z.slamT=0.72;z.slamReady=now+3.2;FX.ring(z.pos.x,z.floorY+0.08,z.pos.z,0xff4725);}
     if(z.boss&&z.slamT>0){
       z.slamT-=dt;
-      if(z.slamT<=0&&dist<5.2&&verticalGap<1.5){
-        if(target.remote)sendNet({type:'damage',to:target.id,amount:18*z.bossPhase});else damagePlayer(18*z.bossPhase);
+      if(z.slamT<=0&&dist<5.2&&verticalGap<1.5&&
+        hasLineOfSight(_combatFrom.set(z.pos.x,(z.floorY||0)+0.12,z.pos.z),
+          _combatTo.set(target.x,(target.floorY||0)+0.45,target.z))){
+        if(target.remote)sendNet({type:'damage',to:target.id,amount:18*z.bossPhase,source:'УДАР БОССА',sx:z.pos.x,sz:z.pos.z});
+        else damagePlayer(18*z.bossPhase,'УДАР БОССА',z.pos.x,z.pos.z);
         FX.ring(z.pos.x,z.floorY+0.15,z.pos.z,0xff351a);SFX.explosion();
       }
     }
@@ -3938,6 +4174,24 @@ function updateZombies(dt, now){
    ============================================================ */
 const raycaster = new THREE.Raycaster();
 const worldRayTargets = [];      // стены, пол, потолок, пропсы, закрытые двери
+const combatRaycaster = new THREE.Raycaster();
+const combatTargets = [];
+const _combatDelta = new THREE.Vector3();
+const _combatFrom = new THREE.Vector3();
+const _combatTo = new THREE.Vector3();
+function hasLineOfSight(from,to){
+  _combatDelta.subVectors(to,from);
+  const distance=_combatDelta.length();
+  if(distance<0.16)return true;
+  combatRaycaster.set(from,_combatDelta.multiplyScalar(1/distance));
+  combatRaycaster.near=0.025;combatRaycaster.far=distance-0.1;
+  combatTargets.length=0;
+  for(const object of worldRayTargets){
+    if(object===zombiesRoot||object.visible===false)continue;
+    combatTargets.push(object);
+  }
+  return combatRaycaster.intersectObjects(combatTargets,true).length===0;
+}
 const _rayOrigin = new THREE.Vector3();
 const _rayDir = new THREE.Vector3();
 const _muzzleWorld = new THREE.Vector3();
@@ -4011,8 +4265,9 @@ function splashDamage(x, y, z, radius, dmg, ignore){
   for (let i=zombies.length-1;i>=0;i--){
     const zb = zombies[i];                       // вариант-жертва (не путать с координатой z)
     if (!zb.alive || zb === ignore) continue;
-    const d=Math.hypot(zb.pos.x-x,zb.pos.z-z);
-    if(d>radius||Math.abs((zb.floorY||0)+1.0-y)>radius) continue;
+    const targetY=(zb.floorY||0)+1.05;
+    const d=Math.hypot(zb.pos.x-x,targetY-y,zb.pos.z-z);
+    if(d>radius||!hasLineOfSight(_combatFrom.set(x,y,z),_combatTo.set(zb.pos.x,targetY,zb.pos.z)))continue;
     const falloff = clamp(1 - d/radius, 0.35, 1);
     const res = damageZombie(zb, dmg*falloff, false);
     if (res === 'kill'){ kills++; onZombieKilled(zb, zb.pos.x, y, zb.pos.z); }
@@ -4059,6 +4314,7 @@ function onZombieKilled(z, x, y, zz, noPoints){
   if (!noPoints) addPoints(60 * TWEAKS.points);      // +60 за убийство (с учётом настройки)
   GAME.kills++;
   GAME.noKillT = 0;
+  maybeDropMaterial(z.pos.x,z.pos.z,z.floorY||0);
   SFX.kill();
   FX.bloodBurst(x, y, zz, 8);
   FX.decal(x, zz, rand(1.2, 1.9));
@@ -4066,6 +4322,88 @@ function onZombieKilled(z, x, y, zz, noPoints){
   showHitmarker(true);
   maybeDropPowerup(z.pos.x,z.pos.z,z.floorY);
   checkAchievements();
+}
+
+/** Бросить один из материалов за убийство зомби */
+function maybeDropMaterial(x,z,floorY){
+  if(GAME.kills%3!==0&&Math.random()>0.24)return;
+  const type=pick(['scrap','cloth','powder']);
+  const mesh=new THREE.Mesh(MATERIAL_DROP_GEO[type],MATERIAL_DROP_MAT[type]);
+  mesh.position.set(x,floorY+0.34,z);
+  mesh.rotation.set(0,Math.random()*Math.PI*2,0);
+  mesh.userData.noRay=true;scene.add(mesh);
+  materialDrops.push({mesh,type,x,z,floorY,life:32,phase:Math.random()*6.28});
+}
+/** Подбор материалов и плавание жетонов над землёй */
+function updateMaterialDrops(dt){
+  for(let i=materialDrops.length-1;i>=0;i--){
+    const drop=materialDrops[i];drop.life-=dt;
+    if(drop.life<=0){scene.remove(drop.mesh);materialDrops.splice(i,1);continue;}
+    drop.mesh.rotation.y+=dt*0.8;
+    drop.mesh.position.y=drop.floorY+0.34+Math.sin(GAME.time*3+drop.phase)*0.07;
+    if(Math.abs(PLAYER.floorY-drop.floorY)>1.2||Math.hypot(PLAYER.pos.x-drop.x,PLAYER.pos.z-drop.z)>1.05)continue;
+    MATERIALS[drop.type]=Math.min(30,MATERIALS[drop.type]+1);
+    scene.remove(drop.mesh);materialDrops.splice(i,1);
+    SFX.powerup();
+    setToast(`Материал: ${MATERIAL_LABELS[drop.type]} +1`,'good');
+    updateHUD();
+  }
+}
+function hasCraftingMaterials(recipe){
+  return Object.entries(recipe.cost).every(([id,count])=>MATERIALS[id]>=count);
+}
+function canCraftRecipe(recipe){
+  if(!hasCraftingMaterials(recipe))return false;
+  if(recipe.id==='medkit'&&PLAYER.health>=PLAYER.maxHealth-0.01)return false;
+  if(recipe.id==='ammo'){const w=getWeaponStats();if(weaponState.ammo>=w.mag&&weaponState.reserve>=Math.ceil(w.reserve*1.5))return false;}
+  if(recipe.id==='grenade'&&GRENADES.count>=GRENADES.max)return false;
+  return true;
+}
+function materialCostText(recipe){
+  return Object.entries(recipe.cost).map(([id,count])=>`${count} ${MATERIAL_LABELS[id]}`).join(' + ');
+}
+/** Изготовить выбранный предмет на верстаке */
+function craftItem(id){
+  if(GAME.state!=='play')return false;
+  const recipe=CRAFT_RECIPES.find(item=>item.id===id);
+  if(!recipe)return false;
+  if(!MAP.devices.some(d=>d.kind==='workbench'&&PLAYER.pos.distanceTo(d.pos)<2.7))return false;
+  if(!hasCraftingMaterials(recipe)){
+    SFX.deny();setToast(`Не хватает ресурсов: ${materialCostText(recipe)}`,'warn');return false;
+  }
+  if(id==='medkit'&&PLAYER.health>=PLAYER.maxHealth-0.01){
+    SFX.deny();setToast('Аптечка пригодится, когда вы ранены','warn');return false;
+  }
+  if(id==='ammo'){
+    const w=getWeaponStats(),reserveLimit=Math.ceil(w.reserve*1.5);
+    if(weaponState.ammo>=w.mag&&weaponState.reserve>=reserveLimit){SFX.deny();setToast('Боезапас уже заполнен','warn');return false;}
+  }
+  if(id==='grenade'&&GRENADES.count>=GRENADES.max){
+    SFX.deny();setToast('Нельзя нести больше гранат','warn');return false;
+  }
+  for(const [key,count] of Object.entries(recipe.cost))MATERIALS[key]-=count;
+  if(id==='medkit')PLAYER.health=Math.min(PLAYER.maxHealth,PLAYER.health+45);
+  else if(id==='ammo'){
+    const w=getWeaponStats();
+    weaponState.ammo=Math.min(w.mag,weaponState.ammo+Math.max(1,Math.ceil(w.mag*0.5)));
+    weaponState.reserve=Math.min(Math.ceil(w.reserve*1.5),weaponState.reserve+Math.max(12,Math.ceil(w.mag*1.25)));
+    SFX.reload();
+  }else if(id==='grenade'){GRENADES.count++;SFX.throwGrenade();}
+  if(id==='medkit')SFX.powerup();
+  setToast(`Создано: ${recipe.title}`,'good');
+  updateHUD();return true;
+}
+function updateCraftPanel(it){
+  if(!DOM.craftPanel)return;
+  const active=!!(it&&it.kind==='device'&&it.obj.kind==='workbench');
+  DOM.craftPanel.classList.toggle('show',active);
+  if(!active)return;
+  for(const button of DOM.craftButtons){
+    const recipe=CRAFT_RECIPES.find(item=>item.id===button.dataset.craft);
+    if(!recipe)continue;
+    button.disabled=!canCraftRecipe(recipe);
+    button.innerHTML=`<b>${recipe.key}</b>${recipe.title} · ${materialCostText(recipe)}`;
+  }
 }
 
 /** Начать перезарядку */
@@ -4245,8 +4583,10 @@ function explodeGrenade(pos){
   for (let r=0;r<5;r++) FX.decal(pos.x + rand(-2,2), pos.z + rand(-2,2), rand(0.9,1.7));
   splashDamage(pos.x, pos.y, pos.z, GRENADE_R, GRENADE_DMG, null);
   // оглушение и урон игроку при близком взрыве (небольшой)
-  const d = Math.hypot(pos.x - PLAYER.pos.x, pos.z - PLAYER.pos.z);
-  if (d < GRENADE_R*0.7) damagePlayer(20);
+  const playerY=PLAYER.floorY+0.9;
+  const d=Math.hypot(pos.x-PLAYER.pos.x,pos.y-playerY,pos.z-PLAYER.pos.z);
+  if(d<GRENADE_R*0.7&&hasLineOfSight(_combatFrom.set(pos.x,pos.y,pos.z),_combatTo.set(PLAYER.pos.x,playerY,PLAYER.pos.z)))
+    damagePlayer(20,'СВОЯ ГРАНАТА',pos.x,pos.z);
 }
 
 /* ============================================================
@@ -4574,6 +4914,7 @@ function updateDirector(dt){
   if (GAME.waveSpawned >= cfg.total && alive === 0 && zombieDeathAnimDone()){
     GAME.waveActive = false;
     GAME.intermission = 5.5;
+    SFX.waveComplete();
     setToast(`Волна ${GAME.wave} отбита! Передышка ${GAME.intermission.toFixed(1)} с`, 'good');
     showBanner(`ВОЛНА ${GAME.wave} ЗАЧИЩЕНА`);
   }
@@ -4602,6 +4943,10 @@ const DOM = {
   crosshair:document.getElementById('crosshair'),
   lowHealth:document.getElementById('lowHealth'),
   damageFlash:document.getElementById('damageFlash'),
+  damageSource:document.getElementById('damageSource'),
+  materials:document.getElementById('materialsTxt'),
+  craftPanel:document.getElementById('craftPanel'),
+  craftButtons:document.querySelectorAll('[data-craft]'),
   overlayStart:document.getElementById('overlayStart'),
   overlayPause:document.getElementById('overlayPause'),
   overlayOver: document.getElementById('overlayGameOver'),
@@ -4613,13 +4958,14 @@ const DOM = {
   coop: document.getElementById('coopInfo'),
   modeTimer: document.getElementById('modeTimer')
 };
-const hudCache = { points:-1, health:-1, ammo:'', wave:-1, left:-1, perks:'', power:'' };
+const hudCache = { points:-1, health:-1, ammo:'', wave:-1, left:-1, perks:'', power:'', materials:'' };
 let toastTimer = 0;
 
 function updateHUD(){
   if (hudCache.points !== GAME.points){ DOM.points.textContent = GAME.points; hudCache.points = GAME.points; }
   updatePerkHUD();
   updateAmmoHUD();
+  updateMaterialsHUD();
   const hp = Math.ceil(PLAYER.health);
   if (hudCache.health !== hp){
     DOM.health.textContent = hp;
@@ -4630,6 +4976,12 @@ function updateHUD(){
     DOM.lowHealth.style.opacity = hp < 35 ? String(clamp((35-hp)/35*0.9, 0, 0.9)) : '0';
     hudCache.health = hp;
   }
+}
+
+function updateMaterialsHUD(){
+  if(!DOM.materials)return;
+  const value=`Детали ${MATERIALS.scrap} · ткань ${MATERIALS.cloth} · порох ${MATERIALS.powder}`;
+  if(hudCache.materials!==value){DOM.materials.textContent=value;hudCache.materials=value;}
 }
 
 /** Патроны, название оружия, гранаты, второй слот */
@@ -4756,6 +5108,7 @@ function findInteractable(){
 }
 function updatePrompt(){
   const it = findInteractable();
+  updateCraftPanel(it);
   if (!it){ DOM.prompt.className = ''; return; }
   let text, can;
   if (it.kind === 'door'){
@@ -5181,7 +5534,7 @@ function handleCoopMessage(m){
   }
   if(m.type==='world'&&!COOP.isHost){applyRemoteWorld(m);return;}
   if(m.type==='hit'&&COOP.isHost){receiveCoopHit(m);return;}
-  if(m.type==='damage'&&m.to===COOP.id){damagePlayer(m.amount||8);return;}
+  if(m.type==='damage'&&m.to===COOP.id){damagePlayer(m.amount||8,m.source||'СЕТЕВОЙ УРОН',m.sx,m.sz);return;}
   if(m.type==='door'&&COOP.isHost){openDoorForCoop(m.id);return;}
   if(m.type==='leaderboard'){
     const box=document.getElementById('onlineScores');if(box){
@@ -5517,6 +5870,8 @@ document.addEventListener('keydown',e=>{
   const action=actionForKey(e.code);
   if(action){if(!e.repeat)activateKeyAction(action);e.preventDefault();}
   else if(e.code==='Escape'&&GAME.state==='play'){e.preventDefault();togglePause();}
+  else if(GAME.state==='play'&&DOM.craftPanel&&DOM.craftPanel.classList.contains('show')&&e.code==='Digit3'){e.preventDefault();craftItem('ammo');}
+  else if(GAME.state==='play'&&DOM.craftPanel&&DOM.craftPanel.classList.contains('show')&&e.code==='Digit4'){e.preventDefault();craftItem('grenade');}
   else if(e.code==='KeyQ')Input.q=true;
   else if(e.code==='KeyE')Input.e=true;
   else if(e.code==='KeyM')setToast(SFX.toggle()?'Звук выключен':'Звук включён','');
@@ -5712,6 +6067,7 @@ function collectRayTargets(){
     if (o.isMesh && !o.userData.noRay) worldRayTargets.push(o);
   }
   worldRayTargets.push(zombiesRoot);   // все зомби — рекурсивно попадают в проверку луча
+  scene.updateMatrixWorld(true);
 }
 
 /** Начать игру (и рестарт) */
@@ -5762,6 +6118,8 @@ function startGame(){
   grenadeList.length = 0; spitList.length = 0;
   for (const p of powerDrops) scene.remove(p.spr);
   powerDrops.length = 0;
+  for(const drop of materialDrops)scene.remove(drop.mesh);
+  materialDrops.length=0;MATERIALS.scrap=MATERIALS.cloth=MATERIALS.powder=0;
   EASTER.radios = 0; EASTER.valves = 0; EASTER.energized = false;
   BOX.rolling = false;
   weaponState.slot = 0;
@@ -5882,6 +6240,7 @@ function animate(ms){
     }
     updateGrenades(dt);
     updatePowerups(dt,GAME.time);
+    updateMaterialDrops(dt);
     updateCoop(dt);
 
     // автоогонь (автомат — зажим ЛКМ или кнопка на мобильном)
@@ -5939,6 +6298,7 @@ function init(){
   loadKeyMap();renderKeyBindings();loadPadMap();renderPadBindings();
   bindTweaksUI();bindMapModeUI();bindQualityUI();
   initTouchControls();
+  document.querySelectorAll('[data-craft]').forEach(button=>button.addEventListener('click',()=>craftItem(button.dataset.craft)));
   requestAnimationFrame(animate);
 }
 
