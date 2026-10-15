@@ -1,0 +1,299 @@
+{
+  "id": "terminal-transit",
+  "name": "Terminal Transit",
+  "subtitle": "Abandoned Subway Terminal & City Boulevard",
+  "scene": "scene_terminal_transit",
+  "musicTrack": "/assets/audio/terminal_transit_theme.ogg",
+  "thumbnail": "/assets/maps/terminal-transit/layout.png",
+  "tileset": "/assets/maps/terminal-transit/tileset.png",
+  "layout": "/assets/maps/terminal-transit/layout.png",
+  "difficulty": 3,
+  "worldSize": {
+    "width": 2400,
+    "height": 1800,
+    "gridCellSize": 40
+  },
+  "background": {
+    "skybox": "urban_overcast_dusk",
+    "groundColor": "#1b2028",
+    "gridColor": "#252c37",
+    "roadColor": "#28303d",
+    "laneLineColor": "#eab308",
+    "ambientTint": "#8fa8c8"
+  },
+  "startingTimeHours": 9.5,
+  "weatherWeights": [
+    { "state": "clear", "weight": 30 },
+    { "state": "rain", "weight": 25 },
+    { "state": "fog", "weight": 20 },
+    { "state": "thunderstorm", "weight": 15 },
+    { "state": "snow", "weight": 10 }
+  ],
+  "uniqueMechanics": {
+    "type": "drivable_bus",
+    "title": "Armored Transit Bus & Multi-District Power Grid",
+    "description": "Drive the heavy armored bus along the city loop, crush zombie hordes at speed, refuel at fuel pumps, repair armor at the Bus Depot, activate 2 Power Stations, and unlock 3 Pack-a-Punch vaults.",
+    "busConfig": {
+      "enabled": true,
+      "spawnX": 1180,
+      "spawnY": 920,
+      "spawnAngle": 0,
+      "width": 150,
+      "height": 74,
+      "maxHealth": 1200,
+      "maxFuel": 100,
+      "fuelConsumptionPerSec": 2.4,
+      "maxSpeed": 430,
+      "reverseSpeed": 185,
+      "acceleration": 380,
+      "braking": 520,
+      "turnSpeed": 2.35,
+      "normalGrip": 0.86,
+      "driftGrip": 0.28,
+      "minCrushSpeed": 115,
+      "instaKillSmallSpeed": 140,
+      "crushDamageMultiplier": 1.4
+    }
+  },
+  "playerSpawn": {
+    "x": 1020,
+    "y": 920
+  },
+  "zones": [
+    {
+      "id": "zone_subway_entrance",
+      "name": "SUBWAY ENTRANCE",
+      "x": 80,
+      "y": 480,
+      "w": 560,
+      "h": 820,
+      "floorColor": "#1e293b",
+      "accentColor": "#38bdf8",
+      "roofed": true
+    },
+    {
+      "id": "zone_city_street",
+      "name": "CITY STREET LOOP",
+      "x": 640,
+      "y": 140,
+      "w": 1120,
+      "h": 1520,
+      "floorColor": "#242b35",
+      "accentColor": "#facc15",
+      "roofed": false,
+      "isRoadLoop": true
+    },
+    {
+      "id": "zone_bus_depot",
+      "name": "BUS DEPOT & GARAGE",
+      "x": 1760,
+      "y": 160,
+      "w": 560,
+      "h": 720,
+      "floorColor": "#292524",
+      "accentColor": "#fb923c",
+      "roofed": true
+    },
+    {
+      "id": "zone_open_plaza",
+      "name": "OPEN CIVIC PLAZA",
+      "x": 1760,
+      "y": 920,
+      "w": 560,
+      "h": 740,
+      "floorColor": "#1f2937",
+      "accentColor": "#34d399",
+      "roofed": false
+    }
+  ],
+  "walls": [
+    { "x": 0, "y": 0, "w": 2400, "h": 40, "color": "#0f172a", "label": "Perimeter North" },
+    { "x": 0, "y": 1760, "w": 2400, "h": 40, "color": "#0f172a", "label": "Perimeter South" },
+    { "x": 0, "y": 0, "w": 40, "h": 1800, "color": "#0f172a", "label": "Perimeter West" },
+    { "x": 2360, "y": 0, "w": 40, "h": 1800, "color": "#0f172a", "label": "Perimeter East" },
+
+    { "x": 600, "y": 440, "w": 40, "h": 300, "color": "#334155", "label": "Subway North Wall" },
+    { "x": 600, "y": 960, "w": 40, "h": 360, "color": "#334155", "label": "Subway South Wall" },
+    { "x": 80, "y": 440, "w": 520, "h": 40, "color": "#334155", "label": "Subway Roof Beam N" },
+    { "x": 80, "y": 1280, "w": 520, "h": 40, "color": "#334155", "label": "Subway Roof Beam S" },
+
+    { "x": 1000, "y": 520, "w": 360, "h": 120, "color": "#334155", "label": "Median Island North" },
+    { "x": 1000, "y": 1160, "w": 360, "h": 120, "color": "#334155", "label": "Median Island South" },
+
+    { "x": 1720, "y": 160, "w": 40, "h": 260, "color": "#3f3f46", "label": "Depot West Pillar N" },
+    { "x": 1720, "y": 640, "w": 40, "h": 240, "color": "#3f3f46", "label": "Depot West Pillar S" },
+
+    { "x": 1720, "y": 920, "w": 40, "h": 260, "color": "#374151", "label": "Plaza Divide N" },
+    { "x": 1720, "y": 1400, "w": 40, "h": 260, "color": "#374151", "label": "Plaza Divide S" },
+    { "x": 2000, "y": 1220, "w": 120, "h": 120, "color": "#1e3a8a", "label": "Plaza Monument" }
+  ],
+  "doors": [
+    {
+      "id": "door_subway_gate",
+      "name": "Subway Turnstile Gate",
+      "x": 600,
+      "y": 740,
+      "w": 40,
+      "h": 220,
+      "cost": 750,
+      "isOpen": false
+    },
+    {
+      "id": "door_depot_bay",
+      "name": "Bus Depot Security Shutter",
+      "x": 1720,
+      "y": 420,
+      "w": 40,
+      "h": 220,
+      "cost": 1000,
+      "isOpen": false
+    },
+    {
+      "id": "door_plaza_arch",
+      "name": "Civic Plaza Barricade",
+      "x": 1720,
+      "y": 1180,
+      "w": 40,
+      "h": 220,
+      "cost": 1000,
+      "isOpen": false
+    }
+  ],
+  "powerLocations": [
+    {
+      "id": "power_subway_generator",
+      "name": "Power Switch #1 (Subway Generator)",
+      "x": 260,
+      "y": 640,
+      "activated": false
+    },
+    {
+      "id": "power_plaza_transformer",
+      "name": "Power Switch #2 (Plaza Substation)",
+      "x": 2180,
+      "y": 1080,
+      "activated": false
+    }
+  ],
+  "packAPunchLocations": [
+    {
+      "id": "pap_subway_vault",
+      "name": "Pack-a-Punch #1 (Subway Concourse)",
+      "x": 240,
+      "y": 1120,
+      "cost": 2500,
+      "requiresPower": false
+    },
+    {
+      "id": "pap_street_overpass",
+      "name": "Pack-a-Punch #2 (North Street Overpass)",
+      "x": 1180,
+      "y": 240,
+      "cost": 2500,
+      "requiresPower": false
+    },
+    {
+      "id": "pap_depot_armory",
+      "name": "Pack-a-Punch #3 (Bus Depot Armory)",
+      "x": 2160,
+      "y": 320,
+      "cost": 2500,
+      "requiresPower": false
+    }
+  ],
+  "wallWeapons": [
+    {
+      "id": "wall_shotgun",
+      "name": "M870 Combat Shotgun",
+      "weaponKey": "shotgun",
+      "x": 680,
+      "y": 680,
+      "cost": 500
+    },
+    {
+      "id": "wall_smg",
+      "name": "KRISS Vector SMG",
+      "weaponKey": "smg",
+      "x": 1380,
+      "y": 620,
+      "cost": 750
+    },
+    {
+      "id": "wall_rifle",
+      "name": "M4A1 Tactical Rifle",
+      "weaponKey": "rifle",
+      "x": 1840,
+      "y": 300,
+      "cost": 1200
+    },
+    {
+      "id": "wall_railgun",
+      "name": "Vortex Arc Railgun",
+      "weaponKey": "railgun",
+      "x": 2160,
+      "y": 1480,
+      "cost": 2000
+    }
+  ],
+  "vehicleStations": [
+    {
+      "id": "station_depot_repair",
+      "type": "repair",
+      "name": "Bus Armor Repair Bay",
+      "x": 1960,
+      "y": 520,
+      "radius": 130,
+      "cost": 250,
+      "ratePerSec": 350
+    },
+    {
+      "id": "station_street_repair",
+      "type": "repair",
+      "name": "Boulevard Field Welder",
+      "x": 860,
+      "y": 900,
+      "radius": 120,
+      "cost": 250,
+      "ratePerSec": 300
+    },
+    {
+      "id": "station_fuel_north",
+      "type": "fuel",
+      "name": "Metro Fuel Pump North",
+      "x": 920,
+      "y": 360,
+      "radius": 130,
+      "cost": 150,
+      "ratePerSec": 45
+    },
+    {
+      "id": "station_fuel_south",
+      "type": "fuel",
+      "name": "Transit Fuel Pump South",
+      "x": 1480,
+      "y": 1420,
+      "radius": 130,
+      "cost": 150,
+      "ratePerSec": 45
+    }
+  ],
+  "spawnPoints": [
+    { "id": "sp_tunnel_1", "type": "subway_tunnel", "label": "Subway Tunnel Alpha", "x": 140, "y": 540, "hasBarrier": true, "barrierHp": 300 },
+    { "id": "sp_tunnel_2", "type": "subway_tunnel", "label": "Subway Tunnel Beta", "x": 140, "y": 1200, "hasBarrier": true, "barrierHp": 300 },
+    { "id": "sp_barrier_n1", "type": "barrier", "label": "North Alley Barrier", "x": 820, "y": 80, "hasBarrier": true, "barrierHp": 250 },
+    { "id": "sp_barrier_n2", "type": "barrier", "label": "Overpass Barrier", "x": 1520, "y": 80, "hasBarrier": true, "barrierHp": 250 },
+    { "id": "sp_barrier_s1", "type": "barrier", "label": "South Street Barrier", "x": 840, "y": 1700, "hasBarrier": true, "barrierHp": 250 },
+    { "id": "sp_barrier_s2", "type": "barrier", "label": "South Highway Breach", "x": 1540, "y": 1700, "hasBarrier": true, "barrierHp": 250 },
+    { "id": "sp_depot_breach", "type": "barrier", "label": "Depot East Window", "x": 2280, "y": 460, "hasBarrier": true, "barrierHp": 250 },
+    { "id": "sp_plaza_breach", "type": "barrier", "label": "Plaza South Breach", "x": 2260, "y": 1620, "hasBarrier": true, "barrierHp": 250 }
+  ],
+  "environmentalObjects": {
+    "neonSigns": [],
+    "fireEscapes": [],
+    "easterEggNodes": [],
+    "bearTraps": [],
+    "fallingTrees": [],
+    "mudPatches": [],
+    "ziplines": []
+  }
+}

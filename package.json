@@ -1,0 +1,14 @@
+{
+  "name": "3d-zombie-game-agent",
+  "version": "1.0.0",
+  "description": "Top-Down Zombie Survival Game with Data-Driven Maps, Drivable Armored Bus, Dynamic Weather & Day/Night Cycle",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0 --port 5173",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0 --port 5173"
+  },
+  "devDependencies": {
+    "vite": "^5.4.11"
+  }
+}

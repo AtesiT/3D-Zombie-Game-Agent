@@ -1,0 +1,294 @@
+{
+  "id": "blackwood-logging-camp",
+  "name": "Blackwood Logging Camp",
+  "subtitle": "Deep Forest Lumber Mill & Muddy Riverbank",
+  "scene": "scene_blackwood_logging_camp",
+  "musicTrack": "/assets/audio/blackwood_logging_theme.ogg",
+  "thumbnail": "/assets/maps/blackwood-logging-camp/layout.png",
+  "tileset": "/assets/maps/blackwood-logging-camp/tileset.png",
+  "layout": "/assets/maps/blackwood-logging-camp/layout.png",
+  "difficulty": 4,
+  "worldSize": {
+    "width": 2400,
+    "height": 1800,
+    "gridCellSize": 40
+  },
+  "background": {
+    "skybox": "pine_forest_mist",
+    "groundColor": "#172017",
+    "gridColor": "#223022",
+    "roadColor": "#29251e",
+    "laneLineColor": "#84cc16",
+    "ambientTint": "#86efac"
+  },
+  "startingTimeHours": 15.0,
+  "weatherWeights": [
+    { "state": "fog", "weight": 30 },
+    { "state": "snow", "weight": 25 },
+    { "state": "rain", "weight": 20 },
+    { "state": "clear", "weight": 15 },
+    { "state": "thunderstorm", "weight": 10 }
+  ],
+  "uniqueMechanics": {
+    "type": "logging_camp_hazards",
+    "title": "Bear Traps, Shootable Falling Trees, Mud Patches & Escape Zipline",
+    "description": "Steel Bear Traps damage and root zombies or players in place. Shoot red Timber Support Beams to fell massive logs that crush hordes and dynamically block paths. Mud Patches slow movement by 40%, and the Elevated Zipline lets you escape across the camp.",
+    "busConfig": {
+      "enabled": false
+    }
+  },
+  "playerSpawn": {
+    "x": 1160,
+    "y": 900
+  },
+  "zones": [
+    {
+      "id": "zone_sawmill",
+      "name": "OLD SAWMILL DECK",
+      "x": 140,
+      "y": 200,
+      "w": 680,
+      "h": 1400,
+      "floorColor": "#27211c",
+      "accentColor": "#f59e0b",
+      "roofed": true
+    },
+    {
+      "id": "zone_timber_yard",
+      "name": "TIMBER STORAGE CLEARING",
+      "x": 820,
+      "y": 200,
+      "w": 780,
+      "h": 1400,
+      "floorColor": "#1b261b",
+      "accentColor": "#84cc16",
+      "roofed": false
+    },
+    {
+      "id": "zone_watchtower_ridge",
+      "name": "WATCHTOWER RIDGE & RIVER",
+      "x": 1600,
+      "y": 200,
+      "w": 660,
+      "h": 1400,
+      "floorColor": "#192524",
+      "accentColor": "#10b981",
+      "roofed": false
+    }
+  ],
+  "walls": [
+    { "x": 0, "y": 0, "w": 2400, "h": 40, "color": "#0f170f", "label": "North Ridge" },
+    { "x": 0, "y": 1760, "w": 2400, "h": 40, "color": "#0f170f", "label": "South Ridge" },
+    { "x": 0, "y": 0, "w": 40, "h": 1800, "color": "#0f170f", "label": "West Woods" },
+    { "x": 2360, "y": 0, "w": 40, "h": 1800, "color": "#0f170f", "label": "East Woods" },
+
+    { "x": 440, "y": 420, "w": 200, "h": 100, "color": "#451a03", "label": "Lumber Stack A" },
+    { "x": 440, "y": 1240, "w": 200, "h": 100, "color": "#451a03", "label": "Lumber Stack B" },
+    { "x": 800, "y": 480, "w": 40, "h": 260, "color": "#3f2e21", "label": "Sawmill East Wall N" },
+    { "x": 800, "y": 1020, "w": 40, "h": 260, "color": "#3f2e21", "label": "Sawmill East Wall S" },
+    { "x": 1580, "y": 480, "w": 40, "h": 260, "color": "#365314", "label": "Ridge Cliff N" },
+    { "x": 1580, "y": 1020, "w": 40, "h": 260, "color": "#365314", "label": "Ridge Cliff S" }
+  ],
+  "doors": [
+    {
+      "id": "door_sawmill_gate",
+      "name": "Sawmill Timber Gate",
+      "x": 800,
+      "y": 740,
+      "w": 40,
+      "h": 280,
+      "cost": 750,
+      "isOpen": true
+    },
+    {
+      "id": "door_ridge_bridge",
+      "name": "Watchtower Rope Bridge Gate",
+      "x": 1580,
+      "y": 740,
+      "w": 40,
+      "h": 280,
+      "cost": 750,
+      "isOpen": false
+    }
+  ],
+  "powerLocations": [
+    {
+      "id": "power_sawmill_diesel",
+      "name": "Sawmill Diesel Generator #1",
+      "x": 280,
+      "y": 320,
+      "activated": false
+    },
+    {
+      "id": "power_watchtower_beacon",
+      "name": "Watchtower Radio Generator #2",
+      "x": 2080,
+      "y": 340,
+      "activated": false
+    }
+  ],
+  "packAPunchLocations": [
+    {
+      "id": "pap_logging_forge",
+      "name": "Pack-a-Punch (Sawmill Blacksmith Anvil)",
+      "x": 280,
+      "y": 1440,
+      "cost": 2500,
+      "requiresPower": false
+    },
+    {
+      "id": "pap_ridge_bunker",
+      "name": "Pack-a-Punch (Ranger Bunker Vault)",
+      "x": 2120,
+      "y": 1440,
+      "cost": 2500,
+      "requiresPower": false
+    }
+  ],
+  "wallWeapons": [
+    {
+      "id": "wall_camp_shotgun",
+      "name": "M870 Combat Shotgun",
+      "weaponKey": "shotgun",
+      "x": 960,
+      "y": 680,
+      "cost": 500
+    },
+    {
+      "id": "wall_camp_smg",
+      "name": "KRISS Vector SMG",
+      "weaponKey": "smg",
+      "x": 640,
+      "y": 880,
+      "cost": 750
+    },
+    {
+      "id": "wall_camp_rifle",
+      "name": "M4A1 Tactical Rifle",
+      "weaponKey": "rifle",
+      "x": 1380,
+      "y": 1120,
+      "cost": 1200
+    },
+    {
+      "id": "wall_camp_railgun",
+      "name": "Vortex Arc Railgun",
+      "weaponKey": "railgun",
+      "x": 1920,
+      "y": 880,
+      "cost": 2000
+    }
+  ],
+  "vehicleStations": [],
+  "spawnPoints": [
+    { "id": "sp_camp_1", "type": "barrier", "label": "North Pine Line", "x": 1060, "y": 100, "hasBarrier": true, "barrierHp": 250 },
+    { "id": "sp_camp_2", "type": "barrier", "label": "South Creek Bed", "x": 1160, "y": 1680, "hasBarrier": true, "barrierHp": 250 },
+    { "id": "sp_camp_3", "type": "barrier", "label": "Sawmill West Window", "x": 120, "y": 640, "hasBarrier": true, "barrierHp": 250 },
+    { "id": "sp_camp_4", "type": "barrier", "label": "Sawmill South Log Chute", "x": 220, "y": 1620, "hasBarrier": true, "barrierHp": 250 },
+    { "id": "sp_camp_5", "type": "barrier", "label": "East Ridge Trail", "x": 2240, "y": 640, "hasBarrier": true, "barrierHp": 250 },
+    { "id": "sp_camp_6", "type": "barrier", "label": "Ranger Outpost Breach", "x": 2240, "y": 1240, "hasBarrier": true, "barrierHp": 250 }
+  ],
+  "environmentalObjects": {
+    "neonSigns": [],
+    "fireEscapes": [],
+    "easterEggNodes": [],
+    "bearTraps": [
+      { "id": "trap_1", "x": 960, "y": 840, "radius": 32, "armed": true, "rootDuration": 3.5, "zombieDamage": 320, "playerDamage": 25 },
+      { "id": "trap_2", "x": 1320, "y": 840, "radius": 32, "armed": true, "rootDuration": 3.5, "zombieDamage": 320, "playerDamage": 25 },
+      { "id": "trap_3", "x": 1140, "y": 620, "radius": 32, "armed": true, "rootDuration": 3.5, "zombieDamage": 320, "playerDamage": 25 },
+      { "id": "trap_4", "x": 1140, "y": 1120, "radius": 32, "armed": true, "rootDuration": 3.5, "zombieDamage": 320, "playerDamage": 25 },
+      { "id": "trap_5", "x": 720, "y": 880, "radius": 32, "armed": true, "rootDuration": 3.5, "zombieDamage": 320, "playerDamage": 25 },
+      { "id": "trap_6", "x": 1720, "y": 880, "radius": 32, "armed": true, "rootDuration": 3.5, "zombieDamage": 320, "playerDamage": 25 }
+    ],
+    "fallingTrees": [
+      {
+        "id": "tree_1",
+        "label": "Redwood Support Beam Alpha",
+        "x": 1020,
+        "y": 460,
+        "fallAngle": 0.0,
+        "trunkLength": 220,
+        "trunkWidth": 46,
+        "hp": 50,
+        "maxHp": 50,
+        "crushDamage": 900
+      },
+      {
+        "id": "tree_2",
+        "label": "Timber Crane Support Beta",
+        "x": 1360,
+        "y": 540,
+        "fallAngle": 1.57,
+        "trunkLength": 220,
+        "trunkWidth": 46,
+        "hp": 50,
+        "maxHp": 50,
+        "crushDamage": 900
+      },
+      {
+        "id": "tree_3",
+        "label": "Creek Pine Support Gamma",
+        "x": 1020,
+        "y": 1260,
+        "fallAngle": 0.0,
+        "trunkLength": 220,
+        "trunkWidth": 46,
+        "hp": 50,
+        "maxHp": 50,
+        "crushDamage": 900
+      },
+      {
+        "id": "tree_4",
+        "label": "Sawmill Log Pile Delta",
+        "x": 620,
+        "y": 640,
+        "fallAngle": 1.57,
+        "trunkLength": 200,
+        "trunkWidth": 46,
+        "hp": 50,
+        "maxHp": 50,
+        "crushDamage": 900
+      },
+      {
+        "id": "tree_5",
+        "label": "Ridge Giant Cedar Epsilon",
+        "x": 1820,
+        "y": 660,
+        "fallAngle": 1.57,
+        "trunkLength": 220,
+        "trunkWidth": 46,
+        "hp": 50,
+        "maxHp": 50,
+        "crushDamage": 900
+      }
+    ],
+    "mudPatches": [
+      { "id": "mud_1", "name": "North Timber Mud Pit", "x": 1160, "y": 420, "rx": 145, "ry": 85, "speedMultiplier": 0.60 },
+      { "id": "mud_2", "name": "Central Bog", "x": 1240, "y": 980, "rx": 155, "ry": 95, "speedMultiplier": 0.60 },
+      { "id": "mud_3", "name": "Sawmill Runoff Slurry", "x": 540, "y": 980, "rx": 130, "ry": 80, "speedMultiplier": 0.60 },
+      { "id": "mud_4", "name": "Riverbank Mire", "x": 1860, "y": 1140, "rx": 160, "ry": 95, "speedMultiplier": 0.60 }
+    ],
+    "ziplines": [
+      {
+        "id": "zipline_main",
+        "name": "Sawmill-to-Watchtower Escape Zipline",
+        "startX": 360,
+        "startY": 760,
+        "endX": 1960,
+        "endY": 760,
+        "speed": 680,
+        "cooldown": 8
+      },
+      {
+        "id": "zipline_return",
+        "name": "Ridge-to-Clearing Fast Zipline",
+        "startX": 1960,
+        "startY": 1180,
+        "endX": 960,
+        "endY": 1180,
+        "speed": 680,
+        "cooldown": 8
+      }
+    ]
+  }
+}

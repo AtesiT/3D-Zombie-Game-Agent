@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dead Transit // Top-Down Zombie Survival</title>
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="stylesheet" href="/src/styles.css" />
+  </head>
+  <body>
+    <div id="game-root">
+      <canvas id="game-canvas"></canvas>
+
+      <!-- Top Tactical HUD -->
+      <div class="hud-top-bar">
+        <div class="hud-left-cluster">
+          <!-- Wave & Sector Card -->
+          <div class="hud-card wave-badge">
+            <span class="wave-label" id="hud-map-name">TERMINAL TRANSIT</span>
+            <div class="wave-number">WAVE <span id="hud-wave-num">1</span></div>
+            <span class="wave-sub"><span id="hud-zombies-alive">0</span> Active // <span id="hud-kills">0</span> Kills</span>
+          </div>
+
+          <!-- Player Vitals & Arsenal Card -->
+          <div class="hud-card player-vitals">
+            <div class="vital-row">
+              <span id="hud-weapon-name">🔫 M4A1 Tactical Rifle</span>
+              <span class="points-display" id="hud-points">1500 PTS</span>
+            </div>
+            <div class="vital-row">
+              <span>HP: <strong id="hud-hp-text">150/150</strong></span>
+              <span>Acc: <strong id="hud-acc-text">100%</strong></span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill fill-hp" id="hud-hp-bar" style="width: 100%"></div>
+            </div>
+            <div class="vital-row">
+              <span>🔦 Flashlight [L]: <strong id="hud-flashlight-state">OFF</strong></span>
+              <span>Battery: <strong id="hud-battery-text">100%</strong></span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill fill-battery" id="hud-battery-bar" style="width: 100%"></div>
+            </div>
+          </div>
+
+          <!-- Environment (Weather & Day/Night) Card -->
+          <div class="hud-card env-status-card">
+            <div class="env-header-row">
+              <span id="hud-weather-label">☀️ Clear Skies</span>
+              <span id="hud-clock-label">🕒 09:30 (Daytime)</span>
+            </div>
+            <div class="env-modifiers-row" id="hud-modifiers-list"></div>
+          </div>
+
+          <!-- Drivable Armored Bus Status Card (shown on Terminal Transit) -->
+          <div class="hud-card bus-hud-card" id="hud-bus-card">
+            <div class="vital-row">
+              <strong id="hud-bus-status">🚌 ARMORED BUS (PARKED)</strong>
+              <span id="hud-bus-crush">💀 0 Crushed</span>
+            </div>
+            <div class="vital-row">
+              <span>Armor HP: <strong id="hud-bus-hp-text">1200/1200</strong></span>
+              <span>Speed: <strong id="hud-bus-speed">0</strong> u/s</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill fill-bus-hp" id="hud-bus-hp-bar" style="width: 100%"></div>
+            </div>
+            <div class="vital-row">
+              <span>Fuel: <strong id="hud-bus-fuel-text">100%</strong></span>
+              <span id="hud-bus-drift-badge">Grip: Normal</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill fill-bus-fuel" id="hud-bus-fuel-bar" style="width: 100%"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right-side Debug & Verification Command Center -->
+        <div class="hud-card debug-panel">
+          <div class="debug-title-row">
+            <span class="debug-title">⚙️ LIVE DEBUG & TELEMETRY</span>
+            <button type="button" class="debug-btn accent" id="btn-open-map-select">🗺️ Select Map [M]</button>
+          </div>
+          <div class="telemetry-line" id="hud-telemetry">
+            FPS: 60 | Zombies: 0 | Path Updates: 0
+          </div>
+          <div class="debug-btn-group">
+            <button type="button" class="debug-btn" data-debug-weather="clear">☀️ Clear</button>
+            <button type="button" class="debug-btn" data-debug-weather="rain">🌧️ Rain</button>
+            <button type="button" class="debug-btn" data-debug-weather="fog">🌫️ Fog</button>
+            <button type="button" class="debug-btn" data-debug-weather="thunderstorm">⛈️ Storm</button>
+            <button type="button" class="debug-btn" data-debug-weather="snow">❄️ Snow</button>
+            <button type="button" class="debug-btn accent" id="btn-debug-lightning">⚡ Strike</button>
+          </div>
+          <div class="debug-btn-group">
+            <button type="button" class="debug-btn" data-debug-time="day">☀️ Day (12:00)</button>
+            <button type="button" class="debug-btn" data-debug-time="dusk">🌇 Dusk (18:00)</button>
+            <button type="button" class="debug-btn" data-debug-time="night">🌙 Night (22:30)</button>
+            <button type="button" class="debug-btn" id="btn-debug-pause-time">⏸️ Pause Clock</button>
+            <button type="button" class="debug-btn" id="btn-debug-flashlight">🔦 Light [L]</button>
+          </div>
+          <div class="debug-btn-group">
+            <button type="button" class="debug-btn" id="btn-debug-enter-bus">🚌 Board/Exit Bus [E]</button>
+            <button type="button" class="debug-btn" id="btn-debug-spawn-25">+25 Zombies</button>
+            <button type="button" class="debug-btn accent" id="btn-debug-spawn-100">🔥 100+ Zombies Test</button>
+            <button type="button" class="debug-btn" id="btn-debug-next-wave">⏭️ Next Wave</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contextual Interaction Banner -->
+      <div id="hud-interaction-banner" class="interaction-banner hidden">
+        Press [E] to board the Armored Transit Bus
+      </div>
+
+      <!-- Bottom Controls Hint -->
+      <div class="hud-bottom-bar">
+        <div class="hud-card controls-hint-card">
+          <kbd>WASD</kbd> Move / Drive Bus &nbsp;|&nbsp;
+          <kbd>Space</kbd> Bus Handbrake Drift &nbsp;|&nbsp;
+          <kbd>Mouse</kbd> Aim &amp; Shoot (Neon Signs / Timber Beams / Zombies) &nbsp;|&nbsp;
+          <kbd>E</kbd> Enter/Exit Bus &nbsp;|&nbsp;
+          <kbd>F</kbd> Interact (Doors, Weapons, Power, PaP, Zipline, Relays) &nbsp;|&nbsp;
+          <kbd>L</kbd> Flashlight &nbsp;|&nbsp;
+          <kbd>M</kbd> Map Select
+        </div>
+      </div>
+
+      <!-- Map Selection UI Modal -->
+      <div id="map-selection-root"></div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
