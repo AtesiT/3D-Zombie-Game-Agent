@@ -1,0 +1,75 @@
+{
+  "version": "1.0.0",
+  "defaultMapId": "terminal-transit",
+  "maps": [
+    {
+      "id": "terminal-transit",
+      "name": "Terminal Transit",
+      "subtitle": "Abandoned Subway Terminal & City Boulevard",
+      "scene": "scene_terminal_transit",
+      "configUrl": "/assets/maps/terminal-transit/map.json",
+      "thumbnail": "/assets/maps/terminal-transit/layout.png",
+      "tileset": "/assets/maps/terminal-transit/tileset.png",
+      "layout": "/assets/maps/terminal-transit/layout.png",
+      "musicTrack": "/assets/audio/terminal_transit_theme.ogg",
+      "difficulty": 3,
+      "background": {
+        "skybox": "urban_overcast_dusk",
+        "groundColor": "#1b2028",
+        "gridColor": "#252c37",
+        "ambientTint": "#8fa8c8"
+      },
+      "uniqueMechanics": {
+        "primary": "Drivable Armored Transit Bus",
+        "summary": "Board and drive an armored city bus with inertia drift physics, zombie-crushing plow, dynamic pathfinding obstacle carving, fuel & durability management, 2 power generators, and 3 Pack-a-Punch vaults.",
+        "tags": ["Drivable Bus", "Zombie Crush", "Dynamic Pathfinding", "3x Pack-a-Punch", "Subway Tunnels"]
+      }
+    },
+    {
+      "id": "neon-night-market",
+      "name": "Neon Night Market",
+      "subtitle": "Dense Cyberpunk Alleys & Elevated Fire Escapes",
+      "scene": "scene_neon_night_market",
+      "configUrl": "/assets/maps/neon-night-market/map.json",
+      "thumbnail": "/assets/maps/neon-night-market/layout.png",
+      "tileset": "/assets/maps/neon-night-market/tileset.png",
+      "layout": "/assets/maps/neon-night-market/layout.png",
+      "musicTrack": "/assets/audio/neon_night_market_theme.ogg",
+      "difficulty": 4,
+      "background": {
+        "skybox": "cyber_neon_sky",
+        "groundColor": "#141321",
+        "gridColor": "#221e38",
+        "ambientTint": "#d946ef"
+      },
+      "uniqueMechanics": {
+        "primary": "Destructible Neon Signs & Fire Escapes",
+        "summary": "Shoot overhanging neon signs to drop them and create electrified hazard zones (amplified by rain). Climb elevated fire escapes for a +25% accuracy bonus while zombies climb slowly, and solve the 3-node Cyber Shrine Easter Egg.",
+        "tags": ["Destructible Neon Signs", "Electrical Hazards", "Elevated Fire Escapes", "Main Easter Egg"]
+      }
+    },
+    {
+      "id": "blackwood-logging-camp",
+      "name": "Blackwood Logging Camp",
+      "subtitle": "Deep Forest Lumber Mill & Muddy Riverbank",
+      "scene": "scene_blackwood_logging_camp",
+      "configUrl": "/assets/maps/blackwood-logging-camp/map.json",
+      "thumbnail": "/assets/maps/blackwood-logging-camp/layout.png",
+      "tileset": "/assets/maps/blackwood-logging-camp/tileset.png",
+      "layout": "/assets/maps/blackwood-logging-camp/layout.png",
+      "musicTrack": "/assets/audio/blackwood_logging_theme.ogg",
+      "difficulty": 4,
+      "background": {
+        "skybox": "pine_forest_mist",
+        "groundColor": "#192219",
+        "gridColor": "#233023",
+        "ambientTint": "#65a30d"
+      },
+      "uniqueMechanics": {
+        "primary": "Bear Traps, Falling Timber, Mud & Escape Zipline",
+        "summary": "Lure hordes into steel bear traps (damage + root), shoot timber support beams to fell massive trees that crush enemies and dynamically block paths, wade through -40% speed mud patches, and ride the elevated sawmill zipline.",
+        "tags": ["Bear Traps (Root)", "Shootable Falling Trees", "Mud Patches (-40% Speed)", "Elevated Zipline"]
+      }
+    }
+  ]
+}

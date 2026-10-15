@@ -1,0 +1,349 @@
+{
+  "id": "neon-night-market",
+  "name": "Neon Night Market",
+  "subtitle": "Dense Cyberpunk Alleys & Elevated Fire Escapes",
+  "scene": "scene_neon_night_market",
+  "musicTrack": "/assets/audio/neon_night_market_theme.ogg",
+  "thumbnail": "/assets/maps/neon-night-market/layout.png",
+  "tileset": "/assets/maps/neon-night-market/tileset.png",
+  "layout": "/assets/maps/neon-night-market/layout.png",
+  "difficulty": 4,
+  "worldSize": {
+    "width": 2200,
+    "height": 1700,
+    "gridCellSize": 40
+  },
+  "background": {
+    "skybox": "cyber_neon_sky",
+    "groundColor": "#12111d",
+    "gridColor": "#1f1d33",
+    "roadColor": "#1a1829",
+    "laneLineColor": "#ec4899",
+    "ambientTint": "#e879f9"
+  },
+  "startingTimeHours": 18.5,
+  "weatherWeights": [
+    { "state": "rain", "weight": 35 },
+    { "state": "thunderstorm", "weight": 25 },
+    { "state": "clear", "weight": 20 },
+    { "state": "fog", "weight": 15 },
+    { "state": "snow", "weight": 5 }
+  ],
+  "uniqueMechanics": {
+    "type": "neon_hazards_and_verticality",
+    "title": "Destructible Neon Signs, Fire Escapes & Cyber Shrine Easter Egg",
+    "description": "Shoot overhanging Neon Signs to drop them onto zombies and create high-voltage electrical hazard zones. Ascend Fire Escapes for +25% accuracy and +20% damage while zombies climb slowly. Activate all 3 Neon Relays to unlock the Cyber Shrine Overload Easter Egg.",
+    "busConfig": {
+      "enabled": false
+    }
+  },
+  "playerSpawn": {
+    "x": 1100,
+    "y": 860
+  },
+  "zones": [
+    {
+      "id": "zone_dragon_alley",
+      "name": "DRAGON NEON ALLEY",
+      "x": 120,
+      "y": 160,
+      "w": 640,
+      "h": 1380,
+      "floorColor": "#19162b",
+      "accentColor": "#f43f5e",
+      "roofed": false
+    },
+    {
+      "id": "zone_market_bazaar",
+      "name": "CENTRAL NIGHT BAZAAR",
+      "x": 760,
+      "y": 160,
+      "w": 680,
+      "h": 1380,
+      "floorColor": "#1d1836",
+      "accentColor": "#d946ef",
+      "roofed": false
+    },
+    {
+      "id": "zone_arcade_sector",
+      "name": "CYBER ARCADE & SHRINE",
+      "x": 1440,
+      "y": 160,
+      "w": 640,
+      "h": 1380,
+      "floorColor": "#151c30",
+      "accentColor": "#06b6d4",
+      "roofed": true
+    }
+  ],
+  "walls": [
+    { "x": 0, "y": 0, "w": 2200, "h": 40, "color": "#090d16", "label": "North Wall" },
+    { "x": 0, "y": 1660, "w": 2200, "h": 40, "color": "#090d16", "label": "South Wall" },
+    { "x": 0, "y": 0, "w": 40, "h": 1700, "color": "#090d16", "label": "West Wall" },
+    { "x": 2160, "y": 0, "w": 40, "h": 1700, "color": "#090d16", "label": "East Wall" },
+
+    { "x": 440, "y": 360, "w": 240, "h": 120, "color": "#312e81", "label": "Ramen Stall Block" },
+    { "x": 440, "y": 1160, "w": 240, "h": 120, "color": "#312e81", "label": "Synth Shop Block" },
+    { "x": 740, "y": 540, "w": 40, "h": 240, "color": "#4c1d95", "label": "Alley Chokepoint West N" },
+    { "x": 740, "y": 980, "w": 40, "h": 240, "color": "#4c1d95", "label": "Alley Chokepoint West S" },
+    { "x": 1420, "y": 540, "w": 40, "h": 240, "color": "#1e3a8a", "label": "Alley Chokepoint East N" },
+    { "x": 1420, "y": 980, "w": 40, "h": 240, "color": "#1e3a8a", "label": "Alley Chokepoint East S" },
+    { "x": 1560, "y": 400, "w": 220, "h": 120, "color": "#164e63", "label": "Arcade Cabinet Row" },
+    { "x": 1560, "y": 1160, "w": 220, "h": 120, "color": "#164e63", "label": "Server Cooling Block" }
+  ],
+  "doors": [
+    {
+      "id": "door_neon_west",
+      "name": "Dragon Alley Shutter",
+      "x": 740,
+      "y": 780,
+      "w": 40,
+      "h": 200,
+      "cost": 750,
+      "isOpen": true
+    },
+    {
+      "id": "door_neon_east",
+      "name": "Cyber Arcade Security Gate",
+      "x": 1420,
+      "y": 780,
+      "w": 40,
+      "h": 200,
+      "cost": 750,
+      "isOpen": false
+    }
+  ],
+  "powerLocations": [
+    {
+      "id": "power_neon_substation",
+      "name": "Neon Grid Breaker #1",
+      "x": 280,
+      "y": 320,
+      "activated": false
+    },
+    {
+      "id": "power_arcade_core",
+      "name": "Arcade Fusion Reactor #2",
+      "x": 1920,
+      "y": 320,
+      "activated": false
+    }
+  ],
+  "packAPunchLocations": [
+    {
+      "id": "pap_neon_shrine",
+      "name": "Pack-a-Punch (Bazaar Overclock Forge)",
+      "x": 1100,
+      "y": 240,
+      "cost": 2500,
+      "requiresPower": false
+    },
+    {
+      "id": "pap_arcade_backroom",
+      "name": "Pack-a-Punch (Arcade Vault)",
+      "x": 1920,
+      "y": 1420,
+      "cost": 2500,
+      "requiresPower": false
+    }
+  ],
+  "wallWeapons": [
+    {
+      "id": "wall_neon_smg",
+      "name": "KRISS Vector SMG",
+      "weaponKey": "smg",
+      "x": 920,
+      "y": 640,
+      "cost": 750
+    },
+    {
+      "id": "wall_neon_shotgun",
+      "name": "M870 Combat Shotgun",
+      "weaponKey": "shotgun",
+      "x": 580,
+      "y": 860,
+      "cost": 500
+    },
+    {
+      "id": "wall_neon_rifle",
+      "name": "M4A1 Tactical Rifle",
+      "weaponKey": "rifle",
+      "x": 1280,
+      "y": 1080,
+      "cost": 1200
+    },
+    {
+      "id": "wall_neon_railgun",
+      "name": "Vortex Arc Railgun",
+      "weaponKey": "railgun",
+      "x": 1760,
+      "y": 860,
+      "cost": 2000
+    }
+  ],
+  "vehicleStations": [],
+  "spawnPoints": [
+    { "id": "sp_neon_1", "type": "barrier", "label": "West Alley Window", "x": 120, "y": 300, "hasBarrier": true, "barrierHp": 250 },
+    { "id": "sp_neon_2", "type": "barrier", "label": "South Dragon Gate", "x": 160, "y": 1480, "hasBarrier": true, "barrierHp": 250 },
+    { "id": "sp_neon_3", "type": "barrier", "label": "North Market Roof Drop", "x": 860, "y": 100, "hasBarrier": true, "barrierHp": 250 },
+    { "id": "sp_neon_4", "type": "barrier", "label": "South Bazaar Drain", "x": 1100, "y": 1580, "hasBarrier": true, "barrierHp": 250 },
+    { "id": "sp_neon_5", "type": "barrier", "label": "Arcade North Breach", "x": 1820, "y": 120, "hasBarrier": true, "barrierHp": 250 },
+    { "id": "sp_neon_6", "type": "barrier", "label": "East Service Door", "x": 2060, "y": 900, "hasBarrier": true, "barrierHp": 250 }
+  ],
+  "environmentalObjects": {
+    "neonSigns": [
+      {
+        "id": "neon_sign_1",
+        "label": "CYBER RAMEN 2099",
+        "x": 860,
+        "y": 780,
+        "w": 120,
+        "h": 34,
+        "color": "#f43f5e",
+        "hp": 60,
+        "maxHp": 60,
+        "shockRadius": 135,
+        "shockDamagePerSec": 55,
+        "hazardDuration": 16
+      },
+      {
+        "id": "neon_sign_2",
+        "label": "DRAGON KOWLOON CORP",
+        "x": 1280,
+        "y": 760,
+        "w": 130,
+        "h": 34,
+        "color": "#06b6d4",
+        "hp": 60,
+        "maxHp": 60,
+        "shockRadius": 135,
+        "shockDamagePerSec": 55,
+        "hazardDuration": 16
+      },
+      {
+        "id": "neon_sign_3",
+        "label": "NEON LOTUS CLUB",
+        "x": 1080,
+        "y": 520,
+        "w": 130,
+        "h": 34,
+        "color": "#d946ef",
+        "hp": 60,
+        "maxHp": 60,
+        "shockRadius": 140,
+        "shockDamagePerSec": 60,
+        "hazardDuration": 16
+      },
+      {
+        "id": "neon_sign_4",
+        "label": "SYNTH BIO-CLINIC",
+        "x": 1080,
+        "y": 1180,
+        "w": 130,
+        "h": 34,
+        "color": "#a855f7",
+        "hp": 60,
+        "maxHp": 60,
+        "shockRadius": 140,
+        "shockDamagePerSec": 60,
+        "hazardDuration": 16
+      },
+      {
+        "id": "neon_sign_5",
+        "label": "GOLDEN PACHINKO",
+        "x": 320,
+        "y": 860,
+        "w": 125,
+        "h": 34,
+        "color": "#facc15",
+        "hp": 60,
+        "maxHp": 60,
+        "shockRadius": 135,
+        "shockDamagePerSec": 55,
+        "hazardDuration": 16
+      },
+      {
+        "id": "neon_sign_6",
+        "label": "AKIRA TAKOYAKI",
+        "x": 1820,
+        "y": 660,
+        "w": 125,
+        "h": 34,
+        "color": "#22d3ee",
+        "hp": 60,
+        "maxHp": 60,
+        "shockRadius": 135,
+        "shockDamagePerSec": 55,
+        "hazardDuration": 16
+      }
+    ],
+    "fireEscapes": [
+      {
+        "id": "fire_escape_west",
+        "name": "Dragon Alley Fire Escape (Elevated +25% Acc)",
+        "x": 200,
+        "y": 540,
+        "w": 180,
+        "h": 240,
+        "ladderX": 290,
+        "ladderY": 780,
+        "accuracyBonus": 0.25,
+        "damageBonus": 0.20,
+        "zombieClimbSlowFactor": 0.32
+      },
+      {
+        "id": "fire_escape_central",
+        "name": "Bazaar Overlook Balcony (Elevated +25% Acc)",
+        "x": 920,
+        "y": 320,
+        "w": 220,
+        "h": 140,
+        "ladderX": 1030,
+        "ladderY": 460,
+        "accuracyBonus": 0.25,
+        "damageBonus": 0.20,
+        "zombieClimbSlowFactor": 0.32
+      },
+      {
+        "id": "fire_escape_east",
+        "name": "Arcade Rooftop Catwalk (Elevated +25% Acc)",
+        "x": 1840,
+        "y": 860,
+        "w": 200,
+        "h": 240,
+        "ladderX": 1840,
+        "ladderY": 980,
+        "accuracyBonus": 0.25,
+        "damageBonus": 0.20,
+        "zombieClimbSlowFactor": 0.32
+      }
+    ],
+    "easterEggNodes": [
+      {
+        "id": "ee_relay_1",
+        "name": "Encrypted Neon Relay #1 (Alley Shrine)",
+        "x": 260,
+        "y": 1340,
+        "activated": false
+      },
+      {
+        "id": "ee_relay_2",
+        "name": "Encrypted Neon Relay #2 (Bazaar Core)",
+        "x": 1100,
+        "y": 860,
+        "activated": false
+      },
+      {
+        "id": "ee_relay_3",
+        "name": "Encrypted Neon Relay #3 (Arcade Mainframe)",
+        "x": 1960,
+        "y": 640,
+        "activated": false
+      }
+    ],
+    "bearTraps": [],
+    "fallingTrees": [],
+    "mudPatches": [],
+    "ziplines": []
+  }
+}
